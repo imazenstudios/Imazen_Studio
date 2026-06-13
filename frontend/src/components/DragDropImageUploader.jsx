@@ -68,11 +68,7 @@ const DragDropImageUploader = ({ onUploadSuccess, currentImage, multiple = false
         const formData = new FormData();
         formData.append('image', fileToUpload);
 
-        const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/upload`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
+        const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/upload`, formData);
         uploadedUrls.push(res.data.url);
       }
       
@@ -112,7 +108,7 @@ const DragDropImageUploader = ({ onUploadSuccess, currentImage, multiple = false
             <p className="text-sm text-primary uppercase tracking-widest">Uploading to Cloudinary...</p>
           </div>
         ) : currentImage ? (
-          <div className="relative group overflow-hidden rounded h-48 w-full bg-black">
+          <div className="relative group overflow-hidden rounded w-full bg-black" style={{ aspectRatio: aspect ? aspect : 'auto', minHeight: aspect ? 'auto' : '12rem' }}>
           <img src={currentImage} alt="Uploaded preview" className="w-full h-full object-cover opacity-70 group-hover:opacity-30 transition-opacity" />
           <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-3">
             <div className="text-center">
@@ -154,16 +150,32 @@ const DragDropImageUploader = ({ onUploadSuccess, currentImage, multiple = false
               <button type="button" onClick={() => setImageToCrop(null)} className="text-gray-400 hover:text-white">&times;</button>
             </div>
             
-            <div className="relative w-full flex-1 min-h-[40vh] sm:min-h-[60vh] bg-black">
-              <Cropper
-                image={imageToCrop}
-                crop={crop}
-                zoom={zoom}
-                aspect={aspect}
-                onCropChange={setCrop}
-                onCropComplete={onCropComplete}
-                onZoomChange={setZoom}
-              />
+            <div className="relative w-full flex-1 min-h-[40vh] sm:min-h-[60vh] bg-black flex flex-col">
+              <div className="relative flex-1 w-full">
+                <Cropper
+                  image={imageToCrop}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={aspect}
+                  objectFit="auto-cover"
+                  onCropChange={setCrop}
+                  onCropComplete={onCropComplete}
+                  onZoomChange={setZoom}
+                />
+              </div>
+              <div className="px-8 py-4 bg-[#111] flex items-center gap-4 shrink-0 border-t border-white/10">
+                <span className="text-white/50 text-xs uppercase tracking-widest">Zoom</span>
+                <input
+                  type="range"
+                  value={zoom}
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  aria-labelledby="Zoom"
+                  onChange={(e) => setZoom(e.target.value)}
+                  className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
             </div>
             
             <div className="p-6 bg-[#0a0a0a] flex justify-end gap-4 shrink-0 border-t border-white/10">

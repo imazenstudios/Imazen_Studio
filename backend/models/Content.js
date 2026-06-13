@@ -6,6 +6,7 @@ const contentSchema = new mongoose.Schema({
   subtitle: { type: String },
   description: { type: String },
   imageUrl: { type: String },
+  backgroundImageUrl: { type: String },
   features: [{ type: String }],
   isActive: { type: Boolean, default: true }
 }, { timestamps: true });

@@ -5,6 +5,7 @@ import ThemesPreview from '../components/ThemesPreview';
 import GalleryPreview from '../components/GalleryPreview';
 import WhatWeOffer from '../components/WhatWeOffer';
 import SubServicesBanner from '../components/SubServicesBanner';
+import Testimonials from '../components/Testimonials';
 import OfferingsText from '../components/OfferingsText';
 
 const Home = () => {
@@ -14,8 +15,9 @@ const Home = () => {
       <About />
       <WhatWeOffer />
       <SubServicesBanner />
-      <GalleryPreview />
       <ThemesPreview />
+      <GalleryPreview />
+      <Testimonials />
       <OfferingsText />
     </div>
   );

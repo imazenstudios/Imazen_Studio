@@ -12,6 +12,10 @@ import LocationPage from './pages/LocationPage';
 import AboutUs from './pages/AboutUs';
 import Themes from './pages/Themes';
 import Contact from './pages/Contact';
+import TestimonialsPage from './pages/TestimonialsPage';
+import ServicePortfolio from './pages/ServicePortfolio';
+import ServiceDetails from './pages/ServiceDetails';
+import LandingPage from './pages/LandingPage';
 import WhatsAppButton from './components/WhatsAppButton';
 import Footer from './components/Footer';
 
@@ -110,12 +114,16 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<AboutUs />} />
             <Route path="/packages" element={<Packages />} />
+            <Route path="/portfolio" element={<ServicePortfolio />} />
+            <Route path="/services/:slug" element={<ServiceDetails />} />
             <Route path="/themes" element={<Themes />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/book" element={<Book />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/location/:city" element={<LocationPage />} />
+            <Route path="/testimonials" element={<TestimonialsPage />} />
+            <Route path="/:slug" element={<LandingPage />} />
           </Routes>
         </Layout>
       </Router>

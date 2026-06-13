@@ -16,6 +16,7 @@ const Book = () => {
     date: '',
     slot: '',
     name: '',
+    email: '',
     phone: '',
     babyAge: '',
     notes: ''
@@ -87,9 +88,23 @@ const Book = () => {
     }
   }, [step, formData.date]);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    handleNext(); 
+    setIsSubmitting(true);
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings`, {
+        ...formData,
+        shootType: getActiveTitle(),
+      });
+      setStep(7); // Go to thank you page
+    } catch (error) {
+      alert('There was an error saving your booking. This slot might have just been taken by someone else. Please try again.');
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Helper to get active packages
@@ -117,8 +132,8 @@ const Book = () => {
   return (
     <div className="relative min-h-screen bg-[#050505] flex items-center justify-center pt-32 pb-20 px-4 sm:px-6 overflow-hidden">
       {/* Ambient glowing orbs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-900/20 blur-[150px] rounded-full pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-teal-900/10 blur-[150px] rounded-full pointer-events-none"></div>
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-gray-500/10 blur-[150px] rounded-full pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-gray-500/10 blur-[150px] rounded-full pointer-events-none"></div>
 
       {/* Background Image overlay */}
       <div 
@@ -136,7 +151,7 @@ const Book = () => {
           {[1,2,3,4,5,6].map(s => (
             <div key={s} className="flex items-center">
               <div className={`transition-all duration-700 rounded-full ${
-                step === s ? 'w-10 sm:w-12 h-1.5 bg-gradient-to-r from-purple-400 to-teal-400 shadow-[0_0_15px_rgba(168,85,247,0.6)]' : 
+                step === s ? 'w-10 sm:w-12 h-1.5 bg-gradient-to-r from-gray-300 to-white shadow-[0_0_15px_rgba(255,255,255,0.6)]' : 
                 step > s ? 'w-2 sm:w-3 h-1.5 bg-white/40' : 'w-1.5 sm:w-2 h-1.5 bg-white/10'
               }`}></div>
             </div>
@@ -164,10 +179,10 @@ const Book = () => {
                             handleNext();
                           }
                         }}
-                        className="group cursor-pointer bg-white/[0.02] border border-white/5 rounded-2xl p-6 hover:bg-white/10 hover:border-purple-500/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] transition-all flex justify-between items-center"
+                        className="group cursor-pointer bg-white/[0.02] border border-white/5 rounded-2xl p-6 hover:bg-white/10 hover:border-gray-300/50 hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] transition-all flex justify-between items-center"
                       >
                         <h3 className="text-xl sm:text-2xl text-gray-300 group-hover:text-white font-oswald uppercase tracking-widest transition-colors">{pkg.name}</h3>
-                        <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-purple-500/50 group-hover:bg-purple-500/20 transition-all shadow-inner">
+                        <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-gray-300/50 group-hover:bg-gray-500/20 transition-all shadow-inner">
                           <span className="text-white text-xs opacity-50 group-hover:opacity-100 transition-opacity">→</span>
                         </div>
                       </div>
@@ -181,10 +196,10 @@ const Book = () => {
                               setFormData({ ...formData, serviceId: selectedParentService.slug, subId: sub.slug, package: '' }); 
                               handleNext(); 
                             }}
-                            className="group cursor-pointer bg-white/[0.02] border border-white/5 rounded-2xl p-6 hover:bg-white/10 hover:border-teal-500/50 hover:shadow-[0_0_30px_rgba(20,184,166,0.15)] transition-all flex justify-between items-center"
+                            className="group cursor-pointer bg-white/[0.02] border border-white/5 rounded-2xl p-6 hover:bg-white/10 hover:border-gray-300/50 hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] transition-all flex justify-between items-center"
                           >
                             <h3 className="text-xl sm:text-2xl text-gray-300 group-hover:text-white font-oswald uppercase tracking-widest transition-colors">{sub.name}</h3>
-                            <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-teal-500/50 group-hover:bg-teal-500/20 transition-all shadow-inner">
+                            <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-gray-300/50 group-hover:bg-white/20 transition-all shadow-inner">
                               <span className="text-white text-xs opacity-50 group-hover:opacity-100 transition-opacity">→</span>
                             </div>
                           </div>
@@ -203,7 +218,7 @@ const Book = () => {
           {step === 2 && (
             <motion.div key="step2" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
               {formData.serviceId && (
-                <p className="text-center font-sans tracking-[0.3em] uppercase text-[10px] text-teal-400 mb-3">
+                <p className="text-center font-sans tracking-[0.3em] uppercase text-[10px] text-gray-300 mb-3">
                   {getActiveTitle()}
                 </p>
               )}
@@ -213,17 +228,17 @@ const Book = () => {
                   <div 
                     key={i}
                     onClick={() => { setFormData({ ...formData, package: t.name }); handleNext(); }}
-                    className="group relative overflow-hidden cursor-pointer bg-gradient-to-br from-white/[0.03] to-transparent border border-white/10 p-6 sm:p-8 rounded-2xl hover:border-teal-500/40 hover:shadow-[0_0_40px_rgba(20,184,166,0.1)] transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
+                    className="group relative overflow-hidden cursor-pointer bg-gradient-to-br from-white/[0.03] to-transparent border border-white/10 p-6 sm:p-8 rounded-2xl hover:border-white/40 hover:shadow-[0_0_40px_rgba(255,255,255,0.1)] transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
                   >
-                    <div className="absolute left-0 top-0 w-1 h-full bg-teal-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="absolute left-0 top-0 w-1 h-full bg-white opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="flex-1">
-                      <h3 className="text-2xl text-white font-oswald uppercase tracking-widest mb-1 group-hover:text-teal-300 transition-colors">{t.name}</h3>
+                      <h3 className="text-2xl text-white font-oswald uppercase tracking-widest mb-1 group-hover:text-white transition-colors">{t.name}</h3>
                       <p className="font-sans text-xs sm:text-sm tracking-[0.2em] uppercase text-green-400/80 mb-4">{t.price}</p>
                       {t.features && t.features.length > 0 && (
                          <ul className="text-xs text-gray-400 space-y-2 tracking-wide font-sans">
                            {t.features.map((f, idx) => (
                              <li key={idx} className="flex items-start gap-2">
-                               <span className="text-teal-500 mt-0.5 opacity-60">✦</span> 
+                               <span className="text-gray-400 mt-0.5 opacity-60">✦</span> 
                                <span>{f}</span>
                              </li>
                            ))}
@@ -247,7 +262,7 @@ const Book = () => {
             <motion.div key="step3" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
               <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white uppercase tracking-[0.2em] mb-12 text-center bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Pick a Date</h2>
               <div className="max-w-md mx-auto relative">
-                <div className="bg-black/40 p-1 rounded-2xl border border-white/10 hover:border-purple-500/30 transition-colors">
+                <div className="bg-black/40 p-1 rounded-2xl border border-white/10 hover:border-white/30 transition-colors">
                   <input 
                     type="date" 
                     className="w-full bg-transparent p-6 font-sans text-lg sm:text-xl text-white focus:outline-none transition-colors [&::-webkit-calendar-picker-indicator]:invert cursor-pointer"
@@ -296,7 +311,7 @@ const Book = () => {
           {step === 4 && (
             <motion.div key="step4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
               <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white uppercase tracking-[0.2em] mb-3 text-center bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Select Slot</h2>
-              <p className="text-center font-sans tracking-[0.3em] uppercase text-[10px] text-teal-400 mb-12">{formData.date}</p>
+              <p className="text-center font-sans tracking-[0.3em] uppercase text-[10px] text-gray-300 mb-12">{formData.date}</p>
               
               {isLoadingSlots ? (
                 <div className="flex justify-center items-center h-32">
@@ -315,14 +330,14 @@ const Book = () => {
                       }}
                       className={`p-6 rounded-2xl border transition-all flex justify-between items-center ${
                         slot.status === 'Available' 
-                        ? 'border-white/10 bg-white/5 hover:bg-gradient-to-r hover:from-purple-900/40 hover:to-teal-900/40 hover:border-white/40 hover:shadow-[0_0_30px_rgba(168,85,247,0.2)] cursor-pointer group' 
+                        ? 'border-white/10 bg-white/5 hover:bg-gradient-to-r hover:from-white/10 hover:to-white/5 hover:border-white/40 hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] cursor-pointer group' 
                         : 'border-white/5 bg-black/40 opacity-50 cursor-not-allowed'
                       }`}
                     >
                       <h3 className={`text-xl font-oswald uppercase tracking-widest ${slot.status === 'Available' ? 'text-gray-300 group-hover:text-white' : 'text-gray-600'}`}>
-                        {slot.slot}
+                        {slot.slot === 'Morning' ? 'Morning Slot (9 AM - 12 PM)' : slot.slot === 'Afternoon' ? 'Afternoon Slot (1 PM - 4 PM)' : slot.slot === 'Evening' ? 'Evening Slot (5 PM - 8 PM)' : slot.slot}
                       </h3>
-                      <span className={`font-sans text-[10px] tracking-[0.2em] uppercase px-3 py-1 rounded-full ${slot.status === 'Available' ? 'bg-teal-500/10 text-teal-400 group-hover:bg-teal-500/20' : 'bg-red-500/10 text-red-500/70'}`}>
+                      <span className={`font-sans text-[10px] tracking-[0.2em] uppercase px-3 py-1 rounded-full ${slot.status === 'Available' ? 'bg-white/10 text-gray-300 group-hover:bg-white/20' : 'bg-red-500/10 text-red-500/70'}`}>
                         {slot.status}
                       </span>
                     </div>
@@ -340,21 +355,27 @@ const Book = () => {
             <motion.div key="step5" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
               <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white uppercase tracking-[0.2em] mb-12 text-center bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Your Details</h2>
               <form onSubmit={handleSubmit} className="space-y-6 max-w-md mx-auto">
-                <div className="space-y-4">
-                  <input required type="text" placeholder="FULL NAME *" className="w-full bg-black/40 border border-white/10 rounded-xl p-5 font-sans text-xs tracking-[0.2em] uppercase text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50 focus:bg-white/5 transition-all"
+                <div className="space-y-6">
+                  <input type="text" placeholder="FULL NAME *" required className="w-full bg-black/40 border border-white/10 rounded-xl p-5 font-sans text-xs tracking-[0.2em] uppercase text-white placeholder-gray-600 focus:outline-none focus:border-white/50 focus:bg-white/5 transition-all"
                     value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-                  <input required type="tel" placeholder="PHONE NUMBER *" className="w-full bg-black/40 border border-white/10 rounded-xl p-5 font-sans text-xs tracking-[0.2em] uppercase text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50 focus:bg-white/5 transition-all"
-                    value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
-                  <input type="text" placeholder="BABY'S AGE (IF APPLICABLE)" className="w-full bg-black/40 border border-white/10 rounded-xl p-5 font-sans text-xs tracking-[0.2em] uppercase text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50 focus:bg-white/5 transition-all"
-                    value={formData.babyAge} onChange={e => setFormData({...formData, babyAge: e.target.value})} />
-                  <textarea placeholder="SPECIAL NOTES OR REQUESTS" className="w-full bg-black/40 border border-white/10 rounded-xl p-5 font-sans text-xs tracking-[0.2em] uppercase text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50 focus:bg-white/5 transition-all min-h-[120px] resize-none"
+                  
+                  <input type="email" placeholder="EMAIL ADDRESS *" required className="w-full bg-black/40 border border-white/10 rounded-xl p-5 font-sans text-xs tracking-[0.2em] text-white placeholder-gray-600 focus:outline-none focus:border-white/50 focus:bg-white/5 transition-all"
+                    value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                    
+                  <input type="tel" placeholder="PHONE NUMBER *" required pattern="[0-9]{10}" maxLength="10" title="Phone number must be exactly 10 digits" className="w-full bg-black/40 border border-white/10 rounded-xl p-5 font-sans text-xs tracking-[0.2em] uppercase text-white placeholder-gray-600 focus:outline-none focus:border-white/50 focus:bg-white/5 transition-all"
+                    value={formData.phone} onChange={e => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      if (val.length <= 10) setFormData({...formData, phone: val});
+                    }} />
+                    
+                  <textarea placeholder="SPECIAL NOTES OR REQUESTS" className="w-full bg-black/40 border border-white/10 rounded-xl p-5 font-sans text-xs tracking-[0.2em] uppercase text-white placeholder-gray-600 focus:outline-none focus:border-white/50 focus:bg-white/5 transition-all min-h-[120px] resize-none"
                     value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})}></textarea>
                 </div>
                 
                 <div className="flex justify-between items-center pt-8">
-                  <button type="button" onClick={handleBack} className="text-[10px] sm:text-xs font-sans text-gray-500 hover:text-white uppercase tracking-[0.3em] transition-colors py-2 px-4 rounded-full border border-transparent hover:border-white/20 hover:bg-white/5">← Back</button>
-                  <button type="submit" className="text-[10px] sm:text-xs font-sans font-bold text-black bg-white px-8 py-3 rounded-full uppercase tracking-[0.3em] hover:bg-gray-200 shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all">
-                    Proceed to Payment →
+                  <button type="button" onClick={handleBack} disabled={isSubmitting} className="text-[10px] sm:text-xs font-sans text-gray-500 hover:text-white uppercase tracking-[0.3em] transition-colors py-2 px-4 rounded-full border border-transparent hover:border-white/20 hover:bg-white/5">← Back</button>
+                  <button type="submit" disabled={isSubmitting} className={`text-[10px] sm:text-xs font-sans font-bold text-black bg-white px-8 py-3 rounded-full uppercase tracking-[0.3em] hover:bg-gray-200 shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    {isSubmitting ? 'Submitting...' : 'Submit Booking →'}
                   </button>
                 </div>
               </form>
@@ -369,10 +390,10 @@ const Book = () => {
               
               <div className="relative border border-white/10 rounded-3xl p-10 mb-12 max-w-sm mx-auto text-center flex flex-col items-center bg-gradient-to-b from-white/10 to-transparent backdrop-blur-md overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
                 <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
-                <div className="absolute -top-10 -left-10 w-40 h-40 bg-purple-500/20 blur-[50px] rounded-full"></div>
+                <div className="absolute -top-10 -left-10 w-40 h-40 bg-gray-500/20 blur-[50px] rounded-full"></div>
                 
                 <h3 className="relative z-10 text-2xl text-white font-oswald uppercase tracking-widest mb-3">{formData.package}</h3>
-                <p className="relative z-10 text-teal-400 text-[10px] font-bold font-sans tracking-[0.3em] uppercase mb-4">{getActiveTitle()}</p>
+                <p className="relative z-10 text-gray-300 text-[10px] font-bold font-sans tracking-[0.3em] uppercase mb-4">{getActiveTitle()}</p>
                 
                 <div className="relative z-10 w-full h-[1px] bg-white/10 my-4"></div>
                 
@@ -421,12 +442,12 @@ const Book = () => {
           {/* Step 7: Confirmation */}
           {step === 7 && (
             <motion.div key="step7" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-16">
-              <div className="w-24 h-24 bg-gradient-to-tr from-teal-400 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-10 shadow-[0_0_40px_rgba(20,184,166,0.4)]">
+              <div className="w-24 h-24 bg-gradient-to-tr from-gray-400 to-gray-600 rounded-full flex items-center justify-center mx-auto mb-10 shadow-[0_0_40px_rgba(255,255,255,0.4)]">
                 <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
               </div>
               <h2 className="font-oswald font-bold text-4xl sm:text-5xl text-white uppercase tracking-widest mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Request Sent</h2>
               <p className="font-sans text-xs sm:text-sm text-gray-400 font-light leading-relaxed max-w-md mx-auto mb-16 tracking-wide">
-                Thank you, <span className="text-white font-bold">{formData.name}</span>. Your session request for <span className="text-white font-bold">{formData.date}</span> has been logged. It will be officially confirmed once your advance payment is processed via WhatsApp.
+                Thank you, <span className="text-white font-bold">{formData.name}</span>. Your session request for <span className="text-white font-bold">{formData.date}</span> has been successfully submitted! A confirmation email has been sent to your inbox. Our team will contact you shortly to confirm the final details.
               </p>
               <Link 
                 to="/"

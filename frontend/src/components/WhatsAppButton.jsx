@@ -24,7 +24,7 @@ const WhatsAppButton = () => {
       initial={{ scale: 0 }}
       animate={{ scale: 1 }}
       whileHover={{ scale: 1.1 }}
-      className="fixed bottom-6 right-6 z-50 bg-white text-black p-4 rounded-full shadow-lg shadow-white/30 flex items-center justify-center cursor-pointer"
+      className="fixed bottom-6 right-6 z-50 bg-black text-white p-4 rounded-full shadow-lg shadow-white/10 border border-white/20 flex items-center justify-center cursor-pointer"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

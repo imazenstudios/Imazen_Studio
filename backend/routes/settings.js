@@ -59,14 +59,15 @@ router.put('/analytics', async (req, res) => {
 // Update contact details
 router.put('/contact', async (req, res) => {
   try {
-    const { contactEmail, whatsappNumber } = req.body;
+    const { contactEmail, whatsappNumber, teamEmails } = req.body;
     let settings = await Settings.findOne();
     
     if (!settings) {
-      settings = new Settings({ contactEmail, whatsappNumber });
+      settings = new Settings({ contactEmail, whatsappNumber, teamEmails });
     } else {
       if (contactEmail !== undefined) settings.contactEmail = contactEmail;
       if (whatsappNumber !== undefined) settings.whatsappNumber = whatsappNumber;
+      if (teamEmails !== undefined) settings.teamEmails = teamEmails;
     }
     
     await settings.save();

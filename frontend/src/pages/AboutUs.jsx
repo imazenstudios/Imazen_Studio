@@ -1,24 +1,44 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import About from '../components/About';
 import { motion } from 'framer-motion';
+import axios from 'axios';
 
 const AboutUs = () => {
+  const [teamMembers, setTeamMembers] = useState([]);
+
+  useEffect(() => {
+    const fetchTeam = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/team`);
+        setTeamMembers(response.data);
+      } catch (error) {
+        console.error('Error fetching team members:', error);
+      }
+    };
+    fetchTeam();
+  }, []);
+
   return (
     <div className="min-h-screen bg-black">
       
       {/* Wox-style Hero section for About Us */}
-      <div className="relative pt-32 pb-24 text-center border-b border-white/10">
+      <div 
+        className="relative min-h-screen flex flex-col items-center justify-center text-center border-b border-white/10 bg-cover bg-center"
+        style={{ backgroundImage: `url('/images/about_bg.jpeg')` }}
+      >
+        <div className="absolute inset-0 bg-black/60"></div>
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
+          className="relative z-10 w-full px-6 pt-20"
         >
           <h2 className="font-oswald text-xs text-gray-500 uppercase tracking-[0.5em] mb-4">Behind the Lens</h2>
           <h1 className="font-oswald font-bold text-5xl md:text-7xl text-white uppercase tracking-widest leading-none mb-8">
             Our Story
           </h1>
           <div className="w-16 h-[1px] bg-white mx-auto mb-8"></div>
-          <p className="text-gray-400 font-sans font-light text-sm md:text-base leading-relaxed max-w-2xl mx-auto px-6 tracking-wide">
+          <p className="text-gray-300 font-sans font-light text-sm md:text-base leading-relaxed max-w-2xl mx-auto tracking-wide">
             Twilight Studios was founded with a single mission: to capture life's most precious and fleeting moments with cinematic elegance and unparalleled luxury.
           </p>
         </motion.div>
@@ -35,29 +55,36 @@ const AboutUs = () => {
           </h2>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
-          {[1, 2, 3].map((member, index) => (
-            <motion.div 
-              key={member}
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.2, duration: 0.8 }}
-              className="group cursor-default"
-            >
-              <div className="aspect-[3/4] relative overflow-hidden mb-6">
-                <img 
-                  src={`https://images.unsplash.com/photo-${member === 1 ? '1544005313-94ddf0286df2' : member === 2 ? '1500648767791-00dcc994a43e' : '1554151228-14d9def656e4'}?auto=format&fit=crop&q=80&w=600`} 
-                  alt="Team Member" 
-                  className="w-full h-full object-cover filter grayscale group-hover:scale-105 transition-transform duration-[2s]"
-                />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-700"></div>
-              </div>
-              <h3 className="text-2xl font-oswald text-white uppercase tracking-widest mb-2">Lead Artist</h3>
-              <p className="text-xs font-sans tracking-[0.3em] text-gray-500 uppercase">Specialist</p>
-            </motion.div>
-          ))}
-        </div>
+        {teamMembers.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-12 lg:gap-16">
+            {teamMembers.map((member, index) => (
+              <motion.div 
+                key={member._id}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.8 }}
+                className="group cursor-default"
+              >
+                <div className="aspect-[3/4] relative overflow-hidden mb-6 bg-[#111]">
+                  {member.imageUrl && (
+                    <img 
+                      src={member.imageUrl} 
+                      alt={member.name} 
+                      className="w-full h-full object-cover filter grayscale group-hover:scale-105 transition-transform duration-[2s]"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-700"></div>
+                </div>
+                <h3 className="text-2xl font-oswald text-white uppercase tracking-widest mb-2">{member.title}</h3>
+                <p className="text-xs font-sans tracking-[0.3em] text-gray-500 uppercase mb-2">{member.subtitle}</p>
+                <p className="text-sm font-sans text-gray-400 capitalize">{member.name}</p>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-center text-gray-500 uppercase tracking-widest font-sans text-sm">Our talented team is coming soon.</p>
+        )}
       </div>
     </div>
   );

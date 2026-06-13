@@ -9,7 +9,8 @@ const settingsSchema = new mongoose.Schema({
   metaPixelId: { type: String, default: '' },
   googleAnalyticsId: { type: String, default: '' },
   contactEmail: { type: String, default: 'hello@twilightstudios.in' },
-  whatsappNumber: { type: String, default: '+919999999999' }
+  whatsappNumber: { type: String, default: '+919999999999' },
+  teamEmails: { type: [String], default: [] }
 }, { timestamps: true });
 
 export default mongoose.model('Settings', settingsSchema);

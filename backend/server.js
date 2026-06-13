@@ -13,6 +13,9 @@ import galleryCategoriesRoutes from './routes/galleryCategories.js';
 import heroRoutes from './routes/hero.js';
 import settingsRoutes from './routes/settings.js';
 import inquiriesRoutes from './routes/inquiries.js';
+import testimonialsRoutes from './routes/testimonials.js';
+import landingPagesRoutes from './routes/landingPages.js';
+import teamRoutes from './routes/team.js';
 
 dotenv.config();
 
@@ -35,6 +38,9 @@ app.use('/api/gallery-categories', galleryCategoriesRoutes);
 app.use('/api/hero', heroRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/inquiries', inquiriesRoutes);
+app.use('/api/testimonials', testimonialsRoutes);
+app.use('/api/landing-pages', landingPagesRoutes);
+app.use('/api/team', teamRoutes);
 
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/twilight-studios')
@@ -47,3 +53,12 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/twilight-
   .catch((error) => {
     console.error('MongoDB connection error:', error);
   });
+// trigger restart
+// restart 2
+// restart 3
+// restart 4
+// restart 5
+// restart 6
+// restart 7
+// restart 8
+// restart 9

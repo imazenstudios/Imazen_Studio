@@ -60,7 +60,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-12">
             {/* Portfolio */}
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0 }}>
-              <Link to="/gallery" className="font-sans text-[10px] text-gray-400 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
+              <Link to="/gallery" className="font-sans text-xs text-gray-400 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
                 Portfolio
                 <span className="absolute -bottom-2 left-1/2 w-0 h-[1px] bg-white group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
               </Link>
@@ -75,7 +75,7 @@ const Navbar = () => {
               onMouseEnter={() => setShowDropdown(true)}
               onMouseLeave={() => setShowDropdown(false)}
             >
-              <Link to="/packages" className="font-sans text-[10px] text-gray-400 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block py-4">
+              <Link to="/packages" className="font-sans text-xs text-gray-400 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block py-4">
                 Packages
                 <span className="absolute bottom-2 left-1/2 w-0 h-[1px] bg-white group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
               </Link>
@@ -121,7 +121,7 @@ const Navbar = () => {
 
             {/* Themes */}
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.15 }}>
-              <Link to="/themes" className="font-sans text-[10px] text-gray-400 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
+              <Link to="/themes" className="font-sans text-xs text-gray-400 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
                 Themes
                 <span className="absolute -bottom-2 left-1/2 w-0 h-[1px] bg-white group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
               </Link>
@@ -129,15 +129,23 @@ const Navbar = () => {
 
             {/* About */}
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
-              <Link to="/about" className="font-sans text-[10px] text-gray-400 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
+              <Link to="/about" className="font-sans text-xs text-gray-400 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
                 About
+                <span className="absolute -bottom-2 left-1/2 w-0 h-[1px] bg-white group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
+              </Link>
+            </motion.div>
+
+            {/* Testimonials */}
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.25 }}>
+              <Link to="/testimonials" className="font-sans text-xs text-gray-400 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
+                Testimonials
                 <span className="absolute -bottom-2 left-1/2 w-0 h-[1px] bg-white group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
               </Link>
             </motion.div>
 
             {/* Contact */}
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }}>
-              <Link to="/contact" className="font-sans text-[10px] text-gray-400 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
+              <Link to="/contact" className="font-sans text-xs text-gray-400 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
                 Contact
                 <span className="absolute -bottom-2 left-1/2 w-0 h-[1px] bg-white group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
               </Link>
@@ -153,7 +161,7 @@ const Navbar = () => {
             >
               <Link 
                 to="/book"
-                className="px-6 py-3 border border-white/20 text-white font-sans text-[10px] uppercase tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 block"
+                className="px-6 py-3 border border-gray-400 text-white font-sans text-xs uppercase tracking-[0.3em] hover:bg-gray-200 hover:text-black transition-all duration-500 block"
               >
                 Book Session
               </Link>
@@ -189,6 +197,7 @@ const Navbar = () => {
               <Link to="/packages" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">Packages</Link>
               <Link to="/themes" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">Themes</Link>
               <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">About</Link>
+              <Link to="/testimonials" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">Testimonials</Link>
               <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">Contact</Link>
               <Link 
                 to="/book"
