@@ -17,8 +17,7 @@ const Themes = () => {
   // Helper to optimize Cloudinary URLs with high quality
   const optimizeCloudinaryUrl = (url) => {
     if (!url || !url.includes('cloudinary.com')) return url;
-    if (url.includes('/upload/q_auto')) return url;
-    return url.replace('/upload/', '/upload/f_auto,q_auto:best,w_1200/');
+    return url.replace('/upload/', '/upload/f_auto,q_auto:best,w_1200,c_limit/');
   };
 
   // Sync selected category when URL changes

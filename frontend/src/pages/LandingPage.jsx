@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import axios from 'axios';
+import NotFound from './NotFound';
 
 // Component to handle cloudinary optimization if available
 const optimizeCloudinaryUrl = (url, isMobile = false) => {
@@ -70,7 +71,7 @@ const LandingPage = () => {
       <span className="opacity-50 text-sm">PREPARING EXPERIENCE</span>
     </div>
   );
-  if (error || !pageData) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white/50 font-oswald tracking-[0.5em]">{error}</div>;
+  if (error || !pageData) return <NotFound />;
 
   return (
     <div className="bg-[#030303] min-h-screen text-white overflow-x-hidden selection:bg-white/20 selection:text-white font-sans">

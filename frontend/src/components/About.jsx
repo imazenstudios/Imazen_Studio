@@ -28,12 +28,15 @@ const About = () => {
   return (
     <section ref={containerRef} id="about" className="relative bg-[#050505] text-white py-32 overflow-hidden">
       
-      {/* Background Image with Parallax */}
+      {/* Background Image with CSS Parallax (bg-fixed) */}
       {content?.backgroundImageUrl && (
-        <motion.div style={{ y: yBg }} className="absolute inset-[-20%] z-0 pointer-events-none">
-          <img src={content.backgroundImageUrl} className="w-full h-full object-cover opacity-60" alt="Background" />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#050505] via-transparent to-[#050505]"></div>
-        </motion.div>
+        <>
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-fixed opacity-60 pointer-events-none z-0"
+            style={{ backgroundImage: `url('${content.backgroundImageUrl}')` }}
+          ></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-[#050505] via-black/40 to-[#050505] z-0 pointer-events-none"></div>
+        </>
       )}
 
 

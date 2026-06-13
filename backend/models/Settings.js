@@ -10,7 +10,9 @@ const settingsSchema = new mongoose.Schema({
   googleAnalyticsId: { type: String, default: '' },
   contactEmail: { type: String, default: 'hello@twilightstudios.in' },
   whatsappNumber: { type: String, default: '+919999999999' },
-  teamEmails: { type: [String], default: [] }
+  teamEmails: { type: [String], default: [] },
+  maintenanceMode: { type: Boolean, default: false },
+  maintenanceEndTime: { type: Date, default: null }
 }, { timestamps: true });
 
 export default mongoose.model('Settings', settingsSchema);

@@ -15,9 +15,9 @@ const Gallery = () => {
     if (!url || !url.includes('cloudinary.com')) return url;
     if (url.includes('/upload/f_auto')) return url;
     if (isThumbnail) {
-      return url.replace('/upload/', '/upload/f_auto,q_auto:eco,w_800/');
+      return url.replace('/upload/', '/upload/f_auto,q_auto:best,w_800,c_limit/');
     }
-    return url.replace('/upload/', '/upload/f_auto,q_auto,w_1920/');
+    return url.replace('/upload/', '/upload/f_auto,q_auto:best,w_1920,c_limit/');
   };
 
   useEffect(() => {

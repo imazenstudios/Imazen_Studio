@@ -18,6 +18,9 @@ import ServiceDetails from './pages/ServiceDetails';
 import LandingPage from './pages/LandingPage';
 import WhatsAppButton from './components/WhatsAppButton';
 import Footer from './components/Footer';
+import NoInternetOverlay from './components/NoInternetOverlay';
+import NotFound from './pages/NotFound';
+import Maintenance from './pages/Maintenance';
 
 import ScrollToTopButton from './components/ScrollToTopButton';
 
@@ -58,8 +61,17 @@ const Layout = ({ children }) => {
 
 function App() {
   const [analyticsInitialized, setAnalyticsInitialized] = useState(false);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [maintenanceEndTime, setMaintenanceEndTime] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [adminBypass, setAdminBypass] = useState(false);
 
   useEffect(() => {
+    // Check for admin bypass in localStorage
+    if (localStorage.getItem('adminBypass') === 'true') {
+      setAdminBypass(true);
+    }
+
     const initAnalytics = async () => {
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings`);
@@ -97,35 +109,66 @@ function App() {
             `;
             document.head.appendChild(pixelScript);
           }
+          if (settings.maintenanceMode) {
+            setMaintenanceMode(true);
+            setMaintenanceEndTime(settings.maintenanceEndTime);
+          }
         }
       } catch (error) {
-        console.error("Failed to load analytics settings", error);
+        console.error('Failed to load settings:', error);
+      } finally {
+        setIsLoading(false);
+        setAnalyticsInitialized(true);
       }
-      setAnalyticsInitialized(true);
     };
+
     initAnalytics();
   }, []);
+
+  if (isLoading) {
+    return <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-white/10 border-t-white rounded-full animate-spin"></div>
+    </div>;
+  }
 
   return (
     <HelmetProvider>
       <Router>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<AboutUs />} />
-            <Route path="/packages" element={<Packages />} />
-            <Route path="/portfolio" element={<ServicePortfolio />} />
-            <Route path="/services/:slug" element={<ServiceDetails />} />
-            <Route path="/themes" element={<Themes />} />
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="/book" element={<Book />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/location/:city" element={<LocationPage />} />
-            <Route path="/testimonials" element={<TestimonialsPage />} />
-            <Route path="/:slug" element={<LandingPage />} />
-          </Routes>
-        </Layout>
+        <NoInternetOverlay />
+        
+        {adminBypass && maintenanceMode && (
+          <div className="fixed top-0 left-0 w-full bg-red-600 text-white text-xs text-center py-1 z-[9999] uppercase tracking-widest font-bold">
+            Maintenance Mode Active - Admin Bypass Enabled
+          </div>
+        )}
+
+        <Routes>
+          {/* Admin routes bypass maintenance mode */}
+          <Route path="/admin/*" element={<Layout><AdminDashboard /></Layout>} />
+
+          {/* If maintenance mode is active, intercept all other routes */}
+          {maintenanceMode && !adminBypass ? (
+            <Route path="*" element={<Maintenance endTime={maintenanceEndTime} />} />
+          ) : (
+            <>
+              <Route path="/" element={<Layout><Home /></Layout>} />
+              <Route path="/about" element={<Layout><AboutUs /></Layout>} />
+              <Route path="/packages" element={<Layout><Packages /></Layout>} />
+              <Route path="/portfolio" element={<Layout><ServicePortfolio /></Layout>} />
+              <Route path="/services/:slug" element={<Layout><ServiceDetails /></Layout>} />
+              <Route path="/themes" element={<Layout><Themes /></Layout>} />
+              <Route path="/gallery" element={<Layout><Gallery /></Layout>} />
+              <Route path="/book" element={<Layout><Book /></Layout>} />
+              <Route path="/contact" element={<Layout><Contact /></Layout>} />
+              <Route path="/location/:city" element={<Layout><LocationPage /></Layout>} />
+              <Route path="/testimonials" element={<Layout><TestimonialsPage /></Layout>} />
+              <Route path="/:slug" element={<Layout><LandingPage /></Layout>} />
+
+              {/* Catch-all for 404 Not Found */}
+              <Route path="*" element={<Layout><NotFound /></Layout>} />
+            </>
+          )}
+        </Routes>
       </Router>
     </HelmetProvider>
   );

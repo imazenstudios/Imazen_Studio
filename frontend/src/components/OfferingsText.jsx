@@ -17,13 +17,25 @@ const OfferingsText = () => {
   if (!content) return null;
 
   return (
-    <section className="bg-[#050505] text-white py-24 px-6 lg:px-12 border-t border-white/5 relative z-10">
+    <section className="relative w-full py-24 px-6 lg:px-12 flex items-center justify-center border-y border-white/5 overflow-hidden text-white z-10">
+      {content.backgroundImageUrl ? (
+        <>
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-fixed opacity-70 pointer-events-none"
+            style={{ backgroundImage: `url('${content.backgroundImageUrl}')` }}
+          ></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-[#050505] via-black/40 to-[#050505]"></div>
+        </>
+      ) : (
+        <div className="absolute inset-0 bg-[#050505]"></div>
+      )}
+
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-100px" }}
         transition={{ duration: 0.8 }}
-        className="max-w-7xl mx-auto text-center"
+        className="relative z-10 w-full max-w-7xl mx-auto text-center"
       >
         <h4 className="font-sans text-[10px] text-gray-500 uppercase tracking-[0.4em] mb-4">
           Offerings

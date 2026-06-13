@@ -76,5 +76,24 @@ router.put('/contact', async (req, res) => {
     res.status(500).json({ error: 'Server error updating contact settings' });
   }
 });
+// Update maintenance mode
+router.put('/maintenance', async (req, res) => {
+  try {
+    const { maintenanceMode, maintenanceEndTime } = req.body;
+    let settings = await Settings.findOne();
+    
+    if (!settings) {
+      settings = new Settings({ maintenanceMode, maintenanceEndTime });
+    } else {
+      if (maintenanceMode !== undefined) settings.maintenanceMode = maintenanceMode;
+      if (maintenanceEndTime !== undefined) settings.maintenanceEndTime = maintenanceEndTime;
+    }
+    
+    await settings.save();
+    res.json(settings);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error updating maintenance mode' });
+  }
+});
 
 export default router;

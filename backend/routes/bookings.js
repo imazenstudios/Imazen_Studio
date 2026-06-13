@@ -181,8 +181,8 @@ router.post('/', async (req, res) => {
             <p style="font-size: 13px; color: #a3a3a3; margin-bottom: 40px;">
               Need to contact us? Reach out directly:<br/>
               <span style="font-size: 16px; font-weight: bold; color: #ffffff; display: block; margin: 10px 0;">${settings.whatsappNumber || '+91 99999 99999'}</span>
-              <a href="tel:${(settings.whatsappNumber || '').replace(/\s/g, '')}" style="color: #ffffff; text-decoration: underline; margin-right: 15px;">📞 Call</a>
-              <a href="https://wa.me/${(settings.whatsappNumber || '').replace(/\D/g, '')}" style="color: #ffffff; text-decoration: underline;">💬 WhatsApp</a>
+              <a href="tel:${(settings.whatsappNumber || '+919999999999').replace(/\s/g, '')}" style="color: #ffffff; text-decoration: underline; margin-right: 15px;">📞 Call</a>
+              <a href="https://wa.me/${(settings.whatsappNumber || '919999999999').replace(/\D/g, '')}" style="color: #ffffff; text-decoration: underline;">💬 WhatsApp</a>
             </p>
             <p style="font-size: 15px; line-height: 1.6; color: #e5e5e5;">
               Our team will review your request and be in touch shortly to confirm your slot.

@@ -63,19 +63,43 @@ const Book = () => {
     setIsLoadingSlots(true);
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/slots/${date}`).catch(() => null);
+      let fetchedSlots = [];
       if (res && res.data) {
-        setAvailableSlots(res.data);
-        setIsLoadingSlots(false);
+        fetchedSlots = res.data;
       } else {
-        setTimeout(() => {
-          setAvailableSlots([
-            { slot: 'Morning', capacity: 3, status: 'Available' },
-            { slot: 'Afternoon', capacity: 1, status: 'Available' },
-            { slot: 'Evening', capacity: 0, status: 'Fully Booked' },
-          ]);
-          setIsLoadingSlots(false);
-        }, 500);
+        fetchedSlots = [
+          { slot: 'Morning', capacity: 3, status: 'Available' },
+          { slot: 'Afternoon', capacity: 1, status: 'Available' },
+          { slot: 'Evening', capacity: 0, status: 'Fully Booked' },
+        ];
       }
+
+      // Block past slots if the selected date is today
+      const today = new Date();
+      const [year, month, day] = date.split('-');
+      const selectedDate = new Date(year, month - 1, day);
+      
+      const isToday = 
+        selectedDate.getDate() === today.getDate() &&
+        selectedDate.getMonth() === today.getMonth() &&
+        selectedDate.getFullYear() === today.getFullYear();
+
+      if (isToday) {
+        const currentHour = today.getHours();
+        fetchedSlots = fetchedSlots.map(s => {
+          if (s.slot === 'Morning' && currentHour >= 9) {
+            return { ...s, status: 'Blocked' };
+          } else if (s.slot === 'Afternoon' && currentHour >= 13) {
+            return { ...s, status: 'Blocked' };
+          } else if (s.slot === 'Evening' && currentHour >= 17) {
+            return { ...s, status: 'Blocked' };
+          }
+          return s;
+        });
+      }
+
+      setAvailableSlots(fetchedSlots);
+      setIsLoadingSlots(false);
     } catch (error) {
       console.error(error);
       setIsLoadingSlots(false);
@@ -92,6 +116,10 @@ const Book = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.phone.length !== 10) {
+      alert('Please enter a valid 10-digit phone number.');
+      return;
+    }
     setIsSubmitting(true);
     try {
       await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings`, {

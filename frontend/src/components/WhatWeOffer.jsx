@@ -20,54 +20,15 @@ const WhatWeOffer = () => {
       .then(res => {
         if (res.data && res.data.length > 0) {
           setMainServices(res.data);
-        } else {
-          setMainServices([
-            {
-              name: 'Maternity',
-              slug: 'maternity',
-              description: 'Celebrate the beauty of motherhood with our elegant, high-fashion maternity sessions.',
-              imageUrl: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?q=80&w=1000',
-              subServices: []
-            },
-            {
-              name: 'Newborn',
-              slug: 'newborn',
-              description: 'Capture the purest, most delicate moments of your newborn\'s first days.',
-              imageUrl: 'https://images.unsplash.com/photo-1544126592-807ade215a0b?q=80&w=1000',
-              subServices: []
-            },
-            {
-              name: 'Family',
-              slug: 'family',
-              description: 'Timeless cinematic portraits of the people you love most.',
-              imageUrl: 'https://images.unsplash.com/photo-1517594539167-a8dc824c0d05?q=80&w=1000',
-              subServices: []
-            }
-          ]);
         }
       })
       .catch(console.error);
   }, []);
 
-  const displayServices = [
-    ...mainServices,
-    {
-      _id: 'wedding-hardcoded',
-      name: 'Wedding',
-      description: 'Exquisite cinematic storytelling for your special day. From grand celebrations to intimate moments.',
-      imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1000',
-      subServices: []
-    }
-  ];
+  const displayServices = mainServices;
 
   const handleCardClick = (svc) => {
-    if (svc.name.toLowerCase() === 'wedding') {
-      window.open('https://astitvacreations.com', '_blank', 'noopener,noreferrer');
-    } else if (svc.subServices && svc.subServices.length > 0) {
-      navigate(`/services/${encodeURIComponent(svc.slug)}`);
-    } else {
-      navigate(`/portfolio?service=${encodeURIComponent(svc.slug)}`);
-    }
+    navigate(`/portfolio?service=${encodeURIComponent(svc.slug)}`);
   };
 
   return (

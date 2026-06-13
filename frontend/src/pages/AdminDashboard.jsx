@@ -78,6 +78,18 @@ const AdminDashboard = () => {
     return () => document.documentElement.classList.remove('admin-html');
   }, []);
 
+  useEffect(() => {
+    setEditingContent(null);
+    setEditingService(null);
+    setEditingSubService(null);
+    setEditingThemeCategory(null);
+    setEditingTheme(null);
+    setEditingHero(null);
+    setEditingTestimonial(null);
+    setEditingLandingPage(null);
+    setEditingTeamMember(null);
+  }, [activeTab]);
+
   const fetchData = async () => {
     try {
       setIsLoading(true);
@@ -116,6 +128,44 @@ const AdminDashboard = () => {
       console.error("Error fetching data:", error);
       setIsLoading(false);
     }
+  };
+
+  const exportCustomersCSV = () => {
+    const customerMap = {};
+    bookings.forEach(b => {
+      const key = b.phone || b.name;
+      if (!customerMap[key]) customerMap[key] = { name: b.name, phone: b.phone, email: 'N/A', bookings: 0, inquiries: 0 };
+      customerMap[key].bookings += 1;
+    });
+    inquiries.forEach(inq => {
+      const key = inq.phone || inq.name;
+      if (!customerMap[key]) customerMap[key] = { name: inq.name, phone: inq.phone, email: inq.email || 'N/A', bookings: 0, inquiries: 0 };
+      customerMap[key].inquiries += 1;
+      if (customerMap[key].email === 'N/A' && inq.email) customerMap[key].email = inq.email;
+    });
+    
+    let customersList = Object.values(customerMap);
+    if (customersSearch) {
+      const s = customersSearch.toLowerCase();
+      customersList = customersList.filter(c => 
+        (c.name && c.name.toLowerCase().includes(s)) ||
+        (c.phone && c.phone.toLowerCase().includes(s)) ||
+        (c.email && c.email.toLowerCase().includes(s))
+      );
+    }
+    
+    // Add BOM for Excel UTF-8 compatibility
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
+      + "Name,Phone,Email,Bookings,Inquiries\n"
+      + customersList.map(e => `"${e.name || ''}","${e.phone || ''}","${e.email || ''}","${e.bookings}","${e.inquiries}"`).join("\n");
+      
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `customers_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleSaveContent = async (e, sectionData) => {
@@ -603,7 +653,7 @@ const AdminDashboard = () => {
           </h2>
         </div>
         <nav className="flex-1 p-6 space-y-3 overflow-y-auto custom-scrollbar">
-          {['cms', 'hero', 'landing pages', 'services', 'themes', 'gallery', 'bookings', 'slots', 'inquiries', 'customers', 'testimonials', 'team'].map(tab => (
+          {['cms', 'hero', 'landing pages', 'services', 'themes', 'gallery', 'bookings', 'slots', 'inquiries', 'customers', 'testimonials', 'team', 'developer options'].map(tab => (
             <button 
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -713,12 +763,14 @@ const AdminDashboard = () => {
                              {c.title !== undefined && (
                                <div><label className="block text-xs uppercase text-gray-500 mb-2">Title</label><input type="text" className={glassInput} value={editingContent.title || ''} onChange={e => setEditingContent({...editingContent, title: e.target.value})} /></div>
                              )}
-                             {c.section === 'About' && (
+                             {(c.section === 'About' || c.section === 'Offerings') && (
                                <>
-                                 <div>
-                                   <label className="block text-xs uppercase text-gray-500 mb-2">Side Image</label>
-                                   <DragDropImageUploader currentImage={editingContent.imageUrl || 'https://images.unsplash.com/photo-1544126592-807ade215a0b?q=80&w=1400&auto=format&fit=crop'} aspect={4/5} onUploadSuccess={(url) => setEditingContent(prev => ({...prev, imageUrl: url}))} />
-                                 </div>
+                                 {c.section === 'About' && (
+                                   <div>
+                                     <label className="block text-xs uppercase text-gray-500 mb-2">Side Image</label>
+                                     <DragDropImageUploader currentImage={editingContent.imageUrl || 'https://images.unsplash.com/photo-1544126592-807ade215a0b?q=80&w=1400&auto=format&fit=crop'} aspect={4/5} onUploadSuccess={(url) => setEditingContent(prev => ({...prev, imageUrl: url}))} />
+                                   </div>
+                                 )}
                                  <div className="mt-4">
                                    <label className="block text-xs uppercase text-gray-500 mb-2">Background Image (Parallax)</label>
                                    <DragDropImageUploader currentImage={editingContent.backgroundImageUrl || ''} aspect={16/9} onUploadSuccess={(url) => setEditingContent(prev => ({...prev, backgroundImageUrl: url}))} />
@@ -788,8 +840,11 @@ const AdminDashboard = () => {
                 {/* EDIT HERO MODAL */}
                 {editingHero && (
                   <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                     <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`${glassPanel} p-8 w-full max-w-xl`}>
-                       <h2 className="text-xl font-oswald text-white mb-6 uppercase tracking-widest">{editingHero._id ? 'Edit Slide' : 'New Slide'}</h2>
+                     <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`${glassPanel} p-8 w-full max-w-xl max-h-[90vh] overflow-y-auto custom-scrollbar`}>
+                       <div className="flex justify-between items-center mb-6">
+                         <h2 className="text-xl font-oswald text-white uppercase tracking-widest">{editingHero._id ? 'Edit Slide' : 'New Slide'}</h2>
+                         <button onClick={() => setEditingHero(null)} className="text-gray-400 hover:text-white text-2xl">&times;</button>
+                       </div>
                        <form onSubmit={(e) => handleSaveHero(e, editingHero)} className="space-y-6">
                          <div className="grid grid-cols-2 gap-4">
                            <div>
@@ -1123,9 +1178,19 @@ const AdminDashboard = () => {
                              <textarea className={`${glassInput} h-24`} value={editingService.description} onChange={e => setEditingService({...editingService, description: e.target.value})}></textarea>
                            </div>
                            <div className="border-t border-white/5 pt-6 mt-6">
-                            <label className="block text-xs uppercase text-gray-400 mb-2">Cover Thumbnail</label>
-                            <div className="w-1/2">
-                              <DragDropImageUploader currentImage={editingService.imageUrl} onUploadSuccess={(url) => setEditingService({...editingService, imageUrl: url})} />
+                            <div className="grid lg:grid-cols-3 gap-8">
+                              <div>
+                                <label className="block text-xs uppercase text-gray-400 mb-2">Cover Thumbnail</label>
+                                <DragDropImageUploader currentImage={editingService.imageUrl} onUploadSuccess={(url) => setEditingService({...editingService, imageUrl: url})} />
+                              </div>
+                              <div>
+                                <label className="block text-xs uppercase text-gray-400 mb-2">Hero Background</label>
+                                <DragDropImageUploader currentImage={editingService.heroImage} aspect={16/9} onUploadSuccess={(url) => setEditingService({...editingService, heroImage: url})} />
+                              </div>
+                              <div>
+                                <label className="block text-xs uppercase text-gray-400 mb-2">Mobile Hero (Vertical)</label>
+                                <DragDropImageUploader currentImage={editingService.mobileHeroImage} aspect={9/16} onUploadSuccess={(url) => setEditingService({...editingService, mobileHeroImage: url})} />
+                              </div>
                             </div>
                            </div>
                            </div>
@@ -1416,7 +1481,7 @@ const AdminDashboard = () => {
                 {/* EDIT THEME CATEGORY MODAL */}
                 {editingThemeCategory && (
                   <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`${glassPanel} p-8 w-full max-w-xl`}>
+                     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`${glassPanel} p-8 w-full max-w-xl max-h-[90vh] overflow-y-auto custom-scrollbar`}>
                        <h2 className="text-xl font-oswald text-white mb-6 uppercase tracking-widest">{editingThemeCategory._id ? 'Edit Category' : 'Create Category'}</h2>
                        <form onSubmit={(e) => handleSaveThemeCategory(e, editingThemeCategory)} className="space-y-6">
                          
@@ -1994,13 +2059,21 @@ const AdminDashboard = () => {
                         <h2 className="text-lg font-oswald text-white uppercase tracking-widest mb-1">Customer Database</h2>
                         <p className="text-xs text-teal-300/70 tracking-wide">Aggregated view of all clients from bookings and inquiries.</p>
                       </div>
-                      <input 
-                        type="text" 
-                        placeholder="Search Customers..." 
-                        className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-white w-full md:w-64"
-                        value={customersSearch}
-                        onChange={e => setCustomersSearch(e.target.value)}
-                      />
+                      <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                        <input 
+                          type="text" 
+                          placeholder="Search Customers..." 
+                          className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-white w-full md:w-64"
+                          value={customersSearch}
+                          onChange={e => setCustomersSearch(e.target.value)}
+                        />
+                        <button 
+                          onClick={exportCustomersCSV}
+                          className="px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(20,184,166,0.3)] whitespace-nowrap"
+                        >
+                          Export CSV
+                        </button>
+                      </div>
                     </div>
 
                     {(() => {
@@ -2137,115 +2210,117 @@ const AdminDashboard = () => {
           )}
           {activeTab === 'testimonials' && (
             <div className="space-y-6">
-              <div className="flex justify-between items-center mb-8">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-amber-900/20 to-transparent p-6 rounded-2xl border border-amber-500/20">
                 <div>
-                  <h2 className="text-3xl font-serif text-[#d4af37] mb-2">Testimonials Manager</h2>
-                  <p className="text-gray-400 text-sm">Manage client reviews shown on the Home Page.</p>
+                  <h2 className="text-lg font-oswald text-white uppercase tracking-widest mb-1">Testimonials Manager</h2>
+                  <p className="text-xs text-amber-300/70 tracking-wide">Manage client reviews shown on the Home Page.</p>
                 </div>
                 <button 
                   onClick={() => setEditingTestimonial({ authorName: '', reviewText: '', rating: 5, googleReviewUrl: '', isActive: true })} 
-                  className="px-6 py-3 bg-[#d4af37] text-black font-sans font-bold text-xs uppercase tracking-widest hover:bg-[#c5a030] transition-colors"
+                  className="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(245,158,11,0.3)] whitespace-nowrap"
                 >
-                  + ADD TESTIMONIAL
+                  + Add Testimonial
                 </button>
               </div>
 
               {editingTestimonial && (
-                <div className="bg-[#111] p-8 border border-white/5 mb-8">
-                  <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
-                    <h3 className="text-xl font-serif text-[#d4af37]">Add New Testimonial</h3>
-                    <button onClick={() => setEditingTestimonial(null)} className="text-white hover:text-gray-400 text-2xl">&times;</button>
-                  </div>
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                  <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`${glassPanel} p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar border-amber-500/30`}>
+                    <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+                      <h3 className="text-xl font-oswald text-white uppercase tracking-[0.2em]">{editingTestimonial._id ? 'Edit Testimonial' : 'Add New Testimonial'}</h3>
+                      <button onClick={() => setEditingTestimonial(null)} className="text-gray-400 hover:text-white text-2xl">&times;</button>
+                    </div>
                   
-                  <form onSubmit={(e) => handleSaveTestimonial(e, editingTestimonial)} className="space-y-6">
-                    <div>
-                      <label className="block text-xs uppercase text-gray-500 mb-2 tracking-widest">CLIENT NAME(S)</label>
-                      <input 
-                        type="text" 
-                        className="w-full bg-black border border-white/10 p-4 text-white focus:border-[#d4af37] outline-none transition-colors" 
-                        placeholder="e.g. Arjun & Niharika"
-                        required 
-                        value={editingTestimonial.authorName || ''} 
-                        onChange={e => setEditingTestimonial({...editingTestimonial, authorName: e.target.value})} 
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs uppercase text-gray-500 mb-2 tracking-widest">REVIEW TEXT</label>
-                      <textarea 
-                        className="w-full bg-black border border-white/10 p-4 text-white focus:border-[#d4af37] outline-none transition-colors min-h-[120px]" 
-                        placeholder="Enter client quote..."
-                        required 
-                        value={editingTestimonial.reviewText || ''} 
-                        onChange={e => setEditingTestimonial({...editingTestimonial, reviewText: e.target.value})}
-                      ></textarea>
-                    </div>
-                    <div>
-                      <label className="block text-xs uppercase text-gray-500 mb-2 tracking-widest">GOOGLE REVIEW URL (OPTIONAL)</label>
-                      <input 
-                        type="url" 
-                        className="w-full bg-black border border-white/10 p-4 text-white focus:border-[#d4af37] outline-none transition-colors mb-1" 
-                        placeholder="e.g. https://g.co/kgs/..."
-                        value={editingTestimonial.googleReviewUrl || ''} 
-                        onChange={e => setEditingTestimonial({...editingTestimonial, googleReviewUrl: e.target.value})} 
-                      />
-                      <p className="text-[10px] text-gray-600 uppercase tracking-widest">PASTE THE SPECIFIC GOOGLE REVIEW LINK TO SHOW A VERIFIED REVIEW LINK BADGE ON THE PUBLIC TESTIMONIALS PAGE.</p>
-                    </div>
-                    <div>
-                      <label className="block text-xs uppercase text-gray-500 mb-2 tracking-widest">RATING (1 TO 5 STARS)</label>
-                      <select 
-                        className="w-full bg-black border border-white/10 p-4 text-white focus:border-[#d4af37] outline-none transition-colors appearance-none"
-                        value={editingTestimonial.rating || 5} 
-                        onChange={e => setEditingTestimonial({...editingTestimonial, rating: parseInt(e.target.value)})}
-                      >
-                        <option value="5">5 Stars</option>
-                        <option value="4">4 Stars</option>
-                        <option value="3">3 Stars</option>
-                        <option value="2">2 Stars</option>
-                        <option value="1">1 Star</option>
-                      </select>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input type="checkbox" id="isActive" checked={editingTestimonial.isActive !== false} onChange={e => setEditingTestimonial({...editingTestimonial, isActive: e.target.checked})} />
-                      <label htmlFor="isActive" className="text-xs uppercase text-gray-400 tracking-widest">Visible on Home Page</label>
-                    </div>
-                    <div className="flex gap-4 pt-4 border-t border-white/10">
-                      <button type="submit" className="px-8 py-3 bg-[#d4af37] text-black font-bold uppercase tracking-widest text-xs flex items-center gap-2">
-                        <span>&#10003;</span> SAVE TESTIMONIAL
-                      </button>
-                      <button type="button" onClick={() => setEditingTestimonial(null)} className="px-8 py-3 border border-white/20 text-white uppercase tracking-widest text-xs hover:bg-white/5">CANCEL</button>
-                    </div>
-                  </form>
+                    <form onSubmit={(e) => handleSaveTestimonial(e, editingTestimonial)} className="space-y-6">
+                      <div>
+                        <label className="block text-xs uppercase text-gray-500 mb-2 tracking-widest">Client Name(s)</label>
+                        <input 
+                          type="text" 
+                          className={glassInput} 
+                          placeholder="e.g. Arjun & Niharika"
+                          required 
+                          value={editingTestimonial.authorName || ''} 
+                          onChange={e => setEditingTestimonial({...editingTestimonial, authorName: e.target.value})} 
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs uppercase text-gray-500 mb-2 tracking-widest">Review Text</label>
+                        <textarea 
+                          className={`${glassInput} min-h-[120px]`} 
+                          placeholder="Enter client quote..."
+                          required 
+                          value={editingTestimonial.reviewText || ''} 
+                          onChange={e => setEditingTestimonial({...editingTestimonial, reviewText: e.target.value})}
+                        ></textarea>
+                      </div>
+                      <div>
+                        <label className="block text-xs uppercase text-gray-500 mb-2 tracking-widest">Google Review URL (Optional)</label>
+                        <input 
+                          type="url" 
+                          className={glassInput} 
+                          placeholder="e.g. https://g.co/kgs/..."
+                          value={editingTestimonial.googleReviewUrl || ''} 
+                          onChange={e => setEditingTestimonial({...editingTestimonial, googleReviewUrl: e.target.value})} 
+                        />
+                        <p className="text-[10px] text-gray-600 uppercase tracking-widest mt-1">Paste the specific Google Review link to show a verified review link badge.</p>
+                      </div>
+                      <div>
+                        <label className="block text-xs uppercase text-gray-500 mb-2 tracking-widest">Rating (1 to 5 Stars)</label>
+                        <select 
+                          className={`${glassInput} appearance-none`}
+                          value={editingTestimonial.rating || 5} 
+                          onChange={e => setEditingTestimonial({...editingTestimonial, rating: parseInt(e.target.value)})}
+                        >
+                          <option value="5" className="bg-black">5 Stars</option>
+                          <option value="4" className="bg-black">4 Stars</option>
+                          <option value="3" className="bg-black">3 Stars</option>
+                          <option value="2" className="bg-black">2 Stars</option>
+                          <option value="1" className="bg-black">1 Star</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input type="checkbox" id="isActive" checked={editingTestimonial.isActive !== false} onChange={e => setEditingTestimonial({...editingTestimonial, isActive: e.target.checked})} />
+                        <label htmlFor="isActive" className="text-xs uppercase text-gray-400 tracking-widest cursor-pointer">Visible on Home Page</label>
+                      </div>
+                      <div className="flex justify-end gap-3 pt-6 border-t border-white/5">
+                        <button type="button" onClick={() => setEditingTestimonial(null)} className="px-6 py-3 rounded-xl bg-white/5 text-xs uppercase hover:bg-white/10 transition-colors">Cancel</button>
+                        <button type="submit" className="px-6 py-3 rounded-xl bg-amber-500 text-white font-bold text-xs uppercase hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all flex items-center gap-2">
+                          <span>&#10003;</span> Save
+                        </button>
+                      </div>
+                    </form>
+                  </motion.div>
                 </div>
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {testimonials.map(t => (
-                  <div key={t._id} className={`bg-[#111] p-8 border border-white/10 flex flex-col justify-between ${!t.isActive ? 'opacity-50' : ''}`}>
+                  <div key={t._id} className={`${glassPanel} p-8 flex flex-col justify-between ${!t.isActive ? 'opacity-50' : ''}`}>
                     <div>
                       <div className="flex justify-between items-start mb-6">
-                        <div className="text-[#d4af37] opacity-60 text-5xl font-serif leading-none">"</div>
+                        <div className="text-amber-500/60 text-5xl font-serif leading-none">"</div>
                         <div className="flex gap-2">
-                          <button onClick={() => setEditingTestimonial(t)} className="w-8 h-8 flex justify-center items-center bg-black border border-white/20 text-white hover:border-[#d4af37] transition-colors">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                          </button>
-                          <button onClick={() => handleDeleteTestimonial(t._id)} className="w-8 h-8 flex justify-center items-center bg-black border border-white/20 text-white hover:border-red-500 transition-colors">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                          </button>
+                           <button onClick={() => setEditingTestimonial(t)} className="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-amber-500 hover:scale-110 shadow-lg transition-all">
+                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                           </button>
+                           <button onClick={() => handleDeleteTestimonial(t._id)} className="w-8 h-8 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white hover:scale-110 shadow-lg transition-all">
+                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                           </button>
                         </div>
                       </div>
                       
                       {t.googleReviewUrl && (
-                        <a href={t.googleReviewUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1 border border-[#d4af37]/30 text-[#d4af37] text-[10px] uppercase tracking-widest hover:bg-[#d4af37]/10 transition-colors mb-6">
+                        <a href={t.googleReviewUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1 rounded-lg border border-amber-500/30 text-amber-400 text-[10px] uppercase tracking-widest hover:bg-amber-500/10 transition-colors mb-6">
                           <span>G</span> GOOGLE REVIEW &#8599;
                         </a>
                       )}
 
-                      <div className="text-[#d4af37] text-sm mb-4">{'★'.repeat(t.rating || 5)}</div>
+                      <div className="text-amber-400 text-sm mb-4">{'★'.repeat(t.rating || 5)}</div>
                       <p className="text-sm text-gray-300 font-sans italic mb-8 leading-relaxed">"{t.reviewText}"</p>
                     </div>
                     
                     <div className="flex justify-between items-end border-t border-white/10 pt-6">
-                      <h4 className="text-[#d4af37] text-sm font-sans uppercase tracking-widest">{t.authorName}</h4>
+                      <h4 className="text-amber-400 text-sm font-sans uppercase tracking-widest">{t.authorName}</h4>
                     </div>
                   </div>
                 ))}
@@ -2352,6 +2427,132 @@ const AdminDashboard = () => {
                     <p className="text-[10px] text-gray-600 mt-2">Name: {member.name}</p>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* DEVELOPER OPTIONS TAB */}
+          {activeTab === 'developer options' && (
+            <div className="p-10 max-w-4xl">
+              <h2 className="text-2xl font-oswald text-white uppercase tracking-widest mb-10 border-b border-white/10 pb-4">
+                Developer Options
+              </h2>
+              
+              <div className={`${glassPanel} p-8 mb-8`}>
+                <h3 className="text-xl font-oswald text-white uppercase tracking-widest mb-2 flex items-center gap-3">
+                  <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                  Maintenance Mode
+                </h3>
+                <p className="text-sm font-sans text-gray-400 tracking-wider leading-relaxed mb-8">
+                  When enabled, all public pages will be intercepted by a Maintenance screen. Only the `/admin` portal will remain accessible. Use this when performing critical updates.
+                </p>
+
+                <div className="flex flex-col gap-6">
+                  <div className="flex items-center gap-4">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer"
+                        checked={settings.maintenanceMode || false}
+                        onChange={async (e) => {
+                          const newStatus = e.target.checked;
+                          try {
+                            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings/maintenance`, { 
+                              maintenanceMode: newStatus,
+                              maintenanceEndTime: settings.maintenanceEndTime
+                            });
+                            setSettings({ ...settings, maintenanceMode: newStatus });
+                          } catch (error) {
+                            console.error(error);
+                            alert('Failed to update maintenance mode');
+                          }
+                        }}
+                      />
+                      <div className="w-14 h-7 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-red-600"></div>
+                    </label>
+                    <span className={`text-sm font-bold uppercase tracking-widest ${settings.maintenanceMode ? 'text-red-500' : 'text-gray-500'}`}>
+                      {settings.maintenanceMode ? 'ACTIVE' : 'INACTIVE'}
+                    </span>
+                  </div>
+
+                  {settings.maintenanceMode && (
+                    <div className="bg-black/30 p-6 rounded-xl border border-white/5">
+                      <label className="block text-xs uppercase text-gray-400 tracking-widest mb-3">Expected End Time (Optional)</label>
+                      <div className="flex items-center gap-4">
+                        <input 
+                          type="datetime-local" 
+                          className="bg-black/50 border border-white/10 rounded px-4 py-2 text-white text-sm outline-none focus:border-white/30 [&::-webkit-calendar-picker-indicator]:invert"
+                          value={settings.maintenanceEndTime ? new Date(new Date(settings.maintenanceEndTime).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0,16) : ''}
+                          onChange={async (e) => {
+                            const dateVal = e.target.value ? new Date(e.target.value).toISOString() : null;
+                            try {
+                              await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings/maintenance`, { 
+                                maintenanceMode: true,
+                                maintenanceEndTime: dateVal
+                              });
+                              setSettings({ ...settings, maintenanceEndTime: dateVal });
+                            } catch (error) {
+                              console.error(error);
+                              alert('Failed to save end time');
+                            }
+                          }}
+                        />
+                        <button 
+                          onClick={async () => {
+                            try {
+                              await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings/maintenance`, { 
+                                maintenanceMode: true,
+                                maintenanceEndTime: null
+                              });
+                              setSettings({ ...settings, maintenanceEndTime: null });
+                            } catch (error) {
+                              console.error(error);
+                            }
+                          }}
+                          className="text-xs text-red-400 uppercase tracking-widest hover:text-red-300"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-gray-500 mt-2 italic">If set, a countdown timer will appear on the maintenance screen.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className={`${glassPanel} p-8 flex flex-col items-start`}>
+                  <h3 className="text-lg font-oswald text-white uppercase tracking-widest mb-2">Admin Bypass</h3>
+                  <p className="text-xs text-gray-400 mb-6 font-sans">
+                    Enable bypass to view the public website while Maintenance Mode is active.
+                  </p>
+                  <button 
+                    onClick={() => {
+                      localStorage.setItem('adminBypass', 'true');
+                      window.open('/', '_blank');
+                    }}
+                    className="px-6 py-3 bg-white text-black text-xs font-bold uppercase tracking-widest rounded hover:bg-gray-200 transition-colors"
+                  >
+                    Preview Website
+                  </button>
+                </div>
+
+                <div className={`${glassPanel} p-8 flex flex-col items-start`}>
+                  <h3 className="text-lg font-oswald text-white uppercase tracking-widest mb-2">System Cache</h3>
+                  <p className="text-xs text-gray-400 mb-6 font-sans">
+                    Clear local browser cache, saved preferences, and admin bypass flags.
+                  </p>
+                  <button 
+                    onClick={() => {
+                      localStorage.clear();
+                      alert('System cache cleared successfully. You may need to log in again if auth relies on it.');
+                      window.location.reload();
+                    }}
+                    className="px-6 py-3 border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white text-xs font-bold uppercase tracking-widest rounded transition-colors"
+                  >
+                    Clear Cache
+                  </button>
+                </div>
               </div>
             </div>
           )}

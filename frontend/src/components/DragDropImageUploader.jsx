@@ -108,8 +108,8 @@ const DragDropImageUploader = ({ onUploadSuccess, currentImage, multiple = false
             <p className="text-sm text-primary uppercase tracking-widest">Uploading to Cloudinary...</p>
           </div>
         ) : currentImage ? (
-          <div className="relative group overflow-hidden rounded w-full bg-black" style={{ aspectRatio: aspect ? aspect : 'auto', minHeight: aspect ? 'auto' : '12rem' }}>
-          <img src={currentImage} alt="Uploaded preview" className="w-full h-full object-cover opacity-70 group-hover:opacity-30 transition-opacity" />
+          <div className="relative group overflow-hidden rounded mx-auto w-full bg-black flex justify-center" style={{ aspectRatio: aspect ? aspect : 'auto', maxHeight: '350px' }}>
+          <img src={currentImage} alt="Uploaded preview" className="w-full h-full object-contain opacity-70 group-hover:opacity-30 transition-opacity" />
           <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-3">
             <div className="text-center">
               <p className="text-sm text-white font-bold uppercase tracking-widest">Drag new image</p>
@@ -157,7 +157,7 @@ const DragDropImageUploader = ({ onUploadSuccess, currentImage, multiple = false
                   crop={crop}
                   zoom={zoom}
                   aspect={aspect}
-                  objectFit="auto-cover"
+                  objectFit="contain"
                   onCropChange={setCrop}
                   onCropComplete={onCropComplete}
                   onZoomChange={setZoom}
