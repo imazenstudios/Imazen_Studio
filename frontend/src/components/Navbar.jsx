@@ -43,7 +43,7 @@ const Navbar = () => {
             : 'py-8 bg-transparent'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 flex justify-between items-center">
+        <div className="w-full px-4 lg:px-8 flex justify-between items-center">
           
           {/* LOGO */}
           <motion.a 
@@ -53,7 +53,7 @@ const Navbar = () => {
             transition={{ duration: 0.8 }}
             className="z-[60] flex items-center"
           >
-            <img src="/images/logo.png" alt="Imazen Studios" className="h-14 md:h-16 w-auto object-contain" />
+            <img src="/images/logo.png" alt="Imazen Studios" className="h-10 md:h-14 w-auto object-contain" />
           </motion.a>
 
           {/* DESKTOP LINKS */}

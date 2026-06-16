@@ -6,7 +6,13 @@ import DragDropImageUploader from '../components/DragDropImageUploader';
 import DragDropVideoUploader from '../components/DragDropVideoUploader';
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('cms');
+  const [activeTab, setActiveTab] = useState('dashboard');
+
+  const [dashboardStartDate, setDashboardStartDate] = useState('');
+  const [dashboardEndDate, setDashboardEndDate] = useState('');
+  const [dashboardTypeFilter, setDashboardTypeFilter] = useState('all'); // 'all', 'leads', 'inquiries'
+
+
 
   // Data States
   const [content, setContent] = useState([]);
@@ -17,6 +23,8 @@ const AdminDashboard = () => {
   const [galleryCategoriesData, setGalleryCategoriesData] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [inquiries, setInquiries] = useState([]);
+
+
   const [leads, setLeads] = useState([]);
   const [heroSlides, setHeroSlides] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
@@ -25,6 +33,35 @@ const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isGlobalSubmitting, setIsGlobalSubmitting] = useState(false);
+
+  const filterByDate = (items) => {
+    if (!dashboardStartDate && !dashboardEndDate) return items;
+    return items.filter(item => {
+      const itemDate = new Date(item.createdAt || item.date);
+      // Reset time to start of day for comparison
+      itemDate.setHours(0,0,0,0);
+      
+      let start = dashboardStartDate ? new Date(dashboardStartDate) : null;
+      let end = dashboardEndDate ? new Date(dashboardEndDate) : null;
+      
+      if (start) start.setHours(0,0,0,0);
+      if (end) end.setHours(23,59,59,999);
+
+      if (start && end) return itemDate >= start && itemDate <= end;
+      if (start) return itemDate >= start;
+      if (end) return itemDate <= end;
+      return true;
+    });
+  };
+
+  const dashboardFilteredLeads = filterByDate(leads);
+  const dashboardFilteredInquiries = filterByDate(inquiries);
+
+  const combinedRecent = [...dashboardFilteredLeads.map(l => ({...l, isLead: true, created: l.createdAt || l.date})), ...dashboardFilteredInquiries.map(i => ({...i, isLead: false, created: i.createdAt || i.date}))]
+    .sort((a, b) => new Date(b.created) - new Date(a.created))
+    .filter(item => dashboardTypeFilter === 'all' ? true : (dashboardTypeFilter === 'leads' ? item.isLead : !item.isLead))
+    .slice(0, 10);
+
   
   useEffect(() => {
     const reqInterceptor = axios.interceptors.request.use(config => {
@@ -866,7 +903,7 @@ const AdminDashboard = () => {
           </h2>
         </div>
         <nav className="flex-1 p-6 space-y-3 overflow-y-auto custom-scrollbar">
-          {['cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'bookings', 'slots', 'inquiries', 'leads', 'customers', 'testimonials', 'team', 'developer options'].map(tab => (
+          {['dashboard', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'bookings', 'slots', 'inquiries', 'leads', 'customers', 'testimonials', 'team', 'developer options'].map(tab => (
             <button 
               key={tab}
               onClick={() => { setActiveTab(tab); setIsMobileMenuOpen(false); }}
@@ -941,7 +978,119 @@ const AdminDashboard = () => {
               >
 
                 {/* CMS TAB */}
-                {activeTab === 'cms' && (
+                
+          
+          {activeTab === 'dashboard' && (
+            <div className="space-y-8 animate-fade-in">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                  <h2 className="text-3xl font-oswald uppercase tracking-widest text-white">Performance Overview</h2>
+                  <p className="text-gray-400 font-sans font-light text-sm mt-1">Track your inquiries and conversion metrics.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase text-gray-500 mb-1">Start Date</span>
+                    <input 
+                      type="date" 
+                      className="bg-black/40 border border-white/20 text-white font-sans text-xs px-3 py-2 outline-none focus:border-white/50 rounded [color-scheme:dark]"
+                      value={dashboardStartDate}
+                      onChange={(e) => setDashboardStartDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase text-gray-500 mb-1">End Date</span>
+                    <input 
+                      type="date" 
+                      className="bg-black/40 border border-white/20 text-white font-sans text-xs px-3 py-2 outline-none focus:border-white/50 rounded [color-scheme:dark]"
+                      value={dashboardEndDate}
+                      onChange={(e) => setDashboardEndDate(e.target.value)}
+                    />
+                  </div>
+                  {(dashboardStartDate || dashboardEndDate) && (
+                    <button 
+                      onClick={() => { setDashboardStartDate(''); setDashboardEndDate(''); }}
+                      className="mt-5 text-[10px] uppercase text-gray-400 hover:text-white underline"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className={glassPanel + " p-6 flex flex-col"}>
+                  <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest mb-2">Total Leads</div>
+                  <div className="text-5xl font-oswald text-white mb-4">{dashboardFilteredLeads.length}</div>
+                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest">Landing page inquiries</div>
+                </div>
+                <div className={glassPanel + " p-6 flex flex-col"}>
+                  <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest mb-2">Total Inquiries</div>
+                  <div className="text-5xl font-oswald text-white mb-4">{dashboardFilteredInquiries.length}</div>
+                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest">General inquiries</div>
+                </div>
+                <div className={glassPanel + " p-6 flex flex-col"}>
+                  <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest mb-2">Pending</div>
+                  <div className="text-5xl font-oswald text-white mb-4">
+                    {dashboardFilteredLeads.filter(l => l.status === 'PENDING' || l.status === 'Pending').length + dashboardFilteredInquiries.filter(i => i.status === 'PENDING' || i.status === 'Pending').length}
+                  </div>
+                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest">Needs review (Combined)</div>
+                </div>
+                <div className={glassPanel + " p-6 flex flex-col"}>
+                  <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest mb-2">Confirmed</div>
+                  <div className="text-5xl font-oswald text-white mb-4">
+                    {dashboardFilteredLeads.filter(l => l.status === 'CONFIRMED' || l.status === 'CONTACTED' || l.status === 'Confirmed' || l.status === 'Contacted').length + dashboardFilteredInquiries.filter(i => i.status === 'CONFIRMED' || i.status === 'Confirmed').length}
+                  </div>
+                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest">Converted (Combined)</div>
+                </div>
+              </div>
+
+              <div className={glassPanel + " p-8 mt-8"}>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                  <h3 className="text-xl font-oswald uppercase tracking-widest text-white">Recent Inquiries</h3>
+                  <div className="flex gap-4">
+                    <select 
+                      className="bg-[#121212] border border-white/20 text-white font-sans text-[10px] uppercase tracking-widest px-4 py-2 outline-none focus:border-white/50 rounded cursor-pointer"
+                      value={dashboardTypeFilter}
+                      onChange={(e) => setDashboardTypeFilter(e.target.value)}
+                    >
+                      <option value="all" className="bg-[#121212] text-white">All Types</option>
+                      <option value="leads" className="bg-[#121212] text-white">Leads Only</option>
+                      <option value="inquiries" className="bg-[#121212] text-white">Inquiries Only</option>
+                    </select>
+                    <button onClick={() => setActiveTab('inquiries')} className="text-[10px] uppercase tracking-widest border border-white/20 px-4 py-2 hover:bg-white hover:text-black transition-colors rounded text-white">View All</button>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left font-sans text-sm">
+                    <thead>
+                      <tr className="border-b border-white/10 text-gray-500 text-[10px] uppercase tracking-widest">
+                        <th className="py-4 font-normal">Type</th>
+                        <th className="py-4 font-normal">Client Name</th>
+                        <th className="py-4 font-normal">Event Date</th>
+                        <th className="py-4 font-normal">Details</th>
+                        <th className="py-4 font-normal">Status</th>
+                        <th className="py-4 font-normal">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {combinedRecent.map((item, idx) => (
+                        <tr key={idx} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                          <td className="py-4"><span className="text-[9px] uppercase tracking-widest border border-purple-500/30 text-purple-400 px-2 py-1 rounded">{item.isLead ? 'LEAD' : 'INQUIRY'}</span></td>
+                          <td className="py-4 text-white">{item.name}</td>
+                          <td className="py-4 text-gray-400">{item.eventDate || item.date || 'N/A'}</td>
+                          <td className="py-4 text-gray-400">{item.interestedIn || item.service || 'N/A'}</td>
+                          <td className="py-4"><span className="text-[9px] uppercase tracking-widest border border-yellow-500/30 text-yellow-400 px-2 py-1 rounded">{item.status}</span></td>
+                          <td className="py-4"><button onClick={() => setActiveTab(item.isLead ? 'leads' : 'inquiries')} className="text-xs uppercase tracking-widest text-gray-400 hover:text-white transition-colors">Review</button></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'cms' && (
                   <div className="space-y-6">
                     {/* Settings / Analytics */}
                     <div className={`${glassPanel} p-8 hover:border-white/20 transition-all duration-300 border border-blue-500/20 bg-gradient-to-br from-blue-900/10 to-transparent`}>
@@ -1475,6 +1624,29 @@ const AdminDashboard = () => {
                                 <option value="right" className="bg-black text-white">Right</option>
                               </select>
                             </div>
+                          </div>
+                        </div>
+
+                        
+                        {/* 360 VIEWER IMAGES */}
+                        <div className="bg-[#1a1a1a] p-4 md:p-6 rounded-2xl border border-white/5 relative overflow-hidden group/card mb-8">
+                          <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase mb-4">360 Viewer Images</h3>
+                          <DragDropImageUploader 
+                            currentImage={''}
+                            multiple={true}
+                            disableCompression={true}
+                            onUploadSuccess={(urls) => {
+                              const newImages = Array.isArray(urls) ? urls : [urls];
+                              setEditingLandingPage({...editingLandingPage, threeSixtyImages: [...(editingLandingPage.threeSixtyImages || []), ...newImages]});
+                            }} 
+                          />
+                          <div className="grid grid-cols-2 gap-4 mt-4">
+                            {(editingLandingPage.threeSixtyImages || []).map((img, idx) => (
+                              <div key={idx} className="relative group">
+                                <img src={img} className="w-full aspect-video object-cover border border-white/20" alt="360" />
+                                <button type="button" onClick={() => setEditingLandingPage({...editingLandingPage, threeSixtyImages: editingLandingPage.threeSixtyImages.filter((_, i) => i !== idx)})} className="absolute top-2 right-2 bg-red-500/80 text-white w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center">×</button>
+                              </div>
+                            ))}
                           </div>
                         </div>
 

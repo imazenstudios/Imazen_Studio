@@ -36,7 +36,7 @@ const Testimonials = () => {
 
   return (
     <section id="testimonials" className="relative w-full py-24 bg-[#0a0a0a] text-white flex flex-col items-center">
-      <h2 className="font-serif text-white text-3xl md:text-4xl mb-24 md:mb-32 text-center tracking-wide">
+      <h2 className="font-oswald uppercase text-white text-5xl md:text-6xl mb-24 md:mb-32 text-center tracking-wide">
         Testimonials
       </h2>
 
@@ -58,7 +58,7 @@ const Testimonials = () => {
               transition={{ duration: 0.5 }}
               className="absolute inset-0 flex flex-col items-center justify-center"
             >
-              <p className="font-serif font-light text-base md:text-lg text-gray-400 italic mb-10 leading-relaxed max-w-2xl">
+              <p className="font-sans text-base md:text-lg text-gray-300 mb-10 leading-relaxed max-w-2xl">
                 {current.reviewText}
               </p>
               

@@ -50,6 +50,7 @@ const landingPageSchema = new mongoose.Schema({
   faqs: [faqSchema],
   portfolioImages: [{ type: String }],
   portfolioVideos: [{ type: String }],
+  threeSixtyImages: [{ type: String }],
   callToActionLink: { type: String },
   isActive: { type: Boolean, default: true }
 }, { timestamps: true });

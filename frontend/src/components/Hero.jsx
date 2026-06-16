@@ -132,19 +132,6 @@ const Hero = () => {
                       {slide.titleOutline || content.title.split(' ').slice(1).join(' ')}
                     </h1>
                   )}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.5 }}
-                    className="mt-8 md:mt-12 pointer-events-auto flex justify-center"
-                  >
-                    <Link 
-                      to="/gallery" 
-                      className="inline-block border border-white/50 bg-black/30 backdrop-blur-sm hover:bg-white hover:text-black transition-all duration-500 text-white font-sans text-[10px] md:text-xs uppercase tracking-[0.3em] px-8 py-4"
-                    >
-                      View Gallery
-                    </Link>
-                  </motion.div>
                 </div>
               </div>
             </SwiperSlide>

@@ -5,6 +5,7 @@ import axios from 'axios';
 import NotFound from './NotFound';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, FreeMode } from 'swiper/modules';
+import { Pannellum } from 'pannellum-react';
 import 'swiper/css';
 import Footer from '../components/Footer';
 
@@ -300,7 +301,31 @@ const LandingPage = () => {
       </section>
 
       {/* 2. DISPLAY VIDEO SECTION */}
-      {pageData.displayVideoUrl && (
+      
+      {/* 360 VIEWER SECTION */}
+      {pageData.threeSixtyImages && pageData.threeSixtyImages.length > 0 && (
+        <section className="relative py-24 px-6 max-w-7xl mx-auto">
+          <h2 className="font-oswald font-light text-3xl md:text-4xl uppercase tracking-[0.2em] text-white text-center mb-12">Immersive 360° View</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {pageData.threeSixtyImages.map((imgUrl, idx) => (
+              <div key={idx} className="w-full aspect-video bg-black/50 border border-white/10 rounded-xl overflow-hidden shadow-2xl relative">
+                <Pannellum
+                  width="100%"
+                  height="100%"
+                  image={imgUrl}
+                  pitch={10}
+                  yaw={180}
+                  hfov={110}
+                  autoLoad
+                  showZoomCtrl={false}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+{pageData.displayVideoUrl && (
         <section className="relative py-24 px-6 max-w-7xl mx-auto flex justify-center">
           <div className="w-full aspect-video bg-black/50 border border-white/10 rounded-xl overflow-hidden shadow-2xl relative">
              <video src={pageData.displayVideoUrl} controls autoPlay muted loop className="w-full h-full object-cover" controlsList="nodownload" />

@@ -1,11 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 
 const WhatWeOffer = () => {
   const [mainServices, setMainServices] = useState([]);
   const navigate = useNavigate();
+  const sectionRef = useRef(null);
+  
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"]
+  });
+  
+  // Parallax effect for the grid
+  const yGrid = useTransform(scrollYProgress, [0, 1], ["0%", "10%"]);
 
   // Helper to optimize Cloudinary URLs with high quality
   const optimizeCloudinaryUrl = (url) => {
@@ -25,15 +34,29 @@ const WhatWeOffer = () => {
       .catch(console.error);
   }, []);
 
-  const displayServices = mainServices;
+  const displayServices = [
+    ...mainServices,
+    {
+      _id: 'wedding-service',
+      name: 'Wedding',
+      description: 'Capture your special day with our premium wedding cinematography and photography.',
+      slug: 'wedding',
+      imageUrl: '/images/wedding.jpg',
+      externalLink: 'http://www.astitvacreations.com'
+    }
+  ];
 
   const handleCardClick = (svc) => {
-    navigate(`/portfolio?service=${encodeURIComponent(svc.slug)}`);
+    if (svc.externalLink) {
+      window.location.href = svc.externalLink;
+    } else {
+      navigate(`/portfolio?service=${encodeURIComponent(svc.slug)}`);
+    }
   };
 
   return (
-    <section id="experiences" className="bg-[#020202] py-32 px-6 lg:px-12 text-white relative z-10">
-      <div className="max-w-[90rem] mx-auto">
+    <section ref={sectionRef} id="experiences" className="bg-[#020202] pt-32 pb-48 lg:pb-64 px-6 lg:px-12 text-white relative z-10 overflow-hidden">
+      <div className="max-w-[90rem] mx-auto relative z-10">
         
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
@@ -52,7 +75,7 @@ const WhatWeOffer = () => {
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {displayServices.map((svc, i) => (
             <motion.div 
               key={svc._id || svc.name}
@@ -87,19 +110,29 @@ const WhatWeOffer = () => {
                 
                 {/* View Gallery Button - Always visible on mobile, visible on hover on desktop */}
                 <div className="block md:hidden md:group-hover:block transition-all duration-700">
-                  <Link 
-                    to={`/portfolio?service=${encodeURIComponent(svc.slug)}`}
-                    onClick={(e) => e.stopPropagation()} 
-                    className="inline-block text-[9px] font-sans text-white uppercase tracking-[0.3em] border border-white/30 px-6 py-3 hover:bg-white hover:text-black transition-colors"
-                  >
-                    View Gallery
-                  </Link>
+                  {svc.externalLink ? (
+                    <a 
+                      href={svc.externalLink}
+                      onClick={(e) => e.stopPropagation()} 
+                      className="inline-block text-[9px] font-sans text-white uppercase tracking-[0.3em] border border-white/30 px-6 py-3 hover:bg-white hover:text-black transition-colors"
+                    >
+                      View Gallery
+                    </a>
+                  ) : (
+                    <Link 
+                      to={`/portfolio?service=${encodeURIComponent(svc.slug)}`}
+                      onClick={(e) => e.stopPropagation()} 
+                      className="inline-block text-[9px] font-sans text-white uppercase tracking-[0.3em] border border-white/30 px-6 py-3 hover:bg-white hover:text-black transition-colors"
+                    >
+                      View Gallery
+                    </Link>
+                  )}
                 </div>
               </div>
 
             </motion.div>
           ))}
-        </div>
+        </motion.div>
 
       </div>
     </section>
