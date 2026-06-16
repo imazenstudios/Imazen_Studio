@@ -8,7 +8,7 @@ const settingsSchema = new mongoose.Schema({
   },
   metaPixelId: { type: String, default: '' },
   googleAnalyticsId: { type: String, default: '' },
-  contactEmail: { type: String, default: 'hello@twilightstudios.in' },
+  contactEmail: { type: String, default: 'hello@imazenstudios.in' },
   whatsappNumber: { type: String, default: '+919999999999' },
   teamEmails: { type: [String], default: [] },
   maintenanceMode: { type: Boolean, default: false },

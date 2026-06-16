@@ -305,7 +305,7 @@ const Book = () => {
                       const [year, month, day] = val.split('-');
                       const selectedDate = new Date(year, month - 1, day);
                       if (blockedWeekdays.includes(selectedDate.getDay())) {
-                        setDateError('Twilight Studios is closed on this day of the week. Please select another date.');
+                        setDateError('Imazen Studios is closed on this day of the week. Please select another date.');
                         setFormData({ ...formData, date: '' });
                       } else {
                         setFormData({ ...formData, date: val });
@@ -446,7 +446,7 @@ const Book = () => {
                          ...formData,
                          shootType: getActiveTitle(),
                        });
-                       const message = `Hello Twilight Studios! I'd like to pay the advance of ₹1000 for my booking.\n\nDetails:\nExperience: ${getActiveTitle()}\nPackage: ${formData.package}\nDate: ${formData.date}\nSlot: ${formData.slot}\nName: ${formData.name}\nPhone: ${formData.phone}`;
+                       const message = `Hello Imazen Studios! I'd like to pay the advance of ₹1000 for my booking.\n\nDetails:\nExperience: ${getActiveTitle()}\nPackage: ${formData.package}\nDate: ${formData.date}\nSlot: ${formData.slot}\nName: ${formData.name}\nPhone: ${formData.phone}`;
                        window.open(`https://wa.me/910000000000?text=${encodeURIComponent(message)}`, '_blank');
                        setStep(7);
                      } catch (error) {

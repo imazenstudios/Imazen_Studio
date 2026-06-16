@@ -31,7 +31,7 @@ const Maintenance = ({ endTime }) => {
       {/* Subtle Studio Background */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-fixed opacity-10 pointer-events-none"
-        style={{ backgroundImage: `url('https://res.cloudinary.com/dibsrucwt/image/upload/v1781373896/twilight_studios/db01s2slnoxh9powzuxt.jpg')` }}
+        style={{ backgroundImage: `url('https://res.cloudinary.com/dibsrucwt/image/upload/v1781373896/imazen_studios/db01s2slnoxh9powzuxt.jpg')` }}
       ></div>
       
       {/* Heavy gradient to keep it dark and moody */}
@@ -55,7 +55,7 @@ const Maintenance = ({ endTime }) => {
         </motion.div>
 
         <h4 className="font-sans text-xs text-white/40 uppercase tracking-[0.5em] mb-4">
-          Twilight Studios
+          Imazen Studios
         </h4>
         <h2 className="font-oswald font-light text-5xl md:text-7xl text-white uppercase tracking-[0.1em] mb-8 leading-tight">
           System Upgrade<br/><span className="text-white/50">In Progress</span>

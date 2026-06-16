@@ -1,4 +1,10 @@
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filenamePath = fileURLToPath(import.meta.url);
+const __dirnamePath = path.dirname(__filenamePath);
+const logoPath = path.join(__dirnamePath, '../../frontend/public/images/logo.png');
+
 import Subscription from '../models/Subscription.js';
 import Booking from '../models/Booking.js';
 import nodemailer from 'nodemailer';
@@ -72,7 +78,7 @@ router.post('/', async (req, res) => {
         const clientEmailHtml = `
           <div style="background-color: #0a0a0a; padding: 40px 30px; font-family: Arial, sans-serif; color: #ffffff; max-width: 600px; margin: 0 auto; border-radius: 8px;">
             <div style="margin-bottom: 40px;">
-              <h1 style="color: #ffffff; font-size: 28px; margin: 0; font-weight: bold; letter-spacing: 1px;">Twilight Studios.</h1>
+              <img src="cid:imazenlogo" alt="Imazen Studios" style="max-width: 200px; height: auto;" />
             </div>
             <p style="font-size: 15px; line-height: 1.6; margin-bottom: 25px; color: #e5e5e5;">Hi ${name},</p>
             <p style="font-size: 15px; line-height: 1.6; margin-bottom: 25px; color: #e5e5e5;">
@@ -89,10 +95,15 @@ router.post('/', async (req, res) => {
         `;
 
         await transporter.sendMail({
-          from: `"Twilight Studios" <${authUser}>`,
+          from: `"Imazen Studios" <${authUser}>`,
           to: email,
-          subject: 'Your Twilight Studios Subscription',
-          html: clientEmailHtml
+          subject: 'Your Imazen Studios Subscription',
+          html: clientEmailHtml,
+          attachments: [{
+            filename: 'logo.png',
+            path: logoPath,
+            cid: 'imazenlogo'
+          }]
         });
       }
     } catch (emailError) {

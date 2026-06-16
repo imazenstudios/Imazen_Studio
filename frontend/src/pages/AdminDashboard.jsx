@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import DragDropImageUploader from '../components/DragDropImageUploader';
+import DragDropVideoUploader from '../components/DragDropVideoUploader';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('cms');
@@ -16,6 +17,7 @@ const AdminDashboard = () => {
   const [galleryCategoriesData, setGalleryCategoriesData] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [inquiries, setInquiries] = useState([]);
+  const [leads, setLeads] = useState([]);
   const [heroSlides, setHeroSlides] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
   const [landingPages, setLandingPages] = useState([]);
@@ -106,7 +108,7 @@ const AdminDashboard = () => {
   
   // Studio Page State
   const [studioData, setStudioData] = useState({
-    name: 'Twilight Studios',
+    name: 'Imazen Studios',
     description: '',
     heroImageDesktop: '',
     heroImageMobile: '',
@@ -166,7 +168,8 @@ const AdminDashboard = () => {
         landingPagesRes,
         teamRes,
         studioRes,
-        subscriptionsRes
+        subscriptionsRes,
+        leadsRes
       ] = await Promise.all([
         axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/content`),
         axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/services`),
@@ -182,7 +185,8 @@ const AdminDashboard = () => {
         axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/landing-pages`),
         axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/team`),
         axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/studio`),
-        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/subscriptions`)
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/subscriptions`),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/leads`)
       ]);
       setContent(contentRes.data);
       setServices(servicesRes.data);
@@ -192,6 +196,7 @@ const AdminDashboard = () => {
       setGalleryCategoriesData(galleryCatsRes.data);
       setBookings(bookingsRes.data);
       setInquiries(inquiriesRes.data);
+      setLeads(leadsRes.data);
       setHeroSlides(heroRes.data);
       setSettings(settingsRes.data);
       setTestimonials(testimonialsRes.data);
@@ -857,11 +862,11 @@ const AdminDashboard = () => {
       <div className={`fixed inset-y-0 left-0 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 transition duration-300 ease-in-out z-40 w-72 bg-black/80 md:bg-black/40 backdrop-blur-2xl border-r border-white/5 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.5)]`}>
         <div className="p-8 border-b border-white/5 flex justify-between items-center">
           <h2 className="text-2xl font-oswald font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500 tracking-widest uppercase">
-            Twilight OS
+            Imazen OS
           </h2>
         </div>
         <nav className="flex-1 p-6 space-y-3 overflow-y-auto custom-scrollbar">
-          {['cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'bookings', 'slots', 'inquiries', 'customers', 'testimonials', 'team', 'developer options'].map(tab => (
+          {['cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'bookings', 'slots', 'inquiries', 'leads', 'customers', 'testimonials', 'team', 'developer options'].map(tab => (
             <button 
               key={tab}
               onClick={() => { setActiveTab(tab); setIsMobileMenuOpen(false); }}
@@ -887,7 +892,7 @@ const AdminDashboard = () => {
         {/* Mobile Header Toggle */}
         <div className="md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-black/40 backdrop-blur-md z-20">
           <h2 className="text-lg font-oswald font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500 tracking-widest uppercase">
-            Twilight OS
+            Imazen OS
           </h2>
           <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white p-2 focus:outline-none">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -964,11 +969,11 @@ const AdminDashboard = () => {
                         </div>
                         <div>
                           <label className="block text-xs uppercase text-gray-500 mb-2">Contact Email</label>
-                          <input type="email" className={glassInput} placeholder="e.g. hello@twilightstudios.in" value={settings.contactEmail || ''} onChange={e => setSettings({...settings, contactEmail: e.target.value})} />
+                          <input type="email" className={glassInput} placeholder="e.g. hello@imazenstudios.in" value={settings.contactEmail || ''} onChange={e => setSettings({...settings, contactEmail: e.target.value})} />
                         </div>
                         <div>
                           <label className="block text-xs uppercase text-gray-500 mb-2">Team Notification Emails (comma separated)</label>
-                          <textarea className={glassInput} rows="2" placeholder="e.g. member1@twilight.in, member2@twilight.in" value={settings.teamEmails ? settings.teamEmails.join(', ') : ''} onChange={e => setSettings({...settings, teamEmails: e.target.value.split(',').map(em => em.trim()).filter(em => em)})}>
+                          <textarea className={glassInput} rows="2" placeholder="e.g. member1@imazen.in, member2@imazen.in" value={settings.teamEmails ? settings.teamEmails.join(', ') : ''} onChange={e => setSettings({...settings, teamEmails: e.target.value.split(',').map(em => em.trim()).filter(em => em)})}>
                           </textarea>
                           <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">These emails will receive new booking notifications.</p>
                         </div>
@@ -1156,51 +1161,230 @@ const AdminDashboard = () => {
                               <input type="text" className={glassInput} value={editingLandingPage.slug} onChange={e => setEditingLandingPage({...editingLandingPage, slug: e.target.value})} required />
                             </div>
                           </div>
-                          <div className="grid grid-cols-2 gap-4 mt-4">
-                            <div>
-                              <label className="block text-xs uppercase text-gray-400 mb-2">Desktop Hero Image</label>
-                              <DragDropImageUploader currentImage={editingLandingPage.heroImage} aspect={16/9} onUploadSuccess={(url) => setEditingLandingPage({...editingLandingPage, heroImage: url})} />
-                            </div>
-                            <div>
-                              <label className="block text-xs uppercase text-gray-400 mb-2">Mobile Hero Image</label>
-                              <DragDropImageUploader currentImage={editingLandingPage.mobileHeroImage} aspect={9/16} onUploadSuccess={(url) => setEditingLandingPage({...editingLandingPage, mobileHeroImage: url})} />
-                            </div>
-                          </div>
+                          
                           <div>
                             <label className="block text-xs uppercase text-gray-400 mb-2 mt-4">Call to Action Link</label>
                             <input type="text" className={glassInput} placeholder="e.g., https://wa.me/..." value={editingLandingPage.callToActionLink || ''} onChange={e => setEditingLandingPage({...editingLandingPage, callToActionLink: e.target.value})} />
                           </div>
-                          <div className="flex items-center gap-3 mt-4">
-                            <input type="checkbox" id="isActive" checked={editingLandingPage.isActive} onChange={e => setEditingLandingPage({...editingLandingPage, isActive: e.target.checked})} className="w-5 h-5 accent-emerald-500" />
-                            <label htmlFor="isActive" className="text-xs uppercase text-gray-400">Page is Active (Published)</label>
-                          </div>
-                        </div>
-
-                        {/* LANDING PAGE STORY */}
-                        <div className="border-t border-white/5 pt-6 mt-6">
-                          <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase mb-4">Story Section</h3>
-                          <div className="grid md:grid-cols-2 gap-8">
-                            <div>
-                              <label className="block text-xs uppercase text-gray-400 mb-2">Story Title</label>
-                              <input type="text" className={glassInput} value={editingLandingPage.landingAbout?.title || ''} onChange={e => setEditingLandingPage({...editingLandingPage, landingAbout: {...(editingLandingPage.landingAbout || {}), title: e.target.value}})} />
-                              <label className="block text-xs uppercase text-gray-400 mb-2 mt-4">Story Description</label>
-                              <textarea className={`${glassInput} h-32`} value={editingLandingPage.landingAbout?.description || ''} onChange={e => setEditingLandingPage({...editingLandingPage, landingAbout: {...(editingLandingPage.landingAbout || {}), description: e.target.value}})}></textarea>
+                          
+                          <div className="flex flex-wrap items-center gap-6 mt-4">
+                            <div className="flex items-center gap-3">
+                              <input type="checkbox" id="isActive" checked={editingLandingPage.isActive} onChange={e => setEditingLandingPage({...editingLandingPage, isActive: e.target.checked})} className="w-5 h-5 accent-emerald-500" />
+                              <label htmlFor="isActive" className="text-xs uppercase text-gray-400">Page is Active (Published)</label>
                             </div>
-                            <div>
-                              <label className="block text-xs uppercase text-gray-400 mb-2">Story Image</label>
-                              <DragDropImageUploader currentImage={editingLandingPage.landingAbout?.imageUrl || ''} aspect={3/4} onUploadSuccess={(url) => setEditingLandingPage({...editingLandingPage, landingAbout: {...(editingLandingPage.landingAbout || {}), imageUrl: url}})} />
+                            <div className="flex items-center gap-3">
+                              <input type="checkbox" id="showTestimonials" checked={editingLandingPage.showTestimonials !== false} onChange={e => setEditingLandingPage({...editingLandingPage, showTestimonials: e.target.checked})} className="w-5 h-5 accent-emerald-500" />
+                              <label htmlFor="showTestimonials" className="text-xs uppercase text-gray-400">Show Testimonials</label>
+                            </div>
+                            
+                            <div className="flex items-center gap-3">
+                              <input type="checkbox" id="showPackages" checked={editingLandingPage.showPackages || false} onChange={e => setEditingLandingPage({...editingLandingPage, showPackages: e.target.checked})} className="w-5 h-5 accent-emerald-500" />
+                              <label htmlFor="showPackages" className="text-xs uppercase text-gray-400">Show Packages</label>
                             </div>
                           </div>
+                          {editingLandingPage.showPackages && (
+                            <div className="mt-4">
+                              <label className="block text-[9px] text-gray-500 mb-1 uppercase">Packages Heading</label>
+                              <input type="text" className={glassInput + " py-2 text-sm"} placeholder="e.g. Investment" value={editingLandingPage.packagesHeading || ""} onChange={e => setEditingLandingPage({...editingLandingPage, packagesHeading: e.target.value})} />
+                            </div>
+                          )}
+                          
+                          {/* Custom Packages Manager */}
+                          {editingLandingPage.showPackages && (
+                            <div className="mt-4 p-4 border border-white/10 rounded bg-black/40">
+                              <div className="flex justify-between items-center mb-4">
+                                <label className="block text-[9px] text-gray-500 uppercase">Custom Packages</label>
+                                <button type="button" onClick={() => {
+                                  const newPkgs = [...(editingLandingPage.customPackages || []), { name: '', price: '', description: '' }];
+                                  setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
+                                }} className="text-xs uppercase bg-white/10 px-3 py-1 rounded hover:bg-white hover:text-black transition-colors">+ Add Package</button>
+                              </div>
+                              <div className="space-y-4">
+                                {(editingLandingPage.customPackages || []).map((pkg, idx) => (
+                                  <div key={idx} className="p-4 bg-black/50 border border-white/5 rounded relative space-y-2">
+                                    <button type="button" onClick={() => {
+                                      const newPkgs = [...editingLandingPage.customPackages];
+                                      newPkgs.splice(idx, 1);
+                                      setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
+                                    }} className="absolute top-2 right-2 text-red-500 text-[10px] uppercase">Remove</button>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <input type="text" placeholder="Package Name" className={glassInput + ' text-sm py-1'} value={pkg.name || ''} onChange={e => {
+                                        const newPkgs = [...editingLandingPage.customPackages];
+                                        newPkgs[idx].name = e.target.value;
+                                        setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
+                                      }} />
+                                      <input type="text" placeholder="Price (Optional)" className={glassInput + ' text-sm py-1'} value={pkg.price || ''} onChange={e => {
+                                        const newPkgs = [...editingLandingPage.customPackages];
+                                        newPkgs[idx].price = e.target.value;
+                                        setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
+                                      }} />
+                                    </div>
+                                    <textarea placeholder="Description" rows={2} className={glassInput + ' text-sm'} value={pkg.description || ''} onChange={e => {
+                                      const newPkgs = [...editingLandingPage.customPackages];
+                                      newPkgs[idx].description = e.target.value;
+                                      setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
+                                    }} />
+                                  </div>
+                                ))}
+                                {(!editingLandingPage.customPackages || editingLandingPage.customPackages.length === 0) && (
+                                  <p className="text-xs text-white/50 italic">No custom packages added yet.</p>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
                         </div>
 
-                        {/* FEATURES */}
+                        {/* HERO CAROUSEL */}
+   <div className="mb-4">
+     <label className="block text-[9px] text-gray-500 mb-1 uppercase">Hero Text Alignment</label>
+     <select className={glassInput + ' py-2 text-xs'} value={editingLandingPage.heroTextAlign || 'center'} onChange={e => setEditingLandingPage({...editingLandingPage, heroTextAlign: e.target.value})}>
+       <option value="left" className="bg-black text-white">Left</option>
+       <option value="center" className="bg-black text-white">Center</option>
+       <option value="right" className="bg-black text-white">Right</option>
+     </select>
+   </div>
+  
                         <div className="border-t border-white/5 pt-6 mt-6">
                           <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase">Features</h3>
+                            <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase">Hero Carousel</h3>
+                            <button type="button" onClick={() => {
+                              const newSlides = [...(editingLandingPage.heroSlides || []), { imageUrl: '', mobileImageUrl: '', heading: '', description: '' }];
+                              setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
+                            }} className="text-xs uppercase bg-white/10 px-3 py-1 rounded hover:bg-white hover:text-black transition-colors">+ Add Slide</button>
+                          </div>
+                          <div className="space-y-6">
+                            {(editingLandingPage.heroSlides || []).map((slide, idx) => (
+                              <div key={idx} className="bg-black/40 border border-white/5 p-4 rounded-xl space-y-4 relative">
+                                <button type="button" onClick={() => {
+                                  const newSlides = [...editingLandingPage.heroSlides];
+                                  newSlides.splice(idx, 1);
+                                  setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
+                                }} className="absolute top-2 right-2 text-red-500 hover:text-red-400 text-xs uppercase">Remove</button>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="block text-[9px] text-gray-500 mb-1 uppercase">Desktop Image</label>
+                                    <DragDropImageUploader currentImage={slide.imageUrl} aspect={16/9} onUploadSuccess={(url) => {
+                                      const newSlides = [...editingLandingPage.heroSlides];
+                                      newSlides[idx].imageUrl = url;
+                                      setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
+                                    }} />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[9px] text-gray-500 mb-1 uppercase">Mobile Image</label>
+                                    <DragDropImageUploader currentImage={slide.mobileImageUrl} aspect={9/16} onUploadSuccess={(url) => {
+                                      const newSlides = [...editingLandingPage.heroSlides];
+                                      newSlides[idx].mobileImageUrl = url;
+                                      setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
+                                    }} />
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-[9px] text-gray-500 mb-1 uppercase">Heading</label>
+                                  <input type="text" className={glassInput + ' py-2 text-xs'} value={slide.heading} onChange={e => {
+                                    const newSlides = [...editingLandingPage.heroSlides];
+                                    newSlides[idx].heading = e.target.value;
+                                    setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
+                                  }} />
+                                </div>
+                                <div>
+                                  <label className="block text-[9px] text-gray-500 mb-1 uppercase">Description</label>
+                                  <textarea className={`${glassInput} h-16 text-xs`} value={slide.description} onChange={e => {
+                                    const newSlides = [...editingLandingPage.heroSlides];
+                                    newSlides[idx].description = e.target.value;
+                                    setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
+                                  }}></textarea>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* DISPLAY VIDEO */}
+                        <div className="border-t border-white/5 pt-6 mt-6">
+                           <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase mb-4">Display Video</h3>
+                           <DragDropVideoUploader currentVideo={editingLandingPage.displayVideoUrl} onUploadSuccess={(url) => setEditingLandingPage({...editingLandingPage, displayVideoUrl: url})} />
+                        </div>
+
+                        {/* APPROACH SECTION */}
+                        <div className="border-t border-white/5 pt-6 mt-6">
+                          <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase mb-4">Our Approach</h3>
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-xs uppercase text-gray-400 mb-2">Heading</label>
+                              <input type="text" className={glassInput} value={editingLandingPage.approachSection?.heading || ''} onChange={e => setEditingLandingPage({...editingLandingPage, approachSection: {...(editingLandingPage.approachSection || {}), heading: e.target.value}})} />
+                            </div>
+                            <div>
+                              <label className="block text-xs uppercase text-gray-400 mb-2">Description</label>
+                              <textarea className={`${glassInput} h-32`} value={editingLandingPage.approachSection?.description || ''} onChange={e => setEditingLandingPage({...editingLandingPage, approachSection: {...(editingLandingPage.approachSection || {}), description: e.target.value}})}></textarea>
+                            </div>
+                            <div className="mt-4">
+                              <label className="block text-xs uppercase text-gray-400 mb-2">Text Alignment</label>
+                              <select className={glassInput} value={editingLandingPage.approachSection?.align || 'center'} onChange={e => setEditingLandingPage({...editingLandingPage, approachSection: {...(editingLandingPage.approachSection || {}), align: e.target.value}})}>
+                                <option value="left" className="bg-black text-white">Left</option>
+                                <option value="center" className="bg-black text-white">Center</option>
+                                <option value="right" className="bg-black text-white">Right</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* PORTFOLIO IMAGES */}
+                        <div className="border-t border-white/5 pt-6 mt-6">
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase">Images Gallery</h3>
+                          </div>
+                          <div className="mb-4">
+                              <label className="block text-xs uppercase text-gray-400 mb-2">Section Heading</label>
+                              <input type="text" className={glassInput} value={editingLandingPage.portfolioImagesHeading || ''} onChange={e => setEditingLandingPage({...editingLandingPage, portfolioImagesHeading: e.target.value})} placeholder="e.g. Our Portfolio" />
+                          </div>
+                          <div className="mb-4">
+                            <label className="block text-[9px] text-gray-500 mb-1 uppercase">Heading Alignment</label>
+                            <select className={glassInput + ' py-2 text-xs'} value={editingLandingPage.portfolioImagesAlign || 'center'} onChange={e => setEditingLandingPage({...editingLandingPage, portfolioImagesAlign: e.target.value})}>
+                              <option value="left" className="bg-black text-white">Left</option>
+                              <option value="center" className="bg-black text-white">Center</option>
+                              <option value="right" className="bg-black text-white">Right</option>
+                            </select>
+                          </div>
+                          <DragDropImageUploader currentImage={''} multiple={true} disableCompression={true} onUploadSuccess={(urls) => {
+                            const newImgs = [...(editingLandingPage.portfolioImages || []), ...urls];
+                            setEditingLandingPage({...editingLandingPage, portfolioImages: newImgs});
+                          }} />
+                          <div className="mt-4 columns-2 sm:columns-3 gap-2 space-y-2">
+                            {(editingLandingPage.portfolioImages || []).map((img, idx) => (
+                              <div key={idx} className="relative group break-inside-avoid">
+                                <img src={img} className="w-full h-auto object-cover rounded border border-white/10" />
+                                <button type="button" onClick={() => {
+                                  const newImgs = [...editingLandingPage.portfolioImages];
+                                  newImgs.splice(idx, 1);
+                                  setEditingLandingPage({...editingLandingPage, portfolioImages: newImgs});
+                                }} className="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* WHY CHOOSE IMAZEN */}
+                        <div className="border-t border-white/5 pt-6 mt-6">
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase">Why Choose Imazen? (Features)</h3>
                             <button type="button" onClick={() => {
                               const newFeatures = [...(editingLandingPage.features || []), { title: '', description: '' }];
                               setEditingLandingPage({...editingLandingPage, features: newFeatures});
                             }} className="text-xs uppercase bg-white/10 px-3 py-1 rounded hover:bg-white hover:text-black transition-colors">+ Add Feature</button>
+                          </div>
+                          <div className="mb-4">
+                              <label className="block text-xs uppercase text-gray-400 mb-2">Section Heading</label>
+                              <input type="text" className={glassInput} value={editingLandingPage.whyChooseHeading || ''} onChange={e => setEditingLandingPage({...editingLandingPage, whyChooseHeading: e.target.value})} placeholder="e.g. Why Choose Imazen?" />
+                          </div>
+                          <div className="mb-4">
+                            <label className="block text-[9px] text-gray-500 mb-1 uppercase">Text Alignment</label>
+                            <select className={glassInput + ' py-2 text-xs'} value={editingLandingPage.featuresAlign || 'left'} onChange={e => setEditingLandingPage({...editingLandingPage, featuresAlign: e.target.value})}>
+                              <option value="left" className="bg-black text-white">Left</option>
+                              <option value="center" className="bg-black text-white">Center</option>
+                              <option value="right" className="bg-black text-white">Right</option>
+                            </select>
                           </div>
                           <div className="grid md:grid-cols-2 gap-4">
                             {(editingLandingPage.features || []).map((feature, idx) => (
@@ -1231,97 +1415,65 @@ const AdminDashboard = () => {
                           </div>
                         </div>
 
-                        {/* FAQS */}
+                        {/* PORTFOLIO VIDEOS */}
                         <div className="border-t border-white/5 pt-6 mt-6">
-                          <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase">FAQs</h3>
-                            <button type="button" onClick={() => {
-                              const newFaqs = [...(editingLandingPage.faqs || []), { question: '', answer: '' }];
-                              setEditingLandingPage({...editingLandingPage, faqs: newFaqs});
-                            }} className="text-xs uppercase bg-white/10 px-3 py-1 rounded hover:bg-white hover:text-black transition-colors">+ Add FAQ</button>
+                           <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase mb-4">Videos Gallery</h3>
+                           <div className="mb-4">
+                              <label className="block text-xs uppercase text-gray-400 mb-2">Section Heading</label>
+                              <input type="text" className={glassInput} value={editingLandingPage.portfolioVideosHeading || ''} onChange={e => setEditingLandingPage({...editingLandingPage, portfolioVideosHeading: e.target.value})} placeholder="e.g. Memorable Client Stories" />
                           </div>
-                          <div className="space-y-4">
-                            {(editingLandingPage.faqs || []).map((faq, idx) => (
-                              <div key={idx} className="bg-black/40 border border-white/5 p-4 rounded-xl space-y-3 relative">
-                                <button type="button" onClick={() => {
-                                  const newFaqs = [...editingLandingPage.faqs];
-                                  newFaqs.splice(idx, 1);
-                                  setEditingLandingPage({...editingLandingPage, faqs: newFaqs});
-                                }} className="absolute top-2 right-2 text-red-500 hover:text-red-400 text-xs uppercase">Remove</button>
-                                <div>
-                                  <label className="block text-[9px] text-gray-500 mb-1 uppercase">Question</label>
-                                  <input type="text" className={glassInput + ' py-2 text-xs'} value={faq.question} onChange={e => {
-                                    const newFaqs = [...editingLandingPage.faqs];
-                                    newFaqs[idx].question = e.target.value;
-                                    setEditingLandingPage({...editingLandingPage, faqs: newFaqs});
-                                  }} />
-                                </div>
-                                <div>
-                                  <label className="block text-[9px] text-gray-500 mb-1 uppercase">Answer</label>
-                                  <textarea className={`${glassInput} h-16 text-xs`} value={faq.answer} onChange={e => {
-                                    const newFaqs = [...editingLandingPage.faqs];
-                                    newFaqs[idx].answer = e.target.value;
-                                    setEditingLandingPage({...editingLandingPage, faqs: newFaqs});
-                                  }}></textarea>
-                                </div>
-                              </div>
-                            ))}
+                          <div className="mb-4">
+                            <label className="block text-[9px] text-gray-500 mb-1 uppercase">Heading Alignment</label>
+                            <select className={glassInput + ' py-2 text-xs'} value={editingLandingPage.portfolioVideosAlign || 'center'} onChange={e => setEditingLandingPage({...editingLandingPage, portfolioVideosAlign: e.target.value})}>
+                              <option value="left" className="bg-black text-white">Left</option>
+                              <option value="center" className="bg-black text-white">Center</option>
+                              <option value="right" className="bg-black text-white">Right</option>
+                            </select>
                           </div>
+                           <div className="flex justify-between items-center mb-2">
+                             <label className="block text-xs uppercase text-gray-400">YouTube Links</label>
+                             <button type="button" onClick={() => {
+                               const newVids = [...(editingLandingPage.portfolioVideos || []), ''];
+                               setEditingLandingPage({...editingLandingPage, portfolioVideos: newVids});
+                             }} className="text-[10px] uppercase text-emerald-400">+ Add Link</button>
+                           </div>
+                           <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
+                             {(editingLandingPage.portfolioVideos || []).map((vid, idx) => (
+                               <div key={idx} className="flex gap-2">
+                                 <input type="text" className={glassInput} placeholder="https://youtube.com/..." value={vid} onChange={e => {
+                                   const newVids = [...editingLandingPage.portfolioVideos];
+                                   newVids[idx] = e.target.value;
+                                   setEditingLandingPage({...editingLandingPage, portfolioVideos: newVids});
+                                 }} />
+                                 <button type="button" onClick={() => {
+                                   const newVids = [...editingLandingPage.portfolioVideos];
+                                   newVids.splice(idx, 1);
+                                   setEditingLandingPage({...editingLandingPage, portfolioVideos: newVids});
+                                 }} className="bg-red-500/20 text-red-400 px-3 rounded-xl hover:bg-red-500 hover:text-white transition-colors">×</button>
+                               </div>
+                             ))}
+                           </div>
                         </div>
 
-                        {/* PORTFOLIO */}
+                        {/* PARALLAX FOOTER */}
                         <div className="border-t border-white/5 pt-6 mt-6">
-                          <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase mb-4">Portfolio Gallery</h3>
-                          <div className="grid md:grid-cols-2 gap-8">
+                          <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase mb-4">Parallax Footer</h3>
+                          <div className="space-y-4">
                             <div>
-                               <div className="flex justify-between items-center mb-2">
-                                 <label className="block text-xs uppercase text-gray-400">Image Uploads</label>
-                                 <button type="button" onClick={() => {
-                                   const newImgs = [...(editingLandingPage.portfolioImages || []), ''];
-                                   setEditingLandingPage({...editingLandingPage, portfolioImages: newImgs});
-                                 }} className="text-[10px] uppercase text-emerald-400">+ Add URL</button>
-                               </div>
-                               <DragDropImageUploader currentImage={''} multiple={true} onUploadSuccess={(urls) => {
-                                 const newImgs = [...(editingLandingPage.portfolioImages || []), ...urls];
-                                 setEditingLandingPage({...editingLandingPage, portfolioImages: newImgs});
-                               }} />
-                               <div className="mt-4 columns-2 sm:columns-3 gap-2 space-y-2">
-                                 {(editingLandingPage.portfolioImages || []).map((img, idx) => (
-                                   <div key={idx} className="relative group break-inside-avoid">
-                                     <img src={img} className="w-full h-auto object-cover rounded border border-white/10" />
-                                     <button type="button" onClick={() => {
-                                       const newImgs = [...editingLandingPage.portfolioImages];
-                                       newImgs.splice(idx, 1);
-                                       setEditingLandingPage({...editingLandingPage, portfolioImages: newImgs});
-                                     }} className="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">×</button>
-                                   </div>
-                                 ))}
-                               </div>
+                              <label className="block text-xs uppercase text-gray-400 mb-2">Heading</label>
+                              <input type="text" className={glassInput} value={editingLandingPage.parallaxFooter?.heading || ''} onChange={e => setEditingLandingPage({...editingLandingPage, parallaxFooter: {...(editingLandingPage.parallaxFooter || {}), heading: e.target.value}})} placeholder="e.g. Ready to Begin Your Story?" />
                             </div>
                             <div>
-                               <div className="flex justify-between items-center mb-2">
-                                 <label className="block text-xs uppercase text-gray-400">YouTube Links</label>
-                                 <button type="button" onClick={() => {
-                                   const newVids = [...(editingLandingPage.portfolioVideos || []), ''];
-                                   setEditingLandingPage({...editingLandingPage, portfolioVideos: newVids});
-                                 }} className="text-[10px] uppercase text-emerald-400">+ Add Link</button>
-                               </div>
-                               <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
-                                 {(editingLandingPage.portfolioVideos || []).map((vid, idx) => (
-                                   <div key={idx} className="flex gap-2">
-                                     <input type="text" className={glassInput} placeholder="https://youtube.com/..." value={vid} onChange={e => {
-                                       const newVids = [...editingLandingPage.portfolioVideos];
-                                       newVids[idx] = e.target.value;
-                                       setEditingLandingPage({...editingLandingPage, portfolioVideos: newVids});
-                                     }} />
-                                     <button type="button" onClick={() => {
-                                       const newVids = [...editingLandingPage.portfolioVideos];
-                                       newVids.splice(idx, 1);
-                                       setEditingLandingPage({...editingLandingPage, portfolioVideos: newVids});
-                                     }} className="bg-red-500/20 text-red-400 px-3 rounded-xl hover:bg-red-500 hover:text-white transition-colors">×</button>
-                                   </div>
-                                 ))}
-                               </div>
+                              <label className="block text-xs uppercase text-gray-400 mb-2">Background Image</label>
+                              <DragDropImageUploader currentImage={editingLandingPage.parallaxFooter?.imageUrl || ''} aspect={16/9} onUploadSuccess={(url) => setEditingLandingPage({...editingLandingPage, parallaxFooter: {...(editingLandingPage.parallaxFooter || {}), imageUrl: url}})} />
+                            </div>
+                            <div>
+                              <label className="block text-xs uppercase text-gray-400 mb-2">Text Alignment</label>
+                              <select className={glassInput} value={editingLandingPage.parallaxFooter?.align || 'center'} onChange={e => setEditingLandingPage({...editingLandingPage, parallaxFooter: {...(editingLandingPage.parallaxFooter || {}), align: e.target.value}})}>
+                                <option value="left" className="bg-black text-white">Left</option>
+                                <option value="center" className="bg-black text-white">Center</option>
+                                <option value="right" className="bg-black text-white">Right</option>
+                              </select>
                             </div>
                           </div>
                         </div>
@@ -2488,6 +2640,68 @@ const AdminDashboard = () => {
                 )}
 
                 {/* CUSTOMERS TAB */}
+                
+                {/* LEADS TAB */}
+                {activeTab === 'leads' && (
+                  <div className="space-y-8">
+                    <div className="flex justify-between items-center bg-black/40 p-6 rounded-2xl border border-white/5 shadow-2xl backdrop-blur-md">
+                      <h2 className="text-xl font-oswald text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500 uppercase tracking-widest">Landing Page Leads</h2>
+                    </div>
+                    <div className="bg-black/40 rounded-2xl border border-white/5 overflow-hidden shadow-2xl">
+                      <div className="overflow-x-auto custom-scrollbar">
+                        <table className="w-full text-left text-sm text-gray-300">
+                          <thead className="bg-white/5 text-xs uppercase font-oswald tracking-[0.1em] text-gray-400">
+                            <tr>
+                              <th className="px-6 py-4">Date</th>
+                              <th className="px-6 py-4">Source</th>
+                              <th className="px-6 py-4">Name</th>
+                              <th className="px-6 py-4">Contact</th>
+                              <th className="px-6 py-4">Event Date</th>
+                              <th className="px-6 py-4">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5">
+                            {leads.map((lead) => (
+                              <tr key={lead._id} className="hover:bg-white/5 transition-colors">
+                                <td className="px-6 py-4 whitespace-nowrap">{new Date(lead.createdAt).toLocaleDateString()}</td>
+                                <td className="px-6 py-4"><span className="bg-white/10 px-3 py-1 rounded-full text-xs">{lead.landingPageSource}</span></td>
+                                <td className="px-6 py-4 font-bold text-white">{lead.name}</td>
+                                <td className="px-6 py-4">
+                                  <div>{lead.email}</div>
+                                  <div className="text-gray-500 text-xs">{lead.phone}</div>
+                                </td>
+                                <td className="px-6 py-4 text-emerald-400">{new Date(lead.eventDate).toLocaleDateString()}</td>
+                                <td className="px-6 py-4">
+                                  <select 
+                                    className="bg-black/50 border border-white/10 rounded px-3 py-1 text-xs uppercase"
+                                    value={lead.status}
+                                    onChange={async (e) => {
+                                      try {
+                                        await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/leads/${lead._id}`, { status: e.target.value });
+                                        fetchData();
+                                      } catch(err) { console.error(err); }
+                                    }}
+                                  >
+                                    <option value="New">New</option>
+                                    <option value="Contacted">Contacted</option>
+                                    <option value="Booked">Booked</option>
+                                    <option value="Closed">Closed</option>
+                                  </select>
+                                </td>
+                              </tr>
+                            ))}
+                            {leads.length === 0 && (
+                              <tr>
+                                <td colSpan="6" className="px-6 py-8 text-center text-gray-500 italic">No leads found yet.</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {activeTab === 'customers' && (
                   <div className="space-y-6">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-teal-900/20 to-transparent p-6 rounded-2xl border border-teal-500/20">

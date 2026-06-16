@@ -17,8 +17,9 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'twilight_studios',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif']
+    folder: 'imazen_studios',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'mov', 'webm'],
+    resource_type: 'auto'
   }
 });
 

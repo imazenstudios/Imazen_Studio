@@ -7,7 +7,7 @@ dotenv.config();
 
 const seedData = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/twilight-studios');
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/imazen-studios');
     console.log('Connected to MongoDB for seeding');
 
     // Clear existing data
@@ -25,7 +25,7 @@ const seedData = async () => {
       {
         section: 'About',
         title: 'Premium Studio Experience',
-        description: 'Twilight Studios is the largest premium photography studio in Srikakulam, offering baby-friendly environments, comfortable spaces for mothers, and a highly professional team focused on emotional storytelling.',
+        description: 'Imazen Studios is the largest premium photography studio in Srikakulam, offering baby-friendly environments, comfortable spaces for mothers, and a highly professional team focused on emotional storytelling.',
         features: ['30+ Creative Baby Themes', '10+ Maternity Themes', 'Fully Air-Conditioned Studio', 'Baby-Friendly Environment']
       },
       {

@@ -1,4 +1,10 @@
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filenamePath = fileURLToPath(import.meta.url);
+const __dirnamePath = path.dirname(__filenamePath);
+const logoPath = path.join(__dirnamePath, '../../frontend/public/images/logo.png');
+
 import Inquiry from '../models/Inquiry.js';
 import nodemailer from 'nodemailer';
 
@@ -29,14 +35,22 @@ router.post('/', async (req, res) => {
     try {
       if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
         await getTransporter().sendMail({
-          from: `"Twilight Studios" <${process.env.EMAIL_USER}>`,
+          from: `"Imazen Studios" <${process.env.EMAIL_USER}>`,
           to: inquiry.email,
-          subject: "Thank you for contacting Twilight Studios!",
+          subject: "Thank you for contacting Imazen Studios!",
+          attachments: [{
+            filename: 'logo.png',
+            path: logoPath,
+            cid: 'imazenlogo'
+          }],
           html: `
             <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <img src="cid:imazenlogo" alt="Imazen Studios" style="max-width: 150px; height: auto;" />
+              </div>
               <h2 style="color: #000; text-transform: uppercase; letter-spacing: 2px;">Thank you, ${inquiry.name}!</h2>
               <p>We have successfully received your inquiry regarding <strong>"${inquiry.subject}"</strong>.</p>
-              <p>Our team at Twilight Studios is currently reviewing your message and will get back to you shortly.</p>
+              <p>Our team at Imazen Studios is currently reviewing your message and will get back to you shortly.</p>
               <br/>
               <p><strong>Your Message:</strong></p>
               <blockquote style="background: #f9f9f9; padding: 15px; border-left: 4px solid #000; font-style: italic;">
@@ -45,7 +59,7 @@ router.post('/', async (req, res) => {
               <br/>
               <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
               <p style="font-size: 12px; color: #999;">
-                Twilight Studios<br/>
+                Imazen Studios<br/>
                 This is an automated message.
               </p>
             </div>

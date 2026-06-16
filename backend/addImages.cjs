@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const uri = 'mongodb+srv://twilightstudios08_db_user:XwpZmzTXDUzlkaGQ@cluster0.y9xmdyr.mongodb.net/?appName=Cluster0';
+const uri = 'mongodb+srv://imazenstudios08_db_user:XwpZmzTXDUzlkaGQ@cluster0.y9xmdyr.mongodb.net/?appName=Cluster0';
 
 mongoose.connect(uri).then(async () => {
   const LandingPage = mongoose.model('LandingPage', new mongoose.Schema({}, { strict: false }));

@@ -51,9 +51,9 @@ const Navbar = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="font-oswald font-bold text-2xl tracking-[0.4em] text-white uppercase hover:text-gray-300 transition-colors z-[60]"
+            className="z-[60] flex items-center"
           >
-            Twilight
+            <img src="/images/logo.png" alt="Imazen Studios" className="h-14 md:h-16 w-auto object-contain" />
           </motion.a>
 
           {/* DESKTOP LINKS */}

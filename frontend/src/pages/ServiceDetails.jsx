@@ -53,8 +53,8 @@ const ServiceDetails = () => {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white pt-32 pb-20 px-6">
       <Helmet>
-        <title>{service.name} | Twilight Studios</title>
-        <meta name="description" content={service.description || `Explore our ${service.name} services at Twilight Studios.`} />
+        <title>{service.name} | Imazen Studios</title>
+        <meta name="description" content={service.description || `Explore our ${service.name} services at Imazen Studios.`} />
       </Helmet>
 
       <div className="max-w-[90rem] mx-auto">

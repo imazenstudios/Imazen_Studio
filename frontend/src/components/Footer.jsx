@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
-const Footer = () => {
+const Footer = ({ isLandingPage = false, hideInquiries = false }) => {
   const [contact, setContact] = useState({
-    email: 'hello@twilightstudios.com',
+    email: 'hello@imazenstudios.com',
     phone: '+1 (555) 019-2834'
   });
 
@@ -13,7 +13,7 @@ const Footer = () => {
       .then(res => {
         if (res.data) {
           setContact({
-            email: res.data.contactEmail || 'hello@twilightstudios.com',
+            email: res.data.contactEmail || 'hello@imazenstudios.com',
             phone: res.data.whatsappNumber || '+1 (555) 019-2834'
           });
         }
@@ -22,17 +22,18 @@ const Footer = () => {
   }, []);
 
   return (
-    <footer className="bg-black text-white relative overflow-hidden pt-32 pb-12 border-t border-white/5">
+    <footer className="bg-[#050505] text-white relative overflow-hidden pt-32 pb-12 border-t border-white/5 bg-cover bg-center" style={{ backgroundImage: "url('/images/logo2.png')" }}>
       
       {/* Massive Background Typography */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[18vw] font-oswald font-bold text-white/5 whitespace-nowrap select-none pointer-events-none z-0 tracking-widest">
         TWILIGHT
       </div>
+      <div className="absolute inset-0 bg-black/80 pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 flex flex-col items-center">
 
         {/* Footer Top Content */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-16 w-full mb-24 text-center md:text-left">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-16 w-full mb-24 text-center md:text-left">
           
           <div className="flex flex-col items-center md:items-start">
             <h3 className="font-oswald text-2xl uppercase tracking-[0.3em] mb-6">Studio</h3>
@@ -54,13 +55,7 @@ const Footer = () => {
             </div>
           </div>
 
-          <div className="flex flex-col items-center">
-            <h3 className="font-oswald text-2xl uppercase tracking-[0.3em] mb-6">Inquiries</h3>
-            <p className="text-xs font-sans text-gray-400 tracking-widest leading-relaxed">
-              <a href={`mailto:${contact.email}`} className="hover:text-white transition-colors">{contact.email}</a><br/>
-              <a href={`https://wa.me/${contact.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">{contact.phone}</a>
-            </p>
-          </div>
+
 
           <div className="flex flex-col items-center md:items-end">
             <h3 className="font-oswald text-2xl uppercase tracking-[0.3em] mb-6">Socials</h3>
@@ -78,7 +73,7 @@ const Footer = () => {
         {/* Footer Bottom */}
         <div className="w-full flex flex-col md:flex-row justify-between items-center pt-8 border-t border-white/10">
           <p className="text-[10px] font-sans text-gray-600 uppercase tracking-[0.3em] mb-4 md:mb-0">
-            &copy; {new Date().getFullYear()} Twilight Studios. All rights reserved.
+            &copy; {new Date().getFullYear()} Imazen Studios. All rights reserved.
           </p>
           <div className="flex gap-6">
             <a href="#" className="text-[10px] font-sans text-gray-600 uppercase tracking-[0.3em] hover:text-white transition-colors">Privacy Policy</a>

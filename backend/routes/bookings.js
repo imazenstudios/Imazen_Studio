@@ -1,4 +1,10 @@
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filenamePath = fileURLToPath(import.meta.url);
+const __dirnamePath = path.dirname(__filenamePath);
+const logoPath = path.join(__dirnamePath, '../../frontend/public/images/logo.png');
+
 import Booking from '../models/Booking.js';
 import SlotCapacity from '../models/Slot.js';
 import nodemailer from 'nodemailer';
@@ -134,9 +140,10 @@ router.post('/', async (req, res) => {
         const settings = await Settings.findOne() || {};
         const teamEmails = settings.teamEmails && settings.teamEmails.length > 0 
           ? settings.teamEmails 
-          : [settings.contactEmail || 'hello@twilightstudios.in'];
+          : [settings.contactEmail || 'hello@imazenstudios.in'];
 
         const emailHtml = `
+          <img src="cid:imazenlogo" alt="Imazen Studios" style="max-width: 150px; height: auto; margin-bottom: 20px;" />
           <h2>New Booking Request</h2>
           <p><strong>Name:</strong> ${name}</p>
           <p><strong>Email:</strong> ${email}</p>
@@ -155,7 +162,7 @@ router.post('/', async (req, res) => {
             <div style="margin-bottom: 40px;">
               <h1 style="color: #ffffff; font-size: 28px; margin: 0; font-weight: bold; letter-spacing: 1px;">
                 <!-- [LOGO PLACEHOLDER] -->
-                Twilight Studios.
+                Imazen Studios.
               </h1>
             </div>
             <p style="font-size: 15px; line-height: 1.6; margin-bottom: 25px; color: #e5e5e5;">
@@ -188,22 +195,22 @@ router.post('/', async (req, res) => {
               Our team will review your request and be in touch shortly to confirm your slot.
             </p>
             <div style="margin-top: 50px; font-size: 11px; color: #737373; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-              <p>Twilight Studios</p>
+              <p>Imazen Studios</p>
               <p>Follow the link to opt out of future emails: <a href="#" style="color: #a3a3a3;">Click here to unsubscribe</a></p>
             </div>
           </div>
         `;
 
         await transporter.sendMail({
-          from: `"Twilight Studios" <${authUser}>`,
+          from: `"Imazen Studios" <${authUser}>`,
           to: email,
-          subject: 'Your Twilight Studios Booking Request',
+          subject: 'Your Imazen Studios Booking Request',
           html: clientEmailHtml
         });
 
         // Send to Team
         await transporter.sendMail({
-          from: `"Twilight Studios System" <${authUser}>`,
+          from: `"Imazen Studios System" <${authUser}>`,
           to: teamEmails.join(', '),
           subject: `New Booking: ${shootType} on ${date}`,
           html: emailHtml

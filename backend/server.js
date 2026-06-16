@@ -18,6 +18,7 @@ import landingPagesRoutes from './routes/landingPages.js';
 import teamRoutes from './routes/team.js';
 import studioRoutes from './routes/studio.js';
 import subscriptionsRoutes from './routes/subscriptions.js';
+import leadsRoutes from './routes/leads.js';
 
 dotenv.config();
 
@@ -45,9 +46,10 @@ app.use('/api/landing-pages', landingPagesRoutes);
 app.use('/api/team', teamRoutes);
 app.use('/api/studio', studioRoutes);
 app.use('/api/subscriptions', subscriptionsRoutes);
+app.use('/api/leads', leadsRoutes);
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/twilight-studios')
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/imazen-studios')
   .then(() => {
     console.log('Connected to MongoDB');
     app.listen(PORT, () => {

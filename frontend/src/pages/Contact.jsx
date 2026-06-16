@@ -33,7 +33,7 @@ const Contact = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
           <h2 className="font-oswald font-bold text-4xl text-white uppercase tracking-widest mb-6">Message Sent</h2>
           <p className="font-sans text-gray-400 text-sm max-w-md mx-auto leading-relaxed">
-            Thank you for reaching out to Twilight Studios. We will get back to you shortly.
+            Thank you for reaching out to Imazen Studios. We will get back to you shortly.
           </p>
           <button 
             onClick={() => {
@@ -57,7 +57,7 @@ const Contact = () => {
       <div className="max-w-4xl mx-auto px-6 relative z-10">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-16">
           <h1 className="font-oswald font-bold text-5xl md:text-6xl text-white uppercase tracking-widest mb-4">Contact Us</h1>
-          <p className="font-sans text-gray-400 text-sm tracking-[0.2em] uppercase">Get in touch with Twilight Studios</p>
+          <p className="font-sans text-gray-400 text-sm tracking-[0.2em] uppercase">Get in touch with Imazen Studios</p>
         </motion.div>
 
         <motion.div 

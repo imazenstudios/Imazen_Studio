@@ -65,7 +65,15 @@ function App() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [maintenanceEndTime, setMaintenanceEndTime] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showInitialLoader, setShowInitialLoader] = useState(true);
   const [adminBypass, setAdminBypass] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowInitialLoader(false);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     // Check for admin bypass in localStorage
@@ -126,10 +134,21 @@ function App() {
     initAnalytics();
   }, []);
 
+  if (showInitialLoader) {
+    return (
+      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center">
+        <img src="/images/logo.png" alt="Imazen Studios Logo" className="w-64 mb-8" />
+        <div className="w-12 h-12 border-4 border-white/10 border-t-white rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   if (isLoading) {
-    return <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-      <div className="w-12 h-12 border-4 border-white/10 border-t-white rounded-full animate-spin"></div>
-    </div>;
+    return (
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-white/10 border-t-white rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   return (
@@ -164,10 +183,10 @@ function App() {
               <Route path="/location/:city" element={<Layout><LocationPage /></Layout>} />
               <Route path="/studio" element={<Layout><Studio /></Layout>} />
               <Route path="/testimonials" element={<Layout><TestimonialsPage /></Layout>} />
-              <Route path="/:slug" element={<Layout><LandingPage /></Layout>} />
+              <Route path="/:slug" element={<LandingPage />} />
 
               {/* Catch-all for 404 Not Found */}
-              <Route path="*" element={<Layout><NotFound /></Layout>} />
+              <Route path="*" element={<NotFound />} />
             </>
           )}
         </Routes>
