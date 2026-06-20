@@ -23,6 +23,7 @@ import NoInternetOverlay from './components/NoInternetOverlay';
 import NotFound from './pages/NotFound';
 import Maintenance from './pages/Maintenance';
 import ThankYou from './pages/ThankYou';
+import ReferenceLandingPage from './pages/ReferenceLandingPage';
 
 import ScrollToTopButton from './components/ScrollToTopButton';
 
@@ -195,6 +196,7 @@ function App() {
               <Route path="/location/:city" element={<Layout><LocationPage /></Layout>} />
               <Route path="/studio" element={<Layout><Studio /></Layout>} />
               <Route path="/testimonials" element={<Layout><TestimonialsPage /></Layout>} />
+              <Route path="/reference" element={<ReferenceLandingPage />} />
               <Route path="/:slug" element={<LandingPage />} />
 
               {/* Catch-all for 404 Not Found */}
