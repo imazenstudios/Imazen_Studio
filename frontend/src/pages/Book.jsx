@@ -307,6 +307,7 @@ const Book = () => {
                 <div className="bg-black/40 p-1 rounded-2xl border border-white/10 hover:border-white/30 transition-colors">
                   <input 
                     type="date" 
+                    min={new Date().toLocaleDateString('en-CA')}
                     className="w-full bg-transparent p-6 font-sans text-lg sm:text-xl text-white focus:outline-none transition-colors [&::-webkit-calendar-picker-indicator]:invert cursor-pointer"
                     value={formData.date}
                     onChange={(e) => {

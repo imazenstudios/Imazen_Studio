@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import DragDropImageUploader from '../components/DragDropImageUploader';
 import DragDropVideoUploader from '../components/DragDropVideoUploader';
+import CalendarView from '../components/admin/CalendarView';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -927,7 +928,7 @@ const AdminDashboard = () => {
           </h2>
         </div>
         <nav className="flex-1 p-6 space-y-3 overflow-y-auto custom-scrollbar">
-          {['dashboard', 'leads', 'inquiries', 'bookings', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'developer options'].map(tab => (
+          {['dashboard', 'leads', 'inquiries', 'bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'developer options'].map(tab => (
             <button 
               key={tab}
               onClick={() => { setActiveTab(tab); setIsMobileMenuOpen(false); }}
@@ -2682,6 +2683,11 @@ const AdminDashboard = () => {
                       </div>
                     )}
                   </div>
+                )}
+
+                {/* CALENDAR TAB */}
+                {activeTab === 'calendar' && (
+                  <CalendarView allBookings={bookings} />
                 )}
 
                 {/* SLOTS TAB */}

@@ -40,6 +40,19 @@ router.get('/slots/:date', async (req, res) => {
   }
 });
 
+// Get slot capacities for a specific month
+router.get('/calendar/:year/:month', async (req, res) => {
+  try {
+    const { year, month } = req.params;
+    // Format: YYYY-MM
+    const prefix = `${year}-${month.padStart(2, '0')}`;
+    const capacities = await SlotCapacity.find({ date: { $regex: `^${prefix}` } });
+    res.json(capacities);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error fetching calendar data' });
+  }
+});
+
 // Create a multi-slot Studio booking
 router.post('/studio', async (req, res) => {
   try {
