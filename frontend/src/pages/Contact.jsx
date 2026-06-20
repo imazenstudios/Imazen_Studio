@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Contact = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -19,7 +21,7 @@ const Contact = () => {
     setIsSubmitting(true);
     try {
       await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/inquiries`, formData);
-      setSubmitted(true);
+      navigate('/thank-you?type=contact');
     } catch (error) {
       console.error(error);
       alert('There was an error sending your message. Please try again.');

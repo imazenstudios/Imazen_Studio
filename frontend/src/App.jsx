@@ -22,6 +22,7 @@ import Footer from './components/Footer';
 import NoInternetOverlay from './components/NoInternetOverlay';
 import NotFound from './pages/NotFound';
 import Maintenance from './pages/Maintenance';
+import ThankYou from './pages/ThankYou';
 
 import ScrollToTopButton from './components/ScrollToTopButton';
 
@@ -190,6 +191,7 @@ function App() {
               <Route path="/gallery" element={<Layout><Gallery /></Layout>} />
               <Route path="/book" element={<Layout><Book /></Layout>} />
               <Route path="/contact" element={<Layout><Contact /></Layout>} />
+              <Route path="/thank-you" element={<Layout><ThankYou /></Layout>} />
               <Route path="/location/:city" element={<Layout><LocationPage /></Layout>} />
               <Route path="/studio" element={<Layout><Studio /></Layout>} />
               <Route path="/testimonials" element={<Layout><TestimonialsPage /></Layout>} />

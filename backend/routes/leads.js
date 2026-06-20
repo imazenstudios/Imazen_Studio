@@ -50,7 +50,7 @@ router.post('/', async (req, res) => {
                 <img src="cid:imazenlogo" alt="Imazen Studios" style="max-width: 150px; height: auto;" />
               </div>
               <h2 style="color: #000; text-transform: uppercase; letter-spacing: 2px;">Thank you, ${lead.name}!</h2>
-              <p>We have successfully received your inquiry for the date: <strong>${new Date(lead.eventDate).toLocaleDateString()}</strong>.</p>
+              <p>We have successfully received your inquiry ${lead.interestedIn ? `for <strong>${lead.interestedIn}</strong>` : ''}${lead.eventDate ? ` for the date: <strong>${new Date(lead.eventDate).toLocaleDateString()}</strong>` : ''}.</p>
               <p>Our team at Imazen Studios is reviewing your details and will get back to you shortly to discuss your vision.</p>
               <br/>
               <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
@@ -73,7 +73,8 @@ router.post('/', async (req, res) => {
               <p><strong>Name:</strong> ${lead.name}</p>
               <p><strong>Email:</strong> ${lead.email}</p>
               <p><strong>Phone:</strong> ${lead.phone}</p>
-              <p><strong>Event Date:</strong> ${new Date(lead.eventDate).toLocaleDateString()}</p>
+              ${lead.interestedIn ? `<p><strong>Interested In:</strong> ${lead.interestedIn}</p>` : ''}
+              ${lead.eventDate ? `<p><strong>Event Date:</strong> ${new Date(lead.eventDate).toLocaleDateString()}</p>` : ''}
               <p><strong>Source:</strong> ${lead.landingPageSource}</p>
               <br/>
               <p>Please log in to the admin dashboard to manage this lead.</p>

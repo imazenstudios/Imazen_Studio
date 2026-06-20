@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 const Book = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const initialService = searchParams.get('service') || '';
   const initialSub = searchParams.get('sub') || '';
@@ -134,7 +136,7 @@ const Book = () => {
         ...formData,
         shootType: getActiveTitle(),
       });
-      setStep(7); // Go to thank you page
+      navigate('/thank-you?type=booking');
     } catch (error) {
       alert('There was an error saving your booking. This slot might have just been taken by someone else. Please try again.');
       console.error(error);

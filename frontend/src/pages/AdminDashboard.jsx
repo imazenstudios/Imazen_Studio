@@ -678,10 +678,12 @@ const AdminDashboard = () => {
   const handleUpdatePayment = async (bookingId, e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
+    const total = Number(formData.get('totalAmount'));
+    const advance = Number(formData.get('advanceAmount'));
     const payload = {
-      totalAmount: Number(formData.get('totalAmount')),
-      advanceAmount: Number(formData.get('advanceAmount')),
-      pendingAmount: Number(formData.get('pendingAmount')),
+      totalAmount: total,
+      advanceAmount: advance,
+      pendingAmount: total - advance,
     };
     try {
       await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${bookingId}/payment`, payload);
@@ -2082,6 +2084,8 @@ const AdminDashboard = () => {
                               <DragDropImageUploader currentImage={''} multiple={true} onUploadSuccess={(urls) => {
                                 const newImgs = [...(editingSubService.data.portfolioImages || []), ...urls];
                                 setEditingSubService({...editingSubService, data: {...editingSubService.data, portfolioImages: newImgs}});
+                                const mainNewImgs = [...(editingService.portfolioImages || []), ...urls];
+                                setEditingService({...editingService, portfolioImages: mainNewImgs});
                               }} />
                               <div className="mt-4 grid grid-cols-4 gap-2">
                                 {(editingSubService.data.portfolioImages || []).map((img, idx) => (
@@ -2579,7 +2583,7 @@ const AdminDashboard = () => {
                               
                               {booking.slotHistory && booking.slotHistory.length > 0 && (
                                 <div className="mt-4 border-t border-white/5 pt-3">
-                                  <span className="block text-[9px] uppercase text-gray-500 mb-2">Slot History</span>
+                                  <span className="block text-xs uppercase text-white mb-2">Slot History</span>
                                   <div className="space-y-1">
                                     {booking.slotHistory.map((history, idx) => (
                                       <div key={idx} className="text-[10px] text-gray-400 flex flex-col sm:flex-row sm:items-center sm:gap-2">
@@ -2594,19 +2598,19 @@ const AdminDashboard = () => {
 
                             {/* Payment Tracking */}
                             <div className="mb-4 bg-black/40 border border-white/5 rounded-xl p-3">
-                              <h4 className="text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Payment Tracking</h4>
+                              <h4 className="font-oswald text-sm md:text-base text-white uppercase tracking-widest mb-2">Payment Tracking</h4>
                               <form onSubmit={(e) => handleUpdatePayment(booking._id, e)} className="grid grid-cols-3 gap-2">
                                 <div>
-                                  <label className="block text-[9px] uppercase text-gray-500 mb-1">Total</label>
+                                  <label className="block text-xs uppercase text-white mb-1">Total</label>
                                   <input type="number" name="totalAmount" defaultValue={booking.totalAmount || 0} className={`${glassInput} py-1 px-2 text-xs`} />
                                 </div>
                                 <div>
-                                  <label className="block text-[9px] uppercase text-gray-500 mb-1">Advance</label>
+                                  <label className="block text-xs uppercase text-white mb-1">Advance</label>
                                   <input type="number" name="advanceAmount" defaultValue={booking.advanceAmount || 0} className={`${glassInput} py-1 px-2 text-xs text-green-400`} />
                                 </div>
                                 <div>
-                                  <label className="block text-[9px] uppercase text-gray-500 mb-1">Pending</label>
-                                  <input type="number" name="pendingAmount" defaultValue={booking.pendingAmount || 0} className={`${glassInput} py-1 px-2 text-xs text-red-400`} />
+                                  <label className="block text-xs uppercase text-white mb-1">Pending</label>
+                                  <input type="number" name="pendingAmount" value={(booking.totalAmount || 0) - (booking.advanceAmount || 0)} readOnly className={`${glassInput} py-1 px-2 text-xs text-red-400 cursor-not-allowed opacity-70`} />
                                 </div>
                                 <div className="col-span-3 mt-1">
                                   <button type="submit" disabled={isGlobalSubmitting} className="w-full py-1.5 bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white rounded text-[10px] uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Updating...' : 'Update Payment'}</button>

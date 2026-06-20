@@ -135,12 +135,7 @@ const LeadModal = ({ isOpen, onClose, sourcePageSlug }) => {
     setStatus('submitting');
     try {
       await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/leads`, { ...formData, landingPageSource: sourcePageSlug });
-      setStatus('success');
-      setTimeout(() => {
-        onClose();
-        setStatus('idle');
-        setFormData({ name: '', email: '', phone: '', interestedIn: '' });
-      }, 2000);
+      window.location.href = '/thank-you?type=lead';
     } catch (err) {
       console.error(err);
       setStatus('error');
@@ -524,12 +519,13 @@ const LandingPage = () => {
 
       {/* 9. READY TO BEGIN YOUR STORY / PARALLAX FOOTER */}
       {pageData.parallaxFooter?.imageUrl && (
-        <section className="relative h-[80vh] w-full flex items-center justify-center border-t border-white/5" style={{ clipPath: "inset(0)" }}>
-          <div 
-            className="fixed inset-0 w-full h-full bg-cover bg-center"
+        <section ref={parallaxRef} className="relative h-[80vh] w-full flex items-center justify-center border-t border-white/5 overflow-hidden">
+          <motion.div 
+            className="absolute top-[-20%] left-0 w-full h-[140%] bg-cover bg-center"
             style={{ 
               backgroundImage: `url(${optimizeCloudinaryUrl(pageData.parallaxFooter.imageUrl)})`,
-              zIndex: -1
+              y: parallaxY,
+              zIndex: 0
             }}
           />
           <div className="absolute inset-0 bg-black/60 z-0"></div>
