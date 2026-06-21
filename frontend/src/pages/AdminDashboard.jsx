@@ -3690,26 +3690,50 @@ const AdminDashboard = () => {
                       </label>
                       
                       {editingTeamMember.hasAccess && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 bg-emerald-900/10 p-6 rounded border border-emerald-500/20">
-                          <div>
-                            <label className="block text-xs uppercase text-emerald-500/70 mb-2 tracking-widest">Login Email</label>
-                            <input 
-                              type="email" 
-                              className="w-full bg-black border border-emerald-500/30 p-4 text-white outline-none focus:border-emerald-500 transition-colors" 
-                              value={editingTeamMember.email || ''} 
-                              onChange={e => setEditingTeamMember({...editingTeamMember, email: e.target.value})} 
-                              placeholder="team@imazen.in"
-                            />
+                        <div className="bg-emerald-900/10 p-6 rounded border border-emerald-500/20 space-y-6 mt-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                              <label className="block text-xs uppercase text-emerald-500/70 mb-2 tracking-widest">Login Email</label>
+                              <input 
+                                type="email" 
+                                className="w-full bg-black border border-emerald-500/30 p-4 text-white outline-none focus:border-emerald-500 transition-colors" 
+                                value={editingTeamMember.email || ''} 
+                                onChange={e => setEditingTeamMember({...editingTeamMember, email: e.target.value})} 
+                                placeholder="team@imazen.in"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs uppercase text-emerald-500/70 mb-2 tracking-widest">Login Password</label>
+                              <input 
+                                type="password" 
+                                className="w-full bg-black border border-emerald-500/30 p-4 text-white outline-none focus:border-emerald-500 transition-colors" 
+                                value={editingTeamMember.password || ''} 
+                                onChange={e => setEditingTeamMember({...editingTeamMember, password: e.target.value})} 
+                                placeholder="Leave blank to keep existing"
+                              />
+                            </div>
                           </div>
+                          
                           <div>
-                            <label className="block text-xs uppercase text-emerald-500/70 mb-2 tracking-widest">Login Password</label>
-                            <input 
-                              type="password" 
-                              className="w-full bg-black border border-emerald-500/30 p-4 text-white outline-none focus:border-emerald-500 transition-colors" 
-                              value={editingTeamMember.password || ''} 
-                              onChange={e => setEditingTeamMember({...editingTeamMember, password: e.target.value})} 
-                              placeholder="Leave blank to keep existing"
-                            />
+                            <label className="block text-xs uppercase text-emerald-500/70 mb-3 tracking-widest">Select Permissions</label>
+                            <div className="flex flex-wrap gap-4">
+                              {['dashboard', 'leads', 'inquiries', 'bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'developer options'].map(perm => (
+                                <label key={perm} className="flex items-center gap-2 cursor-pointer">
+                                  <input 
+                                    type="checkbox" 
+                                    className="accent-emerald-500"
+                                    checked={(editingTeamMember.permissions || []).includes(perm)}
+                                    onChange={(e) => {
+                                      const perms = new Set(editingTeamMember.permissions || []);
+                                      if (e.target.checked) perms.add(perm);
+                                      else perms.delete(perm);
+                                      setEditingTeamMember({...editingTeamMember, permissions: Array.from(perms)});
+                                    }}
+                                  />
+                                  <span className="text-xs text-white uppercase">{perm}</span>
+                                </label>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       )}
