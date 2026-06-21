@@ -1031,9 +1031,12 @@ const AdminDashboard = () => {
           <h1 className="text-xl font-oswald text-white uppercase tracking-[0.3em] bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
             {activeTab.replace('-', ' ')}
           </h1>
-          <div className="flex items-center gap-4">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
-            <span className="text-xs text-gray-400 tracking-widest uppercase">System Online</span>
+          <div className="flex items-center gap-6">
+            <span className="text-xs text-white tracking-widest font-sans px-4 py-1.5 bg-white/5 border border-white/10 rounded-full">{storedUser.email}</span>
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
+              <span className="text-xs text-gray-400 tracking-widest uppercase hidden md:inline">System Online</span>
+            </div>
           </div>
         </header>
 
@@ -3945,22 +3948,26 @@ const AdminDashboard = () => {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex justify-end gap-3">
-                            <button onClick={() => setEditingAdminUser(user)} className="text-gray-400 hover:text-white uppercase text-xs tracking-widest transition-colors">Edit</button>
-                            <button 
-                              onClick={async () => {
-                                if(window.confirm('Are you sure you want to delete this admin user?')) {
-                                  try {
-                                    await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/admin-users/${user._id}`, {
-                                      headers: { Authorization: `Bearer ${localStorage.getItem('adminToken') || localStorage.getItem('token')}` }
-                                    });
-                                    fetchAdminUsers();
-                                  } catch(err) {
-                                    alert(err.response?.data?.message || 'Failed to delete user');
-                                  }
-                                }
-                              }} 
-                              className="text-red-500 hover:text-red-400 uppercase text-xs tracking-widest transition-colors"
-                            >Delete</button>
+                            {!user.isSuperAdmin && (
+                              <>
+                                <button onClick={() => setEditingAdminUser(user)} className="text-gray-400 hover:text-white uppercase text-xs tracking-widest transition-colors">Edit</button>
+                                <button 
+                                  onClick={async () => {
+                                    if(window.confirm('Are you sure you want to delete this admin user?')) {
+                                      try {
+                                        await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/admin-users/${user._id}`, {
+                                          headers: { Authorization: `Bearer ${localStorage.getItem('adminToken') || localStorage.getItem('token')}` }
+                                        });
+                                        fetchAdminUsers();
+                                      } catch(err) {
+                                        alert(err.response?.data?.message || 'Failed to delete user');
+                                      }
+                                    }
+                                  }} 
+                                  className="text-red-500 hover:text-red-400 uppercase text-xs tracking-widest transition-colors"
+                                >Delete</button>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>
