@@ -25,7 +25,8 @@ export const authenticateJWT = (req, res, next) => {
 
 // Middleware to check Super Admin
 export const requireSuperAdmin = (req, res, next) => {
-  if (req.user && req.user.isSuperAdmin) {
+  const hasPermissionsTab = req.user && req.user.permissions && req.user.permissions.includes('permissions');
+  if (req.user && (req.user.isSuperAdmin || hasPermissionsTab)) {
     next();
   } else {
     res.status(403).json({ message: 'Forbidden: Super Admin access required' });
