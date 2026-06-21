@@ -77,10 +77,10 @@ const AdminDashboard = () => {
         return itemDate.toDateString() === today.toDateString();
       }
       if (dashboardDateFilter === 'thisWeek') {
-        const todayClone = new Date();
-        const firstDay = new Date(todayClone.setDate(todayClone.getDate() - todayClone.getDay()));
-        firstDay.setHours(0, 0, 0, 0); // Must reset to start of day!
-        return itemDate >= firstDay;
+        const pastWeek = new Date();
+        pastWeek.setDate(pastWeek.getDate() - 7);
+        pastWeek.setHours(0, 0, 0, 0); 
+        return itemDate >= pastWeek;
       }
       return true;
     })
@@ -1133,7 +1133,7 @@ const AdminDashboard = () => {
                     >
                       <option value="all" className="bg-[#121212] text-white">All Time</option>
                       <option value="today" className="bg-[#121212] text-white">Today</option>
-                      <option value="thisWeek" className="bg-[#121212] text-white">This Week</option>
+                      <option value="thisWeek" className="bg-[#121212] text-white">Past 7 Days</option>
                     </select>
                     <select 
                       className="bg-[#121212] border border-white/20 text-white font-sans text-[10px] uppercase tracking-widest px-4 py-2 outline-none focus:border-white/50 rounded cursor-pointer"
