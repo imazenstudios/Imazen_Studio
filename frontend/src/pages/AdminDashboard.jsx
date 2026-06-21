@@ -3893,7 +3893,9 @@ const AdminDashboard = () => {
                     <div>
                       <label className="block text-xs uppercase text-gray-500 mb-4 tracking-widest">Assign Permissions</label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-white/5 border border-white/10 rounded">
-                        {['dashboard', 'leads', 'inquiries', 'bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options'].map(perm => (
+                        {['dashboard', 'leads', 'inquiries', 'bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options']
+                          .filter(perm => isSuperAdmin || userPermissions.includes(perm))
+                          .map(perm => (
                           <label key={perm} className="flex items-center gap-3 cursor-pointer">
                             <input 
                               type="checkbox" 
