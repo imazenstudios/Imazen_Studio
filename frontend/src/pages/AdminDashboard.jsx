@@ -12,6 +12,7 @@ const AdminDashboard = () => {
   const [dashboardStartDate, setDashboardStartDate] = useState('');
   const [dashboardEndDate, setDashboardEndDate] = useState('');
   const [dashboardTypeFilter, setDashboardTypeFilter] = useState('all'); // 'all', 'leads', 'inquiries'
+  const [dashboardDateFilter, setDashboardDateFilter] = useState('all'); // 'all', 'today', 'thisWeek'
 
 
 
@@ -66,6 +67,19 @@ const AdminDashboard = () => {
   ]
     .sort((a, b) => new Date(b.created) - new Date(a.created))
     .filter(item => dashboardTypeFilter === 'all' ? true : (dashboardTypeFilter === 'leads' ? item.isType === 'LEAD' : dashboardTypeFilter === 'bookings' ? item.isType === 'BOOKING' : item.isType === 'INQUIRY'))
+    .filter(item => {
+      if (dashboardDateFilter === 'all') return true;
+      const itemDate = new Date(item.created);
+      const today = new Date();
+      if (dashboardDateFilter === 'today') {
+        return itemDate.toDateString() === today.toDateString();
+      }
+      if (dashboardDateFilter === 'thisWeek') {
+        const firstDay = new Date(today.setDate(today.getDate() - today.getDay()));
+        return itemDate >= firstDay;
+      }
+      return true;
+    })
     .slice(0, 10);
 
   
@@ -1090,6 +1104,15 @@ const AdminDashboard = () => {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                   <h3 className="text-xl font-oswald uppercase tracking-widest text-white">Recent Inquiries</h3>
                   <div className="flex gap-4">
+                    <select 
+                      className="bg-[#121212] border border-white/20 text-white font-sans text-[10px] uppercase tracking-widest px-4 py-2 outline-none focus:border-white/50 rounded cursor-pointer"
+                      value={dashboardDateFilter}
+                      onChange={(e) => setDashboardDateFilter(e.target.value)}
+                    >
+                      <option value="all" className="bg-[#121212] text-white">All Time</option>
+                      <option value="today" className="bg-[#121212] text-white">Today</option>
+                      <option value="thisWeek" className="bg-[#121212] text-white">This Week</option>
+                    </select>
                     <select 
                       className="bg-[#121212] border border-white/20 text-white font-sans text-[10px] uppercase tracking-widest px-4 py-2 outline-none focus:border-white/50 rounded cursor-pointer"
                       value={dashboardTypeFilter}
