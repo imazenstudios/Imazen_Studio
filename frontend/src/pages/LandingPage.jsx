@@ -15,6 +15,18 @@ import Footer from '../components/Footer';
 
 const ReferenceLandingPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 300) setShowScrollTop(true);
+      else setShowScrollTop(false);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', serviceId: '', subId: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [services, setServices] = useState([]);
@@ -149,16 +161,16 @@ const ReferenceLandingPage = () => {
       {/* 1. HERO SECTION (SLIDESHOW) */}
       <section className="relative h-[90vh] sm:h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <Swiper
-            modules={[Autoplay, EffectFade, Keyboard, Navigation]}
-            navigation={true}
-            effect="fade"
-            keyboard={{ enabled: true }}
-            autoplay={{ delay: 5000, disableOnInteraction: false }}
-            loop={true}
-            allowTouchMove={true}
-            className="w-full h-full"
-          >
+            <Swiper
+              modules={[Autoplay, EffectFade, Keyboard, Navigation]}
+              navigation={true}
+              effect="fade"
+              keyboard={{ enabled: true }}
+              autoplay={{ delay: 5000, disableOnInteraction: false }}
+              loop={true}
+              allowTouchMove={true}
+              className="w-full h-full [&>.swiper-button-next]:hidden md:[&>.swiper-button-next]:flex [&>.swiper-button-prev]:hidden md:[&>.swiper-button-prev]:flex"
+            >
             {heroImages.map((img, i) => (
               <SwiperSlide key={i}>
                 <div className="w-full h-full">
@@ -216,9 +228,9 @@ const ReferenceLandingPage = () => {
       <section className="relative py-24 px-6 max-w-7xl mx-auto flex justify-center">
         <div className="w-full aspect-video bg-black/50 border border-white/10 rounded-xl overflow-hidden shadow-2xl relative">
             {pageData?.displayVideoUrl ? (
-              <video src={pageData.displayVideoUrl} controls autoPlay muted loop className="w-full h-full object-cover" controlsList="nodownload" />
+              <video src={pageData.displayVideoUrl} controls autoPlay muted loop className="w-full h-full object-cover cursor-pointer" controlsList="nodownload" onClick={(e) => { if(e.target.requestFullscreen) e.target.requestFullscreen(); else if(e.target.webkitRequestFullscreen) e.target.webkitRequestFullscreen(); }} />
             ) : (
-              <video src="/images/intro.mp4" controls autoPlay muted loop className="w-full h-full object-cover" controlsList="nodownload" />
+              <video src="/images/intro.mp4" controls autoPlay muted loop className="w-full h-full object-cover cursor-pointer" controlsList="nodownload" onClick={(e) => { if(e.target.requestFullscreen) e.target.requestFullscreen(); else if(e.target.webkitRequestFullscreen) e.target.webkitRequestFullscreen(); }} />
             )}
         </div>
       </section>
