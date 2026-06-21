@@ -84,36 +84,12 @@ const Book = () => {
         ];
       }
 
-      // Block past slots if the selected date is today
-      const today = new Date();
-      const [year, month, day] = date.split('-');
-      const selectedDate = new Date(year, month - 1, day);
-      
-      const isToday = 
-        selectedDate.getDate() === today.getDate() &&
-        selectedDate.getMonth() === today.getMonth() &&
-        selectedDate.getFullYear() === today.getFullYear();
-
-      if (isToday) {
-        const currentHour = today.getHours();
-        fetchedSlots = fetchedSlots.map(s => {
-          if (s.slot === 'Morning' && currentHour >= 9) {
-            return { ...s, status: 'Blocked' };
-          } else if (s.slot === 'Afternoon' && currentHour >= 13) {
-            return { ...s, status: 'Blocked' };
-          } else if (s.slot === 'Evening' && currentHour >= 17) {
-            return { ...s, status: 'Blocked' };
-          }
-          return s;
-        });
-      }
-
-      setAvailableSlots(fetchedSlots);
-      setIsLoadingSlots(false);
+      setSlots(fetchedSlots);
     } catch (error) {
       console.error(error);
-      setIsLoadingSlots(false);
+      setSlots([]);
     }
+    setIsLoadingSlots(false);
   };
 
   useEffect(() => {
@@ -274,8 +250,10 @@ const Book = () => {
                   >
                     <div className="absolute left-0 top-0 w-1 h-full bg-white opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="flex-1">
-                      <h3 className="text-2xl text-white font-oswald uppercase tracking-widest mb-1 group-hover:text-white transition-colors">{t.name}</h3>
-                      <p className="font-sans text-xs sm:text-sm tracking-[0.2em] uppercase text-green-400/80 mb-4">{t.price}</p>
+                      <h3 className="text-xl sm:text-2xl font-oswald text-white uppercase tracking-widest mb-2">{t.name}</h3>
+                      {t.price && (
+                        <p className="font-oswald text-4xl sm:text-5xl tracking-[0.1em] text-white mb-4">₹{t.price}</p>
+                      )}
                       {t.features && t.features.length > 0 && (
                          <ul className="text-xs text-gray-400 space-y-2 tracking-wide font-sans">
                            {t.features.map((f, idx) => (
@@ -306,8 +284,8 @@ const Book = () => {
               <div className="max-w-md mx-auto relative">
                 <div className="bg-black/40 p-1 rounded-2xl border border-white/10 hover:border-white/30 transition-colors">
                   <input 
+                    id="date"
                     type="date" 
-                    min={new Date().toLocaleDateString('en-CA')}
                     className="w-full bg-transparent p-6 font-sans text-lg sm:text-xl text-white focus:outline-none transition-colors [&::-webkit-calendar-picker-indicator]:invert cursor-pointer"
                     value={formData.date}
                     onChange={(e) => {
@@ -326,7 +304,6 @@ const Book = () => {
                         setFormData({ ...formData, date: val });
                       }
                     }}
-                    min={new Date().toISOString().split('T')[0]}
                   />
                 </div>
                 

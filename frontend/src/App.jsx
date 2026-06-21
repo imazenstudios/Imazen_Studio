@@ -8,6 +8,9 @@ import Packages from './pages/Packages';
 import Book from './pages/Book';
 import Gallery from './pages/Gallery';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminLogin from './pages/AdminLogin';
+import ProtectedRoute from './components/ProtectedRoute';
+
 import LocationPage from './pages/LocationPage';
 import AboutUs from './pages/AboutUs';
 import Themes from './pages/Themes';
@@ -68,14 +71,8 @@ function App() {
   const [maintenanceEndTime, setMaintenanceEndTime] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showInitialLoader, setShowInitialLoader] = useState(true);
+  const [isFadingOut, setIsFadingOut] = useState(false);
   const [adminBypass, setAdminBypass] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowInitialLoader(false);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     // Check for admin bypass in localStorage
@@ -136,35 +133,36 @@ function App() {
     initAnalytics();
   }, []);
 
-  if (showInitialLoader) {
-    return (
-      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center">
-        <div className="relative w-40 sm:w-64 h-20 sm:h-24">
-          <img src="/images/logo.png" alt="Imazen Studios Logo" className="absolute inset-0 w-full h-full object-contain opacity-20" />
-          <div className="absolute top-0 left-0 h-full overflow-hidden" style={{ animation: 'fillLogo 2.5s ease-in-out forwards' }}>
-            <img src="/images/logo.png" alt="Imazen Studios Logo" className="w-40 sm:w-64 h-20 sm:h-24 object-contain max-w-none origin-left" />
-          </div>
-        </div>
-        <style>{`
-          @keyframes fillLogo {
-            0% { width: 0%; }
-            100% { width: 100%; }
-          }
-        `}</style>
-      </div>
-    );
-  }
-
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-white/10 border-t-white rounded-full animate-spin"></div>
-      </div>
-    );
+    return <div className="min-h-screen bg-[#050505]"></div>;
   }
 
   return (
-    <HelmetProvider>
+    <>
+      {showInitialLoader && (
+        <div className={`fixed inset-0 z-[9999] bg-[#050505] flex flex-col items-center justify-center transition-opacity duration-500 ${isFadingOut ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+          <div className="relative w-40 sm:w-64 h-20 sm:h-24">
+            <img src="/images/logo.png" alt="Imazen Studios Logo" className="absolute inset-0 w-full h-full object-contain opacity-20" />
+            <div 
+              className="absolute top-0 left-0 h-full overflow-hidden" 
+              style={{ animation: 'fillLogo 2.5s ease-in-out forwards' }}
+              onAnimationEnd={() => {
+                setIsFadingOut(true);
+                setTimeout(() => setShowInitialLoader(false), 500);
+              }}
+            >
+              <img src="/images/logo.png" alt="Imazen Studios Logo" className="w-40 sm:w-64 h-20 sm:h-24 object-contain max-w-none origin-left" />
+            </div>
+          </div>
+          <style>{`
+            @keyframes fillLogo {
+              0% { width: 0%; }
+              100% { width: 100%; }
+            }
+          `}</style>
+        </div>
+      )}
+      <HelmetProvider>
       <Router>
         <NoInternetOverlay />
         
@@ -176,7 +174,8 @@ function App() {
 
         <Routes>
           {/* Admin routes bypass maintenance mode */}
-          <Route path="/admin/*" element={<Layout><AdminDashboard /></Layout>} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/*" element={<ProtectedRoute><Layout><AdminDashboard /></Layout></ProtectedRoute>} />
 
           {/* If maintenance mode is active, intercept all other routes */}
           {maintenanceMode && !adminBypass ? (
@@ -206,6 +205,7 @@ function App() {
         </Routes>
       </Router>
     </HelmetProvider>
+    </>
   );
 }
 

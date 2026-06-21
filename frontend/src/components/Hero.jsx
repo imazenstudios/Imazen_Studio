@@ -110,7 +110,7 @@ const Hero = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/20"></div>
 
               {/* Content with Parallax */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className={`absolute inset-0 flex flex-col pointer-events-none ${i === 0 ? "items-center justify-center" : "items-center justify-end pb-24 md:pb-32"}`}>
                 <div className="relative z-10 text-center px-4 max-w-5xl mx-auto pointer-events-auto">
                   <div 
                     className="font-oswald text-[12px] md:text-sm text-gray-400 uppercase tracking-[0.5em] mb-4" 

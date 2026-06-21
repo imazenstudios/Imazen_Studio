@@ -1448,50 +1448,10 @@ const AdminDashboard = () => {
                             </div>
                           )}
                           
-                          {/* Custom Packages Manager */}
-                          {editingLandingPage.showPackages && (
-                            <div className="mt-4 p-4 border border-white/10 rounded bg-black/40">
-                              <div className="flex justify-between items-center mb-4">
-                                <label className="block text-[9px] text-gray-500 uppercase">Custom Packages</label>
-                                <button type="button" onClick={() => {
-                                  const newPkgs = [...(editingLandingPage.customPackages || []), { name: '', price: '', description: '' }];
-                                  setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
-                                }} className="text-xs uppercase bg-white/10 px-3 py-1 rounded hover:bg-white hover:text-black transition-colors">+ Add Package</button>
-                              </div>
-                              <div className="space-y-4">
-                                {(editingLandingPage.customPackages || []).map((pkg, idx) => (
-                                  <div key={idx} className="p-4 bg-black/50 border border-white/5 rounded relative space-y-2">
-                                    <button type="button" onClick={() => {
-                                      const newPkgs = [...editingLandingPage.customPackages];
-                                      newPkgs.splice(idx, 1);
-                                      setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
-                                    }} className="absolute top-2 right-2 text-red-500 text-[10px] uppercase">Remove</button>
-                                    <div className="grid grid-cols-2 gap-2">
-                                      <input type="text" placeholder="Package Name" className={glassInput + ' text-sm py-1'} value={pkg.name || ''} onChange={e => {
-                                        const newPkgs = [...editingLandingPage.customPackages];
-                                        newPkgs[idx].name = e.target.value;
-                                        setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
-                                      }} />
-                                      <input type="text" placeholder="Price (Optional)" className={glassInput + ' text-sm py-1'} value={pkg.price || ''} onChange={e => {
-                                        const newPkgs = [...editingLandingPage.customPackages];
-                                        newPkgs[idx].price = e.target.value;
-                                        setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
-                                      }} />
-                                    </div>
-                                    <textarea placeholder="Description" rows={2} className={glassInput + ' text-sm'} value={pkg.description || ''} onChange={e => {
-                                      const newPkgs = [...editingLandingPage.customPackages];
-                                      newPkgs[idx].description = e.target.value;
-                                      setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
-                                    }} />
-                                  </div>
-                                ))}
-                                {(!editingLandingPage.customPackages || editingLandingPage.customPackages.length === 0) && (
-                                  <p className="text-xs text-white/50 italic">No custom packages added yet.</p>
-                                )}
-                              </div>
-                            </div>
-                          )}
-
+                        {/* LOGO UPLOAD */}
+                        <div className="border-t border-white/5 pt-6 mt-6 mb-6">
+                           <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase mb-4">Header Logo</h3>
+                           <DragDropImageUploader currentImage={editingLandingPage.logoUrl || ''} onUploadSuccess={(url) => setEditingLandingPage({...editingLandingPage, logoUrl: url})} />
                         </div>
 
                         {/* HERO CAROUSEL */}
@@ -1560,6 +1520,81 @@ const AdminDashboard = () => {
                           </div>
                         </div>
 
+                        {/* SERVICE CARDS (WHAT WE DO BEST) */}
+                        <div className="border-t border-white/5 pt-6 mt-6">
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase">What We Do Best (Service Cards)</h3>
+                            <button type="button" onClick={() => {
+                              const newCards = [...(editingLandingPage.serviceCards || []), { category: '', title: '', description: '', images: [] }];
+                              setEditingLandingPage({...editingLandingPage, serviceCards: newCards});
+                            }} className="text-xs uppercase bg-white/10 px-3 py-1 rounded hover:bg-white hover:text-black transition-colors">+ Add Card</button>
+                          </div>
+                          <div className="mb-4">
+                              <label className="block text-xs uppercase text-gray-400 mb-2">Section Heading</label>
+                              <input type="text" className={glassInput} value={editingLandingPage.serviceCardsHeading || ''} onChange={e => setEditingLandingPage({...editingLandingPage, serviceCardsHeading: e.target.value})} placeholder="e.g. What We Do Best" />
+                          </div>
+                          
+                          <div className="space-y-6">
+                            {(editingLandingPage.serviceCards || []).map((card, idx) => (
+                              <div key={idx} className="bg-black/40 border border-white/5 p-4 rounded-xl space-y-4 relative">
+                                <button type="button" onClick={() => {
+                                  const newCards = [...editingLandingPage.serviceCards];
+                                  newCards.splice(idx, 1);
+                                  setEditingLandingPage({...editingLandingPage, serviceCards: newCards});
+                                }} className="absolute top-2 right-2 text-red-500 hover:text-red-400 text-xs uppercase">Remove</button>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="block text-[9px] text-gray-500 mb-1 uppercase">Category Label</label>
+                                    <input type="text" className={glassInput + ' py-2 text-xs'} value={card.category || ''} onChange={e => {
+                                      const newCards = [...editingLandingPage.serviceCards];
+                                      newCards[idx].category = e.target.value;
+                                      setEditingLandingPage({...editingLandingPage, serviceCards: newCards});
+                                    }} placeholder="e.g. 5-15 Days" />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[9px] text-gray-500 mb-1 uppercase">Title</label>
+                                    <input type="text" className={glassInput + ' py-2 text-xs'} value={card.title || ''} onChange={e => {
+                                      const newCards = [...editingLandingPage.serviceCards];
+                                      newCards[idx].title = e.target.value;
+                                      setEditingLandingPage({...editingLandingPage, serviceCards: newCards});
+                                    }} placeholder="e.g. Newborn Shoots" />
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-[9px] text-gray-500 mb-1 uppercase">Description</label>
+                                  <textarea className={glassInput + ' py-2 text-xs'} value={card.description || ''} onChange={e => {
+                                    const newCards = [...editingLandingPage.serviceCards];
+                                    newCards[idx].description = e.target.value;
+                                    setEditingLandingPage({...editingLandingPage, serviceCards: newCards});
+                                  }} />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-[9px] text-gray-500 mb-1 uppercase">Card Background Images</label>
+                                  <DragDropImageUploader currentImage={''} multiple={true} disableCompression={true} onUploadSuccess={(urls) => {
+                                    const newCards = [...editingLandingPage.serviceCards];
+                                    newCards[idx].images = [...(newCards[idx].images || []), ...urls];
+                                    setEditingLandingPage({...editingLandingPage, serviceCards: newCards});
+                                  }} />
+                                  <div className="grid grid-cols-3 gap-2 mt-2">
+                                    {(card.images || []).map((img, i) => (
+                                      <div key={i} className="relative group">
+                                        <img src={img} className="w-full h-16 object-cover rounded" />
+                                        <button type="button" onClick={() => {
+                                          const newCards = [...editingLandingPage.serviceCards];
+                                          newCards[idx].images.splice(i, 1);
+                                          setEditingLandingPage({...editingLandingPage, serviceCards: newCards});
+                                        }} className="absolute top-1 right-1 bg-red-500 text-white w-4 h-4 rounded-full text-[10px] flex justify-center items-center opacity-0 group-hover:opacity-100">×</button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
                         {/* DISPLAY VIDEO */}
                         <div className="border-t border-white/5 pt-6 mt-6">
                            <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase mb-4">Display Video</h3>
@@ -1618,42 +1653,7 @@ const AdminDashboard = () => {
                           </div>
                         </div>
 
-                        {/* PORTFOLIO IMAGES */}
-                        <div className="border-t border-white/5 pt-6 mt-6">
-                          <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase">Images Gallery</h3>
-                          </div>
-                          <div className="mb-4">
-                              <label className="block text-xs uppercase text-gray-400 mb-2">Section Heading</label>
-                              <input type="text" className={glassInput} value={editingLandingPage.portfolioImagesHeading || ''} onChange={e => setEditingLandingPage({...editingLandingPage, portfolioImagesHeading: e.target.value})} placeholder="e.g. Our Portfolio" />
-                          </div>
-                          <div className="mb-4">
-                            <label className="block text-[9px] text-gray-500 mb-1 uppercase">Heading Alignment</label>
-                            <select className={glassInput + ' py-2 text-xs'} value={editingLandingPage.portfolioImagesAlign || 'center'} onChange={e => setEditingLandingPage({...editingLandingPage, portfolioImagesAlign: e.target.value})}>
-                              <option value="left" className="bg-black text-white">Left</option>
-                              <option value="center" className="bg-black text-white">Center</option>
-                              <option value="right" className="bg-black text-white">Right</option>
-                            </select>
-                          </div>
-                          <DragDropImageUploader currentImage={''} multiple={true} disableCompression={true} onUploadSuccess={(urls) => {
-                            const newImgs = [...(editingLandingPage.portfolioImages || []), ...urls];
-                            setEditingLandingPage({...editingLandingPage, portfolioImages: newImgs});
-                          }} />
-                          <div className="mt-4 columns-2 sm:columns-3 gap-2 space-y-2">
-                            {(editingLandingPage.portfolioImages || []).map((img, idx) => (
-                              <div key={idx} className="relative group break-inside-avoid">
-                                <img src={img} className="w-full h-auto object-cover rounded border border-white/10" />
-                                <button type="button" onClick={() => {
-                                  const newImgs = [...editingLandingPage.portfolioImages];
-                                  newImgs.splice(idx, 1);
-                                  setEditingLandingPage({...editingLandingPage, portfolioImages: newImgs});
-                                }} className="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">×</button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* WHY CHOOSE IMAZEN */}
+{/* WHY CHOOSE IMAZEN */}
                         <div className="border-t border-white/5 pt-6 mt-6">
                           <div className="flex justify-between items-center mb-4">
                             <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase">Why Choose Imazen? (Features)</h3>
@@ -1703,6 +1703,84 @@ const AdminDashboard = () => {
                           </div>
                         </div>
 
+                        {/* COMFORT SECTIONS */}
+                        <div className="border-t border-white/5 pt-6 mt-6">
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase">Pure Comfort for Mother & Baby</h3>
+                            <button type="button" onClick={() => {
+                              const newItems = [...(editingLandingPage.comfortItems || []), { title: '', desc: '' }];
+                              setEditingLandingPage({...editingLandingPage, comfortItems: newItems});
+                            }} className="text-xs uppercase bg-white/10 px-3 py-1 rounded hover:bg-white hover:text-black transition-colors">+ Add Item</button>
+                          </div>
+                          <div className="mb-4">
+                              <label className="block text-xs uppercase text-gray-400 mb-2">Section Heading</label>
+                              <input type="text" className={glassInput} value={editingLandingPage.comfortHeading || ''} onChange={e => setEditingLandingPage({...editingLandingPage, comfortHeading: e.target.value})} placeholder="e.g. Pure Comfort for Mother & Baby" />
+                          </div>
+                          <div className="grid md:grid-cols-2 gap-4">
+                            {(editingLandingPage.comfortItems || []).map((item, idx) => (
+                              <div key={idx} className="bg-black/40 border border-white/5 p-4 rounded-xl space-y-3 relative">
+                                <button type="button" onClick={() => {
+                                  const newItems = [...editingLandingPage.comfortItems];
+                                  newItems.splice(idx, 1);
+                                  setEditingLandingPage({...editingLandingPage, comfortItems: newItems});
+                                }} className="absolute top-2 right-2 text-red-500 hover:text-red-400 text-xs uppercase">Remove</button>
+                                <div>
+                                  <label className="block text-[9px] text-gray-500 mb-1 uppercase">Title</label>
+                                  <input type="text" className={glassInput + ' py-2 text-xs'} value={item.title || ''} onChange={e => {
+                                    const newItems = [...editingLandingPage.comfortItems];
+                                    newItems[idx].title = e.target.value;
+                                    setEditingLandingPage({...editingLandingPage, comfortItems: newItems});
+                                  }} />
+                                </div>
+                                <div>
+                                  <label className="block text-[9px] text-gray-500 mb-1 uppercase">Description</label>
+                                  <textarea className={glassInput + ' py-2 text-xs'} value={item.desc || ''} onChange={e => {
+                                    const newItems = [...editingLandingPage.comfortItems];
+                                    newItems[idx].desc = e.target.value;
+                                    setEditingLandingPage({...editingLandingPage, comfortItems: newItems});
+                                  }} />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* PORTFOLIO IMAGES */}
+                        <div className="border-t border-white/5 pt-6 mt-6">
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase">Images Gallery</h3>
+                          </div>
+                          <div className="mb-4">
+                              <label className="block text-xs uppercase text-gray-400 mb-2">Section Heading</label>
+                              <input type="text" className={glassInput} value={editingLandingPage.portfolioImagesHeading || ''} onChange={e => setEditingLandingPage({...editingLandingPage, portfolioImagesHeading: e.target.value})} placeholder="e.g. Our Portfolio" />
+                          </div>
+                          <div className="mb-4">
+                            <label className="block text-[9px] text-gray-500 mb-1 uppercase">Heading Alignment</label>
+                            <select className={glassInput + ' py-2 text-xs'} value={editingLandingPage.portfolioImagesAlign || 'center'} onChange={e => setEditingLandingPage({...editingLandingPage, portfolioImagesAlign: e.target.value})}>
+                              <option value="left" className="bg-black text-white">Left</option>
+                              <option value="center" className="bg-black text-white">Center</option>
+                              <option value="right" className="bg-black text-white">Right</option>
+                            </select>
+                          </div>
+                          <DragDropImageUploader currentImage={''} multiple={true} disableCompression={true} onUploadSuccess={(urls) => {
+                            const newImgs = [...(editingLandingPage.portfolioImages || []), ...urls];
+                            setEditingLandingPage({...editingLandingPage, portfolioImages: newImgs});
+                          }} />
+                          <div className="mt-4 columns-2 sm:columns-3 gap-2 space-y-2">
+                            {(editingLandingPage.portfolioImages || []).map((img, idx) => (
+                              <div key={idx} className="relative group break-inside-avoid">
+                                <img src={img} className="w-full h-auto object-cover rounded border border-white/10" />
+                                <button type="button" onClick={() => {
+                                  const newImgs = [...editingLandingPage.portfolioImages];
+                                  newImgs.splice(idx, 1);
+                                  setEditingLandingPage({...editingLandingPage, portfolioImages: newImgs});
+                                }} className="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        
                         {/* PORTFOLIO VIDEOS */}
                         <div className="border-t border-white/5 pt-6 mt-6">
                            <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase mb-4">Videos Gallery</h3>
@@ -1741,6 +1819,52 @@ const AdminDashboard = () => {
                                </div>
                              ))}
                            </div>
+                        </div>
+
+                          {/* Custom Packages Manager */}
+                          {editingLandingPage.showPackages && (
+                            <div className="mt-4 p-4 border border-white/10 rounded bg-black/40">
+                              <div className="flex justify-between items-center mb-4">
+                                <label className="block text-[9px] text-gray-500 uppercase">Custom Packages</label>
+                                <button type="button" onClick={() => {
+                                  const newPkgs = [...(editingLandingPage.customPackages || []), { name: '', price: '', description: '' }];
+                                  setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
+                                }} className="text-xs uppercase bg-white/10 px-3 py-1 rounded hover:bg-white hover:text-black transition-colors">+ Add Package</button>
+                              </div>
+                              <div className="space-y-4">
+                                {(editingLandingPage.customPackages || []).map((pkg, idx) => (
+                                  <div key={idx} className="p-4 bg-black/50 border border-white/5 rounded relative space-y-2">
+                                    <button type="button" onClick={() => {
+                                      const newPkgs = [...editingLandingPage.customPackages];
+                                      newPkgs.splice(idx, 1);
+                                      setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
+                                    }} className="absolute top-2 right-2 text-red-500 text-[10px] uppercase">Remove</button>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <input type="text" placeholder="Package Name" className={glassInput + ' text-sm py-1'} value={pkg.name || ''} onChange={e => {
+                                        const newPkgs = [...editingLandingPage.customPackages];
+                                        newPkgs[idx].name = e.target.value;
+                                        setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
+                                      }} />
+                                      <input type="text" placeholder="Price (Optional)" className={glassInput + ' text-sm py-1'} value={pkg.price || ''} onChange={e => {
+                                        const newPkgs = [...editingLandingPage.customPackages];
+                                        newPkgs[idx].price = e.target.value;
+                                        setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
+                                      }} />
+                                    </div>
+                                    <textarea placeholder="Description" rows={2} className={glassInput + ' text-sm'} value={pkg.description || ''} onChange={e => {
+                                      const newPkgs = [...editingLandingPage.customPackages];
+                                      newPkgs[idx].description = e.target.value;
+                                      setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
+                                    }} />
+                                  </div>
+                                ))}
+                                {(!editingLandingPage.customPackages || editingLandingPage.customPackages.length === 0) && (
+                                  <p className="text-xs text-white/50 italic">No custom packages added yet.</p>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
                         </div>
 
                         {/* PARALLAX FOOTER */}
@@ -1787,6 +1911,21 @@ const AdminDashboard = () => {
                               </div>
                             ))}
                           </div>
+                        </div>
+
+                        {/* FLOATING BUTTONS */}
+                        <div className="border-t border-white/5 pt-6 mt-6 mb-6">
+                            <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase mb-4">Floating Buttons</h3>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs uppercase text-gray-400 mb-2">Floating Bubble Text (Top)</label>
+                                    <input type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-white/30 transition-colors text-xs" value={editingLandingPage.floatingBubbleText || ''} onChange={e => setEditingLandingPage({...editingLandingPage, floatingBubbleText: e.target.value})} placeholder="e.g. Hurry, Limited Slots Available!" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs uppercase text-gray-400 mb-2">Floating Button Text (Bottom)</label>
+                                    <input type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-white/30 transition-colors text-xs" value={editingLandingPage.floatingButtonText || ''} onChange={e => setEditingLandingPage({...editingLandingPage, floatingButtonText: e.target.value})} placeholder="e.g. BOOK NOW" />
+                                </div>
+                            </div>
                         </div>
 
                         <div className="flex justify-end gap-3 pt-6 border-t border-white/5">

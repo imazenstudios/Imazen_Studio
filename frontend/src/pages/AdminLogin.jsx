@@ -1,0 +1,129 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const AdminLogin = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [mode, setMode] = useState('login'); // 'login', 'forgot', 'otp', 'reset'
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    // If already logged in, redirect to dashboard
+    const token = localStorage.getItem('adminToken');
+    if (token) {
+      window.location.href = '/admin';
+    }
+  }, []);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/login`, { email, password });
+      localStorage.setItem('adminToken', res.data.token);
+      localStorage.setItem('adminUser', JSON.stringify(res.data.user));
+      window.location.href = '/admin';
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed');
+    }
+  };
+
+  const handleForgot = async (e) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/forgot-password`, { email });
+      setMessage(res.data.message);
+      setMode('otp');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error requesting OTP');
+    }
+  };
+
+  const handleReset = async (e) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/reset-password`, { email, otp, newPassword });
+      setMessage(res.data.message);
+      setMode('login');
+      setPassword('');
+      setOtp('');
+      setNewPassword('');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error resetting password');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-[#111] border border-white/10 rounded-2xl p-8 shadow-2xl">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-oswald text-white uppercase tracking-widest mb-2">Imazen OS</h1>
+          <p className="text-gray-500 font-sans text-xs uppercase tracking-widest">Admin Portal Access</p>
+        </div>
+
+        {error && <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center rounded">{error}</div>}
+        {message && <div className="mb-6 p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs text-center rounded">{message}</div>}
+
+        {mode === 'login' && (
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Email</label>
+              <input type="email" required className="w-full bg-black/50 border border-white/10 text-white px-4 py-3 rounded outline-none focus:border-white/30 transition-colors" value={email} onChange={e => setEmail(e.target.value)} />
+            </div>
+            <div>
+              <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Password</label>
+              <input type="password" required className="w-full bg-black/50 border border-white/10 text-white px-4 py-3 rounded outline-none focus:border-white/30 transition-colors" value={password} onChange={e => setPassword(e.target.value)} />
+            </div>
+            <button type="submit" className="w-full py-3 mt-2 bg-white text-black font-oswald uppercase tracking-widest hover:bg-gray-200 transition-colors rounded">Login</button>
+            <div className="text-center pt-4">
+              <button type="button" onClick={() => { setMode('forgot'); setError(''); setMessage(''); }} className="text-xs text-gray-500 hover:text-white transition-colors">Forgot Password?</button>
+            </div>
+          </form>
+        )}
+
+        {mode === 'forgot' && (
+          <form onSubmit={handleForgot} className="space-y-4">
+            <div>
+              <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Email</label>
+              <input type="email" required className="w-full bg-black/50 border border-white/10 text-white px-4 py-3 rounded outline-none focus:border-white/30 transition-colors" value={email} onChange={e => setEmail(e.target.value)} />
+            </div>
+            <button type="submit" className="w-full py-3 mt-2 bg-white text-black font-oswald uppercase tracking-widest hover:bg-gray-200 transition-colors rounded">Send OTP</button>
+            <div className="text-center pt-4">
+              <button type="button" onClick={() => { setMode('login'); setError(''); setMessage(''); }} className="text-xs text-gray-500 hover:text-white transition-colors">Back to Login</button>
+            </div>
+          </form>
+        )}
+
+        {mode === 'otp' && (
+          <form onSubmit={handleReset} className="space-y-4">
+            <div>
+              <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Email</label>
+              <input type="email" required readOnly className="w-full bg-black/50 border border-white/10 text-gray-500 px-4 py-3 rounded outline-none cursor-not-allowed" value={email} />
+            </div>
+            <div>
+              <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">OTP</label>
+              <input type="text" required className="w-full bg-black/50 border border-white/10 text-white px-4 py-3 rounded outline-none focus:border-white/30 transition-colors tracking-widest text-center" value={otp} onChange={e => setOtp(e.target.value)} placeholder="000000" />
+            </div>
+            <div>
+              <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">New Password</label>
+              <input type="password" required className="w-full bg-black/50 border border-white/10 text-white px-4 py-3 rounded outline-none focus:border-white/30 transition-colors" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+            </div>
+            <button type="submit" className="w-full py-3 mt-2 bg-white text-black font-oswald uppercase tracking-widest hover:bg-gray-200 transition-colors rounded">Reset Password</button>
+            <div className="text-center pt-4">
+              <button type="button" onClick={() => { setMode('login'); setError(''); setMessage(''); }} className="text-xs text-gray-500 hover:text-white transition-colors">Back to Login</button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default AdminLogin;

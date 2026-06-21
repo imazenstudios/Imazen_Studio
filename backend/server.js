@@ -1,4 +1,10 @@
 import express from 'express';
+
+import authRoutes from './routes/auth.js';
+import adminUsersRoutes from './routes/adminUsers.js';
+import AdminUser from './models/AdminUser.js';
+import bcrypt from 'bcryptjs';
+
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -30,6 +36,10 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
+
+app.use('/api/auth', authRoutes);
+app.use('/api/admin-users', adminUsersRoutes);
+
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/content', contentRoutes);
 app.use('/api/services', servicesRoutes);
@@ -52,6 +62,30 @@ app.use('/api/leads', leadsRoutes);
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/imazen-studios')
   .then(() => {
     console.log('Connected to MongoDB');
+
+    // Create super admin if not exists
+    const createSuperAdmin = async () => {
+      try {
+        const adminEmail = 'ssaiprasanth333@gmail.com';
+        const existingAdmin = await AdminUser.findOne({ email: adminEmail });
+        if (!existingAdmin) {
+          const salt = await bcrypt.genSalt(10);
+          const hashedPassword = await bcrypt.hash('admin123', salt);
+          const newAdmin = new AdminUser({
+            email: adminEmail,
+            password: hashedPassword,
+            isSuperAdmin: true,
+            permissions: ['dashboard', 'leads', 'inquiries', 'bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'teamAccess']
+          });
+          await newAdmin.save();
+          console.log('Super Admin created with default password "admin123"');
+        }
+      } catch (err) {
+        console.error('Error creating super admin:', err);
+      }
+    };
+    createSuperAdmin();
+
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
