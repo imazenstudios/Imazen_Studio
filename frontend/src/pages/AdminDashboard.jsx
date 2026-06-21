@@ -77,7 +77,9 @@ const AdminDashboard = () => {
         return itemDate.toDateString() === today.toDateString();
       }
       if (dashboardDateFilter === 'thisWeek') {
-        const firstDay = new Date(today.setDate(today.getDate() - today.getDay()));
+        const todayClone = new Date();
+        const firstDay = new Date(todayClone.setDate(todayClone.getDate() - todayClone.getDay()));
+        firstDay.setHours(0, 0, 0, 0); // Must reset to start of day!
         return itemDate >= firstDay;
       }
       return true;
