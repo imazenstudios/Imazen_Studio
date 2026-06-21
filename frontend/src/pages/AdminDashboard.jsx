@@ -7,7 +7,14 @@ import DragDropVideoUploader from '../components/DragDropVideoUploader';
 import CalendarView from '../components/admin/CalendarView';
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const storedUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+  const userPermissions = storedUser.permissions || [];
+  const isSuperAdmin = storedUser.isSuperAdmin === true || storedUser.email === 'ssaiprasanth333@gmail.com' || localStorage.getItem('adminBypass') === 'true';
+  const allTabs = ['dashboard', 'leads', 'inquiries', 'bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options'];
+  const allowedTabs = isSuperAdmin ? allTabs : allTabs.filter(tab => userPermissions.includes(tab));
+  const initialTab = allowedTabs.includes('dashboard') ? 'dashboard' : (allowedTabs[0] || 'dashboard');
+
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   const [dashboardStartDate, setDashboardStartDate] = useState('');
   const [dashboardEndDate, setDashboardEndDate] = useState('');
@@ -976,7 +983,7 @@ const AdminDashboard = () => {
           </h2>
         </div>
         <nav className="flex-1 p-6 space-y-3 overflow-y-auto custom-scrollbar">
-          {['dashboard', 'leads', 'inquiries', 'bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options'].map(tab => (
+          {allowedTabs.map(tab => (
             <button 
               key={tab}
               onClick={() => { setActiveTab(tab); setIsMobileMenuOpen(false); }}
