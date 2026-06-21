@@ -3896,10 +3896,11 @@ const AdminDashboard = () => {
                         {['dashboard', 'leads', 'inquiries', 'bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options']
                           .filter(perm => isSuperAdmin || userPermissions.includes(perm))
                           .map(perm => (
-                          <label key={perm} className="flex items-center gap-3 cursor-pointer">
+                          <label key={perm} className={`flex items-center gap-3 ${storedUser.email === editingAdminUser.email ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}>
                             <input 
                               type="checkbox" 
-                              className="w-4 h-4 accent-white"
+                              disabled={storedUser.email === editingAdminUser.email}
+                              className="w-4 h-4 accent-white disabled:opacity-50"
                               checked={(editingAdminUser.permissions || []).includes(perm)}
                               onChange={(e) => {
                                 const perms = new Set(editingAdminUser.permissions || []);
