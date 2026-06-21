@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { EffectFade, Navigation, Pagination, Autoplay, Parallax } from 'swiper/modules';
+import { EffectFade, Navigation, Pagination, Autoplay, Parallax, Keyboard } from 'swiper/modules';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -58,7 +58,9 @@ const Hero = () => {
         </div>
       ) : (
         <Swiper
-          modules={[EffectFade, Navigation, Pagination, Autoplay, Parallax]}
+          modules={[EffectFade, Navigation, Pagination, Autoplay, Parallax, Keyboard]}
+          keyboard={{ enabled: true }}
+          allowTouchMove={true}
           effect="fade"
           fadeEffect={{ crossFade: true }}
           speed={1500}
@@ -138,12 +140,12 @@ const Hero = () => {
           ))}
           
           {/* Custom Navigation */}
-          <div className="swiper-button-prev-custom absolute top-1/2 left-4 md:left-8 -translate-y-1/2 z-20 cursor-pointer group-hover:opacity-100 opacity-0 transition-opacity duration-500 flex items-center gap-2 md:gap-4">
+          <div className="swiper-button-prev-custom absolute top-1/2 left-4 md:left-8 -translate-y-1/2 z-20 cursor-pointer opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center gap-2 md:gap-4">
             <div className="w-6 md:w-12 h-[1px] bg-white/50 group-hover:bg-white transition-colors"></div>
             <span className="text-white font-oswald text-[8px] md:text-xs uppercase tracking-[0.3em] -rotate-90 origin-left">Prev</span>
           </div>
           
-          <div className="swiper-button-next-custom absolute top-1/2 right-4 md:right-8 -translate-y-1/2 z-20 cursor-pointer group-hover:opacity-100 opacity-0 transition-opacity duration-500 flex items-center gap-2 md:gap-4">
+          <div className="swiper-button-next-custom absolute top-1/2 right-4 md:right-8 -translate-y-1/2 z-20 cursor-pointer opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center gap-2 md:gap-4">
             <span className="text-white font-oswald text-[8px] md:text-xs uppercase tracking-[0.3em] rotate-90 origin-right">Next</span>
             <div className="w-6 md:w-12 h-[1px] bg-white/50 group-hover:bg-white transition-colors"></div>
           </div>

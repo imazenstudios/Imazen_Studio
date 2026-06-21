@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Navigation, Pagination, EffectFade } from 'swiper/modules';
+import { Autoplay, Navigation, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import 'swiper/css/effect-fade';
 
 const Testimonials = () => {
   const [testimonials, setTestimonials] = useState([]);
@@ -29,9 +28,9 @@ const Testimonials = () => {
       <div className="w-full max-w-4xl mx-auto px-12 relative flex items-center justify-center">
         
         <Swiper
-          modules={[Autoplay, Navigation, Pagination, EffectFade]}
-          effect="fade"
-          fadeEffect={{ crossFade: true }}
+          modules={[Autoplay, Navigation, Pagination]}
+          slidesPerView={1}
+          spaceBetween={30}
           loop={testimonials.length > 1}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
           navigation={{

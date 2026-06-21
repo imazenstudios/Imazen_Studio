@@ -875,7 +875,19 @@ const AdminDashboard = () => {
       } else {
         await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/team`, tData);
       }
-      alert('Team member saved!');
+      
+      if (tData.hasAccess && tData.email && tData.password) {
+        try {
+           await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/admin-users`, { email: tData.email, password: tData.password, permissions: tData.permissions || [] }, { headers: { Authorization: `Bearer ${localStorage.getItem('adminToken') || localStorage.getItem('token')}` } });
+           alert('Team member saved and Dashboard Access granted successfully!');
+        } catch (err) {
+           console.error('Failed to create admin user access:', err);
+           alert('Team member saved, but failed to grant dashboard access (Email might already be in use).');
+        }
+      } else {
+        alert('Team member saved!');
+      }
+
       fetchData();
       setEditingTeamMember(null);
     } catch (error) {
@@ -1480,6 +1492,23 @@ const AdminDashboard = () => {
                                   newSlides.splice(idx, 1);
                                   setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
                                 }} className="absolute top-2 right-2 text-red-500 hover:text-red-400 text-xs uppercase">Remove</button>
+                                <div className="absolute top-2 right-16 flex gap-2">
+                                  <button type="button" onClick={() => {
+                                    if(idx > 0) {
+                                      const newSlides = [...editingLandingPage.heroSlides];
+                                      [newSlides[idx-1], newSlides[idx]] = [newSlides[idx], newSlides[idx-1]];
+                                      setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
+                                    }
+                                  }} className="text-gray-400 hover:text-white text-xs">↑</button>
+                                  <button type="button" onClick={() => {
+                                    if(idx < editingLandingPage.heroSlides.length - 1) {
+                                      const newSlides = [...editingLandingPage.heroSlides];
+                                      [newSlides[idx+1], newSlides[idx]] = [newSlides[idx], newSlides[idx+1]];
+                                      setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
+                                    }
+                                  }} className="text-gray-400 hover:text-white text-xs">↓</button>
+                                </div>
+  
                                 
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
@@ -1542,6 +1571,23 @@ const AdminDashboard = () => {
                                   newCards.splice(idx, 1);
                                   setEditingLandingPage({...editingLandingPage, serviceCards: newCards});
                                 }} className="absolute top-2 right-2 text-red-500 hover:text-red-400 text-xs uppercase">Remove</button>
+                                <div className="absolute top-2 right-16 flex gap-2">
+                                  <button type="button" onClick={() => {
+                                    if(idx > 0) {
+                                      const newSlides = [...editingLandingPage.heroSlides];
+                                      [newSlides[idx-1], newSlides[idx]] = [newSlides[idx], newSlides[idx-1]];
+                                      setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
+                                    }
+                                  }} className="text-gray-400 hover:text-white text-xs">↑</button>
+                                  <button type="button" onClick={() => {
+                                    if(idx < editingLandingPage.heroSlides.length - 1) {
+                                      const newSlides = [...editingLandingPage.heroSlides];
+                                      [newSlides[idx+1], newSlides[idx]] = [newSlides[idx], newSlides[idx+1]];
+                                      setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
+                                    }
+                                  }} className="text-gray-400 hover:text-white text-xs">↓</button>
+                                </div>
+  
                                 
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
@@ -1586,6 +1632,23 @@ const AdminDashboard = () => {
                                           newCards[idx].images.splice(i, 1);
                                           setEditingLandingPage({...editingLandingPage, serviceCards: newCards});
                                         }} className="absolute top-1 right-1 bg-red-500 text-white w-4 h-4 rounded-full text-[10px] flex justify-center items-center opacity-0 group-hover:opacity-100">×</button>
+                                        <div className="absolute top-1 left-1 flex gap-1 opacity-0 group-hover:opacity-100">
+                                          <button type="button" onClick={() => {
+                                            if(i > 0) {
+                                              const newCards = [...editingLandingPage.serviceCards];
+                                              [newCards[idx].images[i-1], newCards[idx].images[i]] = [newCards[idx].images[i], newCards[idx].images[i-1]];
+                                              setEditingLandingPage({...editingLandingPage, serviceCards: newCards});
+                                            }
+                                          }} className="bg-black/50 text-white w-4 h-4 rounded-full text-[10px] flex justify-center items-center">↑</button>
+                                          <button type="button" onClick={() => {
+                                            if(i < card.images.length - 1) {
+                                              const newCards = [...editingLandingPage.serviceCards];
+                                              [newCards[idx].images[i+1], newCards[idx].images[i]] = [newCards[idx].images[i], newCards[idx].images[i+1]];
+                                              setEditingLandingPage({...editingLandingPage, serviceCards: newCards});
+                                            }
+                                          }} className="bg-black/50 text-white w-4 h-4 rounded-full text-[10px] flex justify-center items-center">↓</button>
+                                        </div>
+  
                                       </div>
                                     ))}
                                   </div>
@@ -1682,6 +1745,23 @@ const AdminDashboard = () => {
                                   newF.splice(idx, 1);
                                   setEditingLandingPage({...editingLandingPage, features: newF});
                                 }} className="absolute top-2 right-2 text-red-500 hover:text-red-400 text-xs uppercase">Remove</button>
+                                <div className="absolute top-2 right-16 flex gap-2">
+                                  <button type="button" onClick={() => {
+                                    if(idx > 0) {
+                                      const newSlides = [...editingLandingPage.heroSlides];
+                                      [newSlides[idx-1], newSlides[idx]] = [newSlides[idx], newSlides[idx-1]];
+                                      setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
+                                    }
+                                  }} className="text-gray-400 hover:text-white text-xs">↑</button>
+                                  <button type="button" onClick={() => {
+                                    if(idx < editingLandingPage.heroSlides.length - 1) {
+                                      const newSlides = [...editingLandingPage.heroSlides];
+                                      [newSlides[idx+1], newSlides[idx]] = [newSlides[idx], newSlides[idx+1]];
+                                      setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
+                                    }
+                                  }} className="text-gray-400 hover:text-white text-xs">↓</button>
+                                </div>
+  
                                 <div>
                                   <label className="block text-[9px] text-gray-500 mb-1 uppercase">Title</label>
                                   <input type="text" className={glassInput + ' py-2 text-xs'} value={feature.title} onChange={e => {
@@ -1724,6 +1804,23 @@ const AdminDashboard = () => {
                                   newItems.splice(idx, 1);
                                   setEditingLandingPage({...editingLandingPage, comfortItems: newItems});
                                 }} className="absolute top-2 right-2 text-red-500 hover:text-red-400 text-xs uppercase">Remove</button>
+                                <div className="absolute top-2 right-16 flex gap-2">
+                                  <button type="button" onClick={() => {
+                                    if(idx > 0) {
+                                      const newSlides = [...editingLandingPage.heroSlides];
+                                      [newSlides[idx-1], newSlides[idx]] = [newSlides[idx], newSlides[idx-1]];
+                                      setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
+                                    }
+                                  }} className="text-gray-400 hover:text-white text-xs">↑</button>
+                                  <button type="button" onClick={() => {
+                                    if(idx < editingLandingPage.heroSlides.length - 1) {
+                                      const newSlides = [...editingLandingPage.heroSlides];
+                                      [newSlides[idx+1], newSlides[idx]] = [newSlides[idx], newSlides[idx+1]];
+                                      setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
+                                    }
+                                  }} className="text-gray-400 hover:text-white text-xs">↓</button>
+                                </div>
+  
                                 <div>
                                   <label className="block text-[9px] text-gray-500 mb-1 uppercase">Title</label>
                                   <input type="text" className={glassInput + ' py-2 text-xs'} value={item.title || ''} onChange={e => {
@@ -2289,6 +2386,23 @@ const AdminDashboard = () => {
                                   newPkgs.splice(idx, 1);
                                   setEditingSubService({...editingSubService, data: {...editingSubService.data, packages: newPkgs}});
                                 }} className="absolute top-2 right-2 text-red-500 hover:text-red-400 text-xs uppercase">Remove</button>
+                                <div className="absolute top-2 right-16 flex gap-2">
+                                  <button type="button" onClick={() => {
+                                    if(idx > 0) {
+                                      const newSlides = [...editingLandingPage.heroSlides];
+                                      [newSlides[idx-1], newSlides[idx]] = [newSlides[idx], newSlides[idx-1]];
+                                      setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
+                                    }
+                                  }} className="text-gray-400 hover:text-white text-xs">↑</button>
+                                  <button type="button" onClick={() => {
+                                    if(idx < editingLandingPage.heroSlides.length - 1) {
+                                      const newSlides = [...editingLandingPage.heroSlides];
+                                      [newSlides[idx+1], newSlides[idx]] = [newSlides[idx], newSlides[idx+1]];
+                                      setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
+                                    }
+                                  }} className="text-gray-400 hover:text-white text-xs">↓</button>
+                                </div>
+  
                                 <div className="grid grid-cols-2 gap-2 mt-2">
                                   <div>
                                     <label className="block text-[9px] text-gray-500 mb-1 uppercase">Name</label>
@@ -2884,7 +2998,7 @@ const AdminDashboard = () => {
                                     {slot.slot}
                                   </h4>
                                   <p className="text-xs font-sans text-gray-400 mt-1 uppercase tracking-widest">
-                                    {slot.capacity === 0 && slot.status === 'Fully Booked' ? 'Blocked / Full' : `${slot.capacity} spots remaining`}
+                                    {slot.capacity === 0 && slot.status === 'Fully Booked' ? 'Blocked / Full' : `${slot.capacity} slots remaining`}
                                   </p>
                                 </div>
                                 <div className="flex gap-2">
@@ -3546,7 +3660,45 @@ const AdminDashboard = () => {
                       />
                     </div>
                     
-                    <div className="flex gap-4 pt-4 border-t border-white/10">
+                    
+                    <div className="pt-4 border-t border-white/10 mt-6">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          className="w-5 h-5 accent-emerald-500" 
+                          checked={editingTeamMember.hasAccess || false} 
+                          onChange={e => setEditingTeamMember({...editingTeamMember, hasAccess: e.target.checked})} 
+                        />
+                        <span className="text-xs uppercase text-emerald-400 tracking-widest font-bold">Grant Dashboard Access</span>
+                      </label>
+                      
+                      {editingTeamMember.hasAccess && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 bg-emerald-900/10 p-6 rounded border border-emerald-500/20">
+                          <div>
+                            <label className="block text-xs uppercase text-emerald-500/70 mb-2 tracking-widest">Login Email</label>
+                            <input 
+                              type="email" 
+                              className="w-full bg-black border border-emerald-500/30 p-4 text-white outline-none focus:border-emerald-500 transition-colors" 
+                              value={editingTeamMember.email || ''} 
+                              onChange={e => setEditingTeamMember({...editingTeamMember, email: e.target.value})} 
+                              placeholder="team@imazen.in"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs uppercase text-emerald-500/70 mb-2 tracking-widest">Login Password</label>
+                            <input 
+                              type="password" 
+                              className="w-full bg-black border border-emerald-500/30 p-4 text-white outline-none focus:border-emerald-500 transition-colors" 
+                              value={editingTeamMember.password || ''} 
+                              onChange={e => setEditingTeamMember({...editingTeamMember, password: e.target.value})} 
+                              placeholder="Leave blank to keep existing"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex gap-4 pt-4 border-t border-white/10 mt-6">
                       <button type="submit" disabled={isGlobalSubmitting} className="px-8 py-3 bg-white text-black font-bold uppercase tracking-widest text-xs flex items-center gap-2 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">
                         {isGlobalSubmitting ? 'Saving...' : 'Save Team Member'}
                       </button>

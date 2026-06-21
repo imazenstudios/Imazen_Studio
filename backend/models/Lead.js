@@ -7,7 +7,7 @@ const leadSchema = new mongoose.Schema({
   eventDate: { type: Date },
   interestedIn: { type: String },
   landingPageSource: { type: String, default: 'General' }, // Stores the slug or name of the landing page
-  status: { type: String, enum: ['New', 'Contacted', 'Booked', 'Closed'], default: 'New' },
+  status: { type: String, enum: ['new', 'contacted', 'pending', 'confirmed', 'cancelled', 'junk lead'], default: 'new' },
   notes: { type: String }
 }, { timestamps: true });
 

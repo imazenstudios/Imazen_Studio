@@ -150,7 +150,8 @@ const ReferenceLandingPage = () => {
       <section className="relative h-[90vh] sm:h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <Swiper
-            modules={[Autoplay, EffectFade, Keyboard]}
+            modules={[Autoplay, EffectFade, Keyboard, Navigation]}
+            navigation={true}
             effect="fade"
             keyboard={{ enabled: true }}
             autoplay={{ delay: 5000, disableOnInteraction: false }}
