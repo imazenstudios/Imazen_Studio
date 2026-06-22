@@ -3292,66 +3292,76 @@ const AdminDashboard = () => {
                                 })}
                               </div>
                             </div>
-                            {slotData.map((slot, idx) => (
-                              <div key={idx} className="mb-6 bg-black/20 border border-white/5 rounded-xl overflow-hidden">
-                                <div className="p-4 bg-white/5 border-b border-white/5 flex justify-between items-center">
-                                  <h4 className="text-lg font-oswald uppercase tracking-widest text-white">{slot.slot}</h4>
-                                  <span className="text-xs text-gray-400 font-sans tracking-widest uppercase">{slot.maxCapacity} Total Slots</span>
-                                </div>
-                                <div className="divide-y divide-white/5">
-                                  {Array.from({ length: slot.maxCapacity }).map((_, i) => {
-                                    let slotStatus = 'Available';
-                                    let bookingDetail = null;
-                                    
-                                    if (i < slot.currentBookings) {
-                                      slotStatus = 'Booked';
-                                      bookingDetail = slot.bookingDetails?.[i];
-                                    } else if (i >= slot.maxCapacity - (slot.blockedCount || 0)) {
-                                      slotStatus = 'Blocked';
-                                    }
-
-                                    return (
-                                      <div key={i} className="p-4 flex justify-between items-center">
-                                        <div>
-                                          <div className="flex items-center gap-3">
-                                            <span className="text-xs text-gray-500 font-oswald tracking-widest">SLOT {i + 1}</span>
-                                            <span className={`text-[10px] px-2 py-0.5 rounded font-bold tracking-widest uppercase ${slotStatus === 'Available' ? 'bg-green-500/20 text-green-400' : slotStatus === 'Booked' ? 'bg-blue-500/20 text-blue-400' : 'bg-red-500/20 text-red-400'}`}>
-                                              {slotStatus}
-                                            </span>
-                                          </div>
-                                          {bookingDetail && (
-                                            <p className="text-xs text-white mt-1 font-sans">{bookingDetail.name} <span className="text-gray-500">({bookingDetail.shootType})</span></p>
-                                          )}
-                                        </div>
-                                        <div>
-                                          {slotStatus === 'Available' && (
-                                            <button 
-                                              onClick={() => handleBlockSlot(slot.slot, 'block_single')}
-                                              className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white transition-colors rounded text-[10px] uppercase tracking-widest font-bold"
-                                            >
-                                              Block
-                                            </button>
-                                          )}
-                                          {slotStatus === 'Blocked' && (
-                                            <button 
-                                              onClick={() => handleBlockSlot(slot.slot, 'open_single')}
-                                              className="px-3 py-1.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white transition-colors rounded text-[10px] uppercase tracking-widest font-bold"
-                                            >
-                                              Unblock
-                                            </button>
-                                          )}
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                  {slot.maxCapacity === 0 && (
-                                    <div className="p-6 text-center text-xs text-red-500 uppercase tracking-widest font-bold bg-red-500/5">
-                                      Entire Session Blocked
-                                    </div>
-                                  )}
-                                </div>
+                            
+                            {(settings.blockedWeekdays || []).includes(new Date(slotDate).getDay()) ? (
+                              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-12 text-center">
+                                <h3 className="text-2xl font-oswald text-red-500 uppercase tracking-widest mb-2">Studio Holiday</h3>
+                                <p className="text-sm font-sans text-red-400/80">The studio is closed on {['Sundays','Mondays','Tuesdays','Wednesdays','Thursdays','Fridays','Saturdays'][new Date(slotDate).getDay()]}. All sessions are blocked.</p>
                               </div>
-                            ))}
+                            ) : (
+                              <>
+                                {slotData.map((slot, idx) => (
+                                  <div key={idx} className="mb-6 bg-black/20 border border-white/5 rounded-xl overflow-hidden">
+                                    <div className="p-4 bg-white/5 border-b border-white/5 flex justify-between items-center">
+                                      <h4 className="text-lg font-oswald uppercase tracking-widest text-white">{slot.slot}</h4>
+                                      <span className="text-xs text-gray-400 font-sans tracking-widest uppercase">{slot.maxCapacity} Total Slots</span>
+                                    </div>
+                                    <div className="divide-y divide-white/5">
+                                      {Array.from({ length: slot.maxCapacity }).map((_, i) => {
+                                        let slotStatus = 'Available';
+                                        let bookingDetail = null;
+                                        
+                                        if (i < slot.currentBookings) {
+                                          slotStatus = 'Booked';
+                                          bookingDetail = slot.bookingDetails?.[i];
+                                        } else if (i >= slot.maxCapacity - (slot.blockedCount || 0)) {
+                                          slotStatus = 'Blocked';
+                                        }
+
+                                        return (
+                                          <div key={i} className="p-4 flex justify-between items-center">
+                                            <div>
+                                              <div className="flex items-center gap-3">
+                                                <span className="text-xs text-gray-500 font-oswald tracking-widest">SLOT {i + 1}</span>
+                                                <span className={`text-[10px] px-2 py-0.5 rounded font-bold tracking-widest uppercase ${slotStatus === 'Available' ? 'bg-green-500/20 text-green-400' : slotStatus === 'Booked' ? 'bg-blue-500/20 text-blue-400' : 'bg-red-500/20 text-red-400'}`}>
+                                                  {slotStatus}
+                                                </span>
+                                              </div>
+                                              {bookingDetail && (
+                                                <p className="text-xs text-white mt-1 font-sans">{bookingDetail.name} <span className="text-gray-500">({bookingDetail.shootType})</span></p>
+                                              )}
+                                            </div>
+                                            <div>
+                                              {slotStatus === 'Available' && (
+                                                <button 
+                                                  onClick={() => handleBlockSlot(slot.slot, 'block_single')}
+                                                  className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white transition-colors rounded text-[10px] uppercase tracking-widest font-bold"
+                                                >
+                                                  Block
+                                                </button>
+                                              )}
+                                              {slotStatus === 'Blocked' && (
+                                                <button 
+                                                  onClick={() => handleBlockSlot(slot.slot, 'open_single')}
+                                                  className="px-3 py-1.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white transition-colors rounded text-[10px] uppercase tracking-widest font-bold"
+                                                >
+                                                  Unblock
+                                                </button>
+                                              )}
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                      {slot.maxCapacity === 0 && (
+                                        <div className="p-6 text-center text-xs text-red-500 uppercase tracking-widest font-bold bg-red-500/5">
+                                          Entire Session Blocked
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </>
+                            )}
                           </div>
                         )}
                       </div>
