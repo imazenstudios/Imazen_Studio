@@ -1,5 +1,6 @@
 import express from 'express';
 import Settings from '../models/Settings.js';
+import nodemailer from 'nodemailer';
 
 const router = express.Router();
 
@@ -114,6 +115,50 @@ router.put('/whatwedo', async (req, res) => {
     res.json(settings);
   } catch (error) {
     res.status(500).json({ error: 'Server error updating whatWeDo' });
+  }
+});
+
+// Export Settings
+router.get('/export', async (req, res) => {
+  try {
+    const settings = await Settings.findOne();
+    res.json(settings);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error exporting settings' });
+  }
+});
+
+// Test Email Setup
+router.post('/test-email', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, error: 'Email address is required' });
+    }
+
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      return res.status(400).json({ success: false, error: 'Email credentials (EMAIL_USER / EMAIL_PASS) are not configured on the server.' });
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    const info = await transporter.sendMail({
+      from: `"Imazen Test" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Imazen Studios - Email Configuration Test",
+      text: "If you are receiving this email, your Nodemailer configuration is working perfectly!"
+    });
+
+    res.json({ success: true, messageId: info.messageId, message: 'Test email sent successfully!' });
+  } catch (error) {
+    console.error("Test Email Error:", error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to send test email', stack: error.stack });
   }
 });
 

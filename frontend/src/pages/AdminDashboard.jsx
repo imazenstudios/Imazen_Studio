@@ -165,6 +165,10 @@ const AdminDashboard = () => {
   const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
   const [editingSubscriptionId, setEditingSubscriptionId] = useState(null);
 
+  // Test Email State
+  const [testEmailAddress, setTestEmailAddress] = useState('');
+  const [testEmailStatus, setTestEmailStatus] = useState('');
+
   const getMonthDateString = (monthsOffset) => {
     const d = new Date();
     d.setMonth(d.getMonth() + monthsOffset);
@@ -4355,6 +4359,52 @@ const AdminDashboard = () => {
                     Clear Cache
                   </button>
                 </div>
+                <div className={`${glassPanel} p-8 flex flex-col items-start col-span-1 md:col-span-2 mt-4`}>
+                  <h3 className="text-lg font-oswald text-white uppercase tracking-widest mb-2 flex items-center gap-2">
+                    ✉️ Email Delivery Tester
+                  </h3>
+                  <p className="text-xs text-gray-400 mb-6 font-sans">
+                    Send a test email to verify that your Nodemailer setup (EMAIL_USER and EMAIL_PASS) is working correctly.
+                  </p>
+                  
+                  <div className="flex flex-col md:flex-row w-full gap-4 items-center">
+                    <input 
+                      type="email" 
+                      placeholder="Enter email address..." 
+                      className="w-full md:flex-1 bg-black/40 border border-white/20 rounded px-4 py-2 text-white text-sm outline-none focus:border-white/50"
+                      value={testEmailAddress}
+                      onChange={(e) => setTestEmailAddress(e.target.value)}
+                    />
+                    <button 
+                      onClick={async () => {
+                        if (!testEmailAddress) {
+                          setTestEmailStatus('Please enter an email address.');
+                          return;
+                        }
+                        setTestEmailStatus('Sending test email...');
+                        try {
+                          const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings/test-email`, { email: testEmailAddress });
+                          if (res.data.success) {
+                            setTestEmailStatus('✅ Success! The test email was delivered.');
+                          } else {
+                            setTestEmailStatus(`❌ Failed: ${res.data.error}`);
+                          }
+                        } catch (err) {
+                          setTestEmailStatus(`❌ Error: ${err.response?.data?.error || err.message}`);
+                        }
+                      }}
+                      className="w-full md:w-auto px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold uppercase tracking-widest rounded transition-colors"
+                    >
+                      Send Test Email
+                    </button>
+                  </div>
+                  {testEmailStatus && (
+                    <p className={`mt-4 text-xs font-sans tracking-wider ${testEmailStatus.includes('✅') ? 'text-green-400' : testEmailStatus.includes('❌') ? 'text-red-400' : 'text-gray-400'}`}>
+                      {testEmailStatus}
+                    </p>
+                  )}
+                </div>
+
               </div>
             </div>
           )}
