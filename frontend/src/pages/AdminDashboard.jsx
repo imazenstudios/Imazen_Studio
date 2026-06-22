@@ -1257,9 +1257,9 @@ const AdminDashboard = () => {
               <div className={glassPanel + " p-8 mt-8"}>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                   <h3 className="text-xl font-oswald uppercase tracking-widest text-white">Recent Inquiries</h3>
-                  <div className="flex gap-4">
+                  <div className="flex flex-wrap items-center gap-2 md:gap-4 w-full md:w-auto">
                     <select 
-                      className="bg-[#121212] border border-white/20 text-white font-sans text-[10px] uppercase tracking-widest px-4 py-2 outline-none focus:border-white/50 rounded cursor-pointer"
+                      className="bg-[#121212] border border-white/20 text-white font-sans text-[10px] uppercase tracking-widest px-2 md:px-4 py-2 outline-none focus:border-white/50 rounded cursor-pointer flex-1 md:flex-none"
                       value={dashboardDateFilter}
                       onChange={(e) => setDashboardDateFilter(e.target.value)}
                     >
@@ -1268,7 +1268,7 @@ const AdminDashboard = () => {
                       <option value="thisWeek" className="bg-[#121212] text-white">Past 7 Days</option>
                     </select>
                     <select 
-                      className="bg-[#121212] border border-white/20 text-white font-sans text-[10px] uppercase tracking-widest px-4 py-2 outline-none focus:border-white/50 rounded cursor-pointer"
+                      className="bg-[#121212] border border-white/20 text-white font-sans text-[10px] uppercase tracking-widest px-2 md:px-4 py-2 outline-none focus:border-white/50 rounded cursor-pointer flex-1 md:flex-none"
                       value={dashboardTypeFilter}
                       onChange={(e) => setDashboardTypeFilter(e.target.value)}
                     >
@@ -1277,19 +1277,19 @@ const AdminDashboard = () => {
                       <option value="leads" className="bg-[#121212] text-white">Leads Only</option>
                       <option value="inquiries" className="bg-[#121212] text-white">Inquiries Only</option>
                     </select>
-                    <button onClick={() => setActiveTab('inquiries')} className="text-[10px] uppercase tracking-widest border border-white/20 px-4 py-2 hover:bg-white hover:text-black transition-colors rounded text-white">View All</button>
+                    <button onClick={() => setActiveTab('inquiries')} className="text-[10px] uppercase tracking-widest border border-white/20 px-4 py-2 hover:bg-white hover:text-black transition-colors rounded text-white whitespace-nowrap">View All</button>
                   </div>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left font-sans text-sm">
+                <div className="overflow-x-auto custom-scrollbar">
+                  <table className="w-full text-left font-sans text-sm min-w-[600px]">
                     <thead>
                       <tr className="border-b border-white/10 text-gray-500 text-[10px] uppercase tracking-widest">
-                        <th className="py-4 font-normal">Type</th>
-                        <th className="py-4 font-normal">Client Name</th>
-                        <th className="py-4 font-normal">Event Date</th>
-                        <th className="py-4 font-normal">Details</th>
-                        <th className="py-4 font-normal">Status</th>
-                        <th className="py-4 font-normal">Action</th>
+                        <th className="py-4 px-2 font-normal">Type</th>
+                        <th className="py-4 px-2 font-normal">Client Name</th>
+                        <th className="py-4 px-2 font-normal">Event Date</th>
+                        <th className="py-4 px-2 font-normal">Details</th>
+                        <th className="py-4 px-2 font-normal">Status</th>
+                        <th className="py-4 px-2 font-normal">Action</th>
                       </tr>
                     </thead>
                     <tbody>
