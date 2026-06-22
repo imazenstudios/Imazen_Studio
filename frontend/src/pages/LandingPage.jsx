@@ -551,9 +551,9 @@ const ReferenceLandingPage = () => {
                     initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
                     className="bg-[#111] p-8 rounded-2xl border border-white/10 hover:border-white/40 transition-colors relative group"
                   >
-                    <h3 className="text-xl font-oswald uppercase tracking-widest mb-4 text-gray-400">{pkg.name}</h3>
+                    <h3 className="text-4xl font-oswald uppercase tracking-widest mb-4 text-white group-hover:scale-105 transition-transform origin-left">{pkg.name}</h3>
                     {pkg.price && (
-                      <div className="text-4xl font-oswald mb-6 text-white group-hover:scale-105 transition-transform origin-left">
+                      <div className="text-xl font-oswald mb-6 text-gray-400">
                         ₹{pkg.price}
                       </div>
                     )}

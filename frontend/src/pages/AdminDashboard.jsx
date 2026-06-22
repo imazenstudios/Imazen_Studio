@@ -2175,50 +2175,6 @@ const AdminDashboard = () => {
                            </div>
                         </div>
 
-                          {/* Custom Packages Manager */}
-                          {editingLandingPage.showPackages && (
-                            <div className="mt-4 p-4 border border-white/10 rounded bg-black/40">
-                              <div className="flex justify-between items-center mb-4">
-                                <label className="block text-[9px] text-gray-500 uppercase">Custom Packages</label>
-                                <button type="button" onClick={() => {
-                                  const newPkgs = [...(editingLandingPage.customPackages || []), { name: '', price: '', description: '' }];
-                                  setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
-                                }} className="text-xs uppercase bg-white/10 px-3 py-1 rounded hover:bg-white hover:text-black transition-colors">+ Add Package</button>
-                              </div>
-                              <div className="space-y-4">
-                                {(editingLandingPage.customPackages || []).map((pkg, idx) => (
-                                  <div key={idx} className="p-4 bg-black/50 border border-white/5 rounded relative space-y-2">
-                                    <button type="button" onClick={() => {
-                                      const newPkgs = [...editingLandingPage.customPackages];
-                                      newPkgs.splice(idx, 1);
-                                      setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
-                                    }} className="absolute top-2 right-2 text-red-500 text-[10px] uppercase">Remove</button>
-                                    <div className="grid grid-cols-2 gap-2">
-                                      <input type="text" placeholder="Package Name" className={glassInput + ' text-sm py-1'} value={pkg.name || ''} onChange={e => {
-                                        const newPkgs = [...editingLandingPage.customPackages];
-                                        newPkgs[idx].name = e.target.value;
-                                        setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
-                                      }} />
-                                      <input type="text" placeholder="Price (Optional)" className={glassInput + ' text-sm py-1'} value={pkg.price || ''} onChange={e => {
-                                        const newPkgs = [...editingLandingPage.customPackages];
-                                        newPkgs[idx].price = e.target.value;
-                                        setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
-                                      }} />
-                                    </div>
-                                    <textarea placeholder="Description" rows={2} className={glassInput + ' text-sm'} value={pkg.description || ''} onChange={e => {
-                                      const newPkgs = [...editingLandingPage.customPackages];
-                                      newPkgs[idx].description = e.target.value;
-                                      setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
-                                    }} />
-                                  </div>
-                                ))}
-                                {(!editingLandingPage.customPackages || editingLandingPage.customPackages.length === 0) && (
-                                  <p className="text-xs text-white/50 italic">No custom packages added yet.</p>
-                                )}
-                              </div>
-                            </div>
-                          )}
-
                         </div>
 
                         {/* PARALLAX FOOTER */}
