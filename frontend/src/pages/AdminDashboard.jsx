@@ -140,6 +140,7 @@ const AdminDashboard = () => {
 
   // Slots & Settings State
   const [slotDate, setSlotDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedWeekdayConfig, setSelectedWeekdayConfig] = useState(new Date().getDay());
   const [slotData, setSlotData] = useState([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [settings, setSettings] = useState({ blockedWeekdays: [], metaPixelId: '', googleAnalyticsId: '' });
@@ -647,16 +648,6 @@ const AdminDashboard = () => {
       fetchSlotsForAdmin(slotDate);
     } catch (error) {
       console.error(error);
-    }
-  };
-
-  const handleSetDailyCapacity = async (capacity) => {
-    try {
-      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/slots/capacity`, { date: slotDate, capacity });
-      fetchSlotsForAdmin(slotDate);
-    } catch (error) {
-      console.error(error);
-      alert('Error updating capacity');
     }
   };
 
@@ -3261,48 +3252,102 @@ const AdminDashboard = () => {
                            <div className="text-xs text-gray-500 tracking-widest uppercase">Loading slots...</div>
                         ) : (
                           <div className="space-y-4">
-                            <div className="flex justify-between items-center mb-6 bg-black/40 p-4 rounded-xl border border-white/5">
-                              <div>
-                                <label className="block text-xs uppercase text-gray-500 font-oswald tracking-widest mb-1">Slots per session</label>
-                                <p className="text-[10px] text-gray-500 font-sans">Set maximum bookings for Morning/Afternoon/Evening</p>
+                            <div className="mb-6 bg-black/40 p-4 rounded-xl border border-white/5">
+                              <div className="mb-4 pb-4 border-b border-white/5">
+                                <label className="block text-sm uppercase text-white font-oswald tracking-widest mb-1">Global Slots Per Session</label>
+                                <p className="text-[10px] text-gray-500 font-sans">Set maximum bookings for Morning/Afternoon/Evening globally for each weekday</p>
                               </div>
-                              <div className="flex gap-2">
-                                {[1, 2, 3].map(num => (
-                                  <button 
-                                    key={num}
-                                    onClick={() => handleSetDailyCapacity(num)}
-                                    className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-oswald transition-colors border ${slotData[0]?.maxCapacity === num ? 'bg-white text-black border-white' : 'bg-black text-gray-400 border-white/10 hover:border-white/50'}`}
-                                  >
-                                    {num}
-                                  </button>
-                                ))}
+                              <div className="space-y-3">
+                                {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map((day, dayIndex) => {
+                                  const currentCapacity = settings.weekdayCapacities ? (settings.weekdayCapacities[dayIndex] ?? 3) : 3;
+                                  return (
+                                    <div key={dayIndex} className="flex justify-between items-center bg-black/20 p-2 px-4 rounded border border-white/5">
+                                      <span className="text-xs uppercase font-oswald text-gray-300 tracking-widest">{day}</span>
+                                      <div className="flex gap-2">
+                                        {[1, 2, 3].map(num => {
+                                          const isSelected = currentCapacity === num;
+                                          return (
+                                            <button 
+                                              key={num}
+                                              onClick={() => {
+                                                const newCapacities = { ...(settings.weekdayCapacities || { '0':3,'1':3,'2':3,'3':3,'4':3,'5':3,'6':3 }), [dayIndex]: num };
+                                                setSettings({ ...settings, weekdayCapacities: newCapacities });
+                                                axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings/blocked-weekdays`, { weekdayCapacities: newCapacities });
+                                                // If the selected slotDate is this weekday, update slotData
+                                                if (new Date(slotDate).getDay() === dayIndex) {
+                                                  axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/slots/capacity`, { date: slotDate, capacity: num }).then(() => {
+                                                    fetchSlotsForAdmin(slotDate);
+                                                  });
+                                                }
+                                              }}
+                                              className={`w-8 h-8 rounded flex items-center justify-center text-xs font-oswald transition-colors border ${isSelected ? 'bg-white text-black border-white' : 'bg-black text-gray-400 border-white/10 hover:border-white/50'}`}
+                                            >
+                                              {num}
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
                             {slotData.map((slot, idx) => (
-                              <div key={idx} className="flex items-center justify-between p-4 border border-white/5 bg-black/20 rounded-xl">
-                                <div>
-                                  <h4 className={`text-lg font-oswald uppercase tracking-widest ${slot.status === 'Fully Booked' && slot.capacity === 0 ? 'text-red-500' : 'text-white'}`}>
-                                    {slot.slot}
-                                  </h4>
-                                  <p className="text-xs font-sans text-gray-400 mt-1 uppercase tracking-widest">
-                                    {slot.capacity === 0 && slot.status === 'Fully Booked' ? 'Blocked / Full' : `${slot.capacity} slots remaining`}
-                                  </p>
+                              <div key={idx} className="mb-6 bg-black/20 border border-white/5 rounded-xl overflow-hidden">
+                                <div className="p-4 bg-white/5 border-b border-white/5 flex justify-between items-center">
+                                  <h4 className="text-lg font-oswald uppercase tracking-widest text-white">{slot.slot}</h4>
+                                  <span className="text-xs text-gray-400 font-sans tracking-widest uppercase">{slot.maxCapacity} Total Slots</span>
                                 </div>
-                                <div className="flex gap-2">
-                                  {slot.capacity > 0 || slot.status === 'Available' ? (
-                                    <button 
-                                      onClick={() => handleBlockSlot(slot.slot, 'block')}
-                                      className="px-4 py-2 bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white transition-colors rounded-lg text-xs uppercase tracking-widest font-bold"
-                                    >
-                                      Block Slot
-                                    </button>
-                                  ) : (
-                                    <button 
-                                      onClick={() => handleBlockSlot(slot.slot, 'open')}
-                                      className="px-4 py-2 bg-green-500/20 hover:bg-green-500 text-green-500 hover:text-white transition-colors rounded-lg text-xs uppercase tracking-widest font-bold"
-                                    >
-                                      Open Slot
-                                    </button>
+                                <div className="divide-y divide-white/5">
+                                  {Array.from({ length: slot.maxCapacity }).map((_, i) => {
+                                    let slotStatus = 'Available';
+                                    let bookingDetail = null;
+                                    
+                                    if (i < slot.currentBookings) {
+                                      slotStatus = 'Booked';
+                                      bookingDetail = slot.bookingDetails?.[i];
+                                    } else if (i >= slot.maxCapacity - (slot.blockedCount || 0)) {
+                                      slotStatus = 'Blocked';
+                                    }
+
+                                    return (
+                                      <div key={i} className="p-4 flex justify-between items-center">
+                                        <div>
+                                          <div className="flex items-center gap-3">
+                                            <span className="text-xs text-gray-500 font-oswald tracking-widest">SLOT {i + 1}</span>
+                                            <span className={`text-[10px] px-2 py-0.5 rounded font-bold tracking-widest uppercase ${slotStatus === 'Available' ? 'bg-green-500/20 text-green-400' : slotStatus === 'Booked' ? 'bg-blue-500/20 text-blue-400' : 'bg-red-500/20 text-red-400'}`}>
+                                              {slotStatus}
+                                            </span>
+                                          </div>
+                                          {bookingDetail && (
+                                            <p className="text-xs text-white mt-1 font-sans">{bookingDetail.name} <span className="text-gray-500">({bookingDetail.shootType})</span></p>
+                                          )}
+                                        </div>
+                                        <div>
+                                          {slotStatus === 'Available' && (
+                                            <button 
+                                              onClick={() => handleBlockSlot(slot.slot, 'block_single')}
+                                              className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white transition-colors rounded text-[10px] uppercase tracking-widest font-bold"
+                                            >
+                                              Block
+                                            </button>
+                                          )}
+                                          {slotStatus === 'Blocked' && (
+                                            <button 
+                                              onClick={() => handleBlockSlot(slot.slot, 'open_single')}
+                                              className="px-3 py-1.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white transition-colors rounded text-[10px] uppercase tracking-widest font-bold"
+                                            >
+                                              Unblock
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                  {slot.maxCapacity === 0 && (
+                                    <div className="p-6 text-center text-xs text-red-500 uppercase tracking-widest font-bold bg-red-500/5">
+                                      Entire Session Blocked
+                                    </div>
                                   )}
                                 </div>
                               </div>
