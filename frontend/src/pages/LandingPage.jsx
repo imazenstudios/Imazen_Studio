@@ -667,29 +667,14 @@ const ReferenceLandingPage = () => {
                     value={formData.serviceId} 
                     onChange={e => setFormData({...formData, serviceId: e.target.value, subId: ''})}
                   >
-                    <option value="">Select Service</option>
+                    <option value="" className="bg-[#111] text-white">Select Service</option>
                     {services.map(s => (
-                      <option key={s._id} value={s.slug}>{s.title}</option>
+                      <option key={s._id} value={s.slug} className="bg-[#111] text-white">{s.title}</option>
                     ))}
                   </select>
                 </div>
 
-                {selectedService && selectedService.subServices && selectedService.subServices.length > 0 && (
-                  <div>
-                    <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Interested In</label>
-                    <select 
-                      required
-                      className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/50 transition-colors"
-                      value={formData.subId} 
-                      onChange={e => setFormData({...formData, subId: e.target.value})}
-                    >
-                      <option value="">Select Sub Service</option>
-                      {selectedService.subServices.map(sub => (
-                        <option key={sub.slug} value={sub.slug}>{sub.title}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+
                 
                 <button 
                   type="submit" disabled={isSubmitting}

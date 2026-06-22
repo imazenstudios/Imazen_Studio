@@ -25,8 +25,8 @@ const subServiceSchema = new mongoose.Schema({
   imageUrl: { type: String },
   heroImage: { type: String },
   mobileHeroImage: { type: String },
-  portfolioImages: [{ url: String, _id: false }],
-  portfolioVideos: [{ url: String, thumbnail: String, _id: false }],
+  portfolioImages: [{ type: String }],
+  portfolioVideos: [{ type: String }],
   packages: [packageSchema],
   landingAbout: {
     title: { type: String },

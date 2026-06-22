@@ -286,6 +286,7 @@ const Book = () => {
                   <input 
                     id="date"
                     type="date" 
+                    min={new Date().toLocaleDateString('en-CA')}
                     className="w-full bg-transparent p-6 font-sans text-lg sm:text-xl text-white focus:outline-none transition-colors [&::-webkit-calendar-picker-indicator]:invert cursor-pointer"
                     value={formData.date}
                     onChange={(e) => {
@@ -339,29 +340,42 @@ const Book = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-4 max-w-sm mx-auto">
-                  {availableSlots.map((slot, i) => (
+                  {availableSlots.map((slot, i) => {
+                      let isPast = false;
+                      const today = new Date().toLocaleDateString('en-CA');
+                      if (formData.date === today) {
+                        const now = new Date();
+                        const currentHour = now.getHours();
+                        if (slot.slot === 'Morning' && currentHour >= 12) isPast = true;
+                        if (slot.slot === 'Afternoon' && currentHour >= 16) isPast = true;
+                        if (slot.slot === 'Evening' && currentHour >= 20) isPast = true;
+                      }
+                      
+                      const isAvailable = slot.status === 'Available' && !isPast;
+                      
+                      return (
                     <div 
                       key={i}
                       onClick={() => {
-                        if (slot.status === 'Available') {
+                        if (isAvailable) {
                           setFormData({ ...formData, slot: slot.slot });
                           handleNext();
                         }
                       }}
                       className={`p-6 rounded-2xl border transition-all flex justify-between items-center ${
-                        slot.status === 'Available' 
+                        isAvailable 
                         ? 'border-white/10 bg-white/5 hover:bg-gradient-to-r hover:from-white/10 hover:to-white/5 hover:border-white/40 hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] cursor-pointer group' 
                         : 'border-white/5 bg-black/40 opacity-50 cursor-not-allowed'
                       }`}
                     >
-                      <h3 className={`text-xl font-oswald uppercase tracking-widest ${slot.status === 'Available' ? 'text-gray-300 group-hover:text-white' : 'text-gray-600'}`}>
+                      <h3 className={`text-xl font-oswald uppercase tracking-widest ${isAvailable ? 'text-gray-300 group-hover:text-white' : 'text-gray-600'}`}>
                         {slot.slot === 'Morning' ? 'Morning Slot (9 AM - 12 PM)' : slot.slot === 'Afternoon' ? 'Afternoon Slot (1 PM - 4 PM)' : slot.slot === 'Evening' ? 'Evening Slot (5 PM - 8 PM)' : slot.slot}
                       </h3>
-                      <span className={`font-sans text-[10px] tracking-[0.2em] uppercase px-3 py-1 rounded-full ${slot.status === 'Available' ? 'bg-white/10 text-gray-300 group-hover:bg-white/20' : 'bg-red-500/10 text-red-500/70'}`}>
-                        {slot.status}
+                      <span className={`font-sans text-[10px] tracking-[0.2em] uppercase px-3 py-1 rounded-full ${isAvailable ? 'bg-white/10 text-gray-300 group-hover:bg-white/20' : 'bg-red-500/10 text-red-500/70'}`}>
+                        {isPast ? 'Passed' : slot.status}
                       </span>
                     </div>
-                  ))}
+                  );})}
                 </div>
               )}
               <div className="flex justify-center mt-12">
