@@ -3290,7 +3290,7 @@ const AdminDashboard = () => {
                                     try {
                                       const newCapacities = settings.weekdayCapacities || { '0':3,'1':3,'2':3,'3':3,'4':3,'5':3,'6':3 };
                                       await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings/blocked-weekdays`, { weekdayCapacities: newCapacities });
-                                      alert("Global Slots saved successfully!");
+                                      alert("Global Slots saved successfully! Payload sent: " + JSON.stringify(newCapacities));
                                       if (slotDate) {
                                         fetchSlotsForAdmin(slotDate);
                                       }
