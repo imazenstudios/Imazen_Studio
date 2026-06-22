@@ -37,7 +37,8 @@ router.get('/slots/:date', async (req, res) => {
 
     // Get default capacity based on weekday
     const settings = await Settings.findOne() || new Settings();
-    const dayIndex = new Date(date).getDay();
+    // Parse date as UTC to avoid server timezone offset shifting the day of week
+    const dayIndex = new Date(date).getUTCDay();
     
     // Check if the entire weekday is blocked (holiday)
     const isHoliday = settings.blockedWeekdays && settings.blockedWeekdays.includes(dayIndex);
@@ -127,7 +128,7 @@ router.post('/studio', async (req, res) => {
 
     // 1. Validate capacity for ALL requested slots
     const settings = await Settings.findOne() || new Settings();
-    const dayIndex = new Date(date).getDay();
+    const dayIndex = new Date(date).getUTCDay();
     const isHoliday = settings.blockedWeekdays && settings.blockedWeekdays.includes(dayIndex);
     const defaultCapacity = isHoliday ? 0 : (settings.weekdayCapacities ? (settings.weekdayCapacities.get(dayIndex.toString()) ?? 3) : 3);
 
@@ -186,7 +187,7 @@ router.post('/', async (req, res) => {
 
     // Get default capacity for this weekday
     const settings = await Settings.findOne() || new Settings();
-    const dayIndex = new Date(date).getDay();
+    const dayIndex = new Date(date).getUTCDay();
     const isHoliday = settings.blockedWeekdays && settings.blockedWeekdays.includes(dayIndex);
     const defaultCapacity = isHoliday ? 0 : (settings.weekdayCapacities ? (settings.weekdayCapacities.get(dayIndex.toString()) ?? 3) : 3);
 

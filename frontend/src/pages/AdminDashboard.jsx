@@ -3293,10 +3293,10 @@ const AdminDashboard = () => {
                               </div>
                             </div>
                             
-                            {(settings.blockedWeekdays || []).includes(new Date(slotDate).getDay()) ? (
+                            {(settings.blockedWeekdays || []).includes(new Date(slotDate).getUTCDay()) ? (
                               <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-12 text-center">
                                 <h3 className="text-2xl font-oswald text-red-500 uppercase tracking-widest mb-2">Studio Holiday</h3>
-                                <p className="text-sm font-sans text-red-400/80">The studio is closed on {['Sundays','Mondays','Tuesdays','Wednesdays','Thursdays','Fridays','Saturdays'][new Date(slotDate).getDay()]}. All sessions are blocked.</p>
+                                <p className="text-sm font-sans text-red-400/80">The studio is closed on {['Sundays','Mondays','Tuesdays','Wednesdays','Thursdays','Fridays','Saturdays'][new Date(slotDate).getUTCDay()]}. All sessions are blocked.</p>
                               </div>
                             ) : (
                               <>
