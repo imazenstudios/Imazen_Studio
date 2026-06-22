@@ -3269,15 +3269,18 @@ const AdminDashboard = () => {
                                           return (
                                             <button 
                                               key={num}
-                                              onClick={() => {
+                                              onClick={async () => {
                                                 const newCapacities = { ...(settings.weekdayCapacities || { '0':3,'1':3,'2':3,'3':3,'4':3,'5':3,'6':3 }), [dayIndex]: num };
                                                 setSettings({ ...settings, weekdayCapacities: newCapacities });
-                                                axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings/blocked-weekdays`, { weekdayCapacities: newCapacities });
-                                                // If the selected slotDate is this weekday, update slotData
-                                                if (new Date(slotDate).getDay() === dayIndex) {
-                                                  axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/slots/capacity`, { date: slotDate, capacity: num }).then(() => {
+                                                try {
+                                                  // Wait for DB to fully save the map
+                                                  await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings/blocked-weekdays`, { weekdayCapacities: newCapacities });
+                                                  // If the selected slotDate is this weekday, fetch updated slots from the global setting
+                                                  if (new Date(slotDate).getUTCDay() === dayIndex) {
                                                     fetchSlotsForAdmin(slotDate);
-                                                  });
+                                                  }
+                                                } catch(e) {
+                                                  console.error(e);
                                                 }
                                               }}
                                               className={`w-8 h-8 rounded flex items-center justify-center text-xs font-oswald transition-colors border ${isSelected ? 'bg-white text-black border-white' : 'bg-black text-gray-400 border-white/10 hover:border-white/50'}`}
