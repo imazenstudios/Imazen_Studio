@@ -669,7 +669,7 @@ const ReferenceLandingPage = () => {
                   >
                     <option value="" className="bg-[#111] text-white">Select Service</option>
                     {services.map(s => (
-                      <option key={s._id} value={s.slug} className="bg-[#111] text-white">{s.title}</option>
+                      <option key={s._id} value={s.slug} className="bg-[#111] text-white">{s.name}</option>
                     ))}
                   </select>
                 </div>

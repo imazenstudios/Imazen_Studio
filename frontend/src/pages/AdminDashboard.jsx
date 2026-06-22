@@ -2496,15 +2496,15 @@ const AdminDashboard = () => {
                             <div className="space-y-6">
                               <div>
                                 <label className="block text-xs uppercase text-gray-400 mb-2">Cover Thumbnail</label>
-                                <DragDropImageUploader currentImage={editingSubService.data.imageUrl} onUploadSuccess={(url) => setEditingSubService({...editingSubService, data: {...editingSubService.data, imageUrl: url}})} />
+                                <DragDropImageUploader currentImage={editingSubService.data.imageUrl} onUploadSuccess={(url) => { setEditingSubService({...editingSubService, data: {...editingSubService.data, imageUrl: url}}); setEditingService({...editingService, portfolioImages: [...(editingService.portfolioImages || []), url]}); }} />
                               </div>
                               <div>
                                 <label className="block text-xs uppercase text-gray-400 mb-2">Hero Background</label>
-                                <DragDropImageUploader currentImage={editingSubService.data.heroImage} aspect={16/9} onUploadSuccess={(url) => setEditingSubService({...editingSubService, data: {...editingSubService.data, heroImage: url}})} />
+                                <DragDropImageUploader currentImage={editingSubService.data.heroImage} aspect={16/9} onUploadSuccess={(url) => { setEditingSubService({...editingSubService, data: {...editingSubService.data, heroImage: url}}); setEditingService({...editingService, portfolioImages: [...(editingService.portfolioImages || []), url]}); }} />
                               </div>
                               <div>
                                 <label className="block text-xs uppercase text-gray-400 mb-2">Mobile Hero (Vertical)</label>
-                                <DragDropImageUploader currentImage={editingSubService.data.mobileHeroImage} aspect={9/16} onUploadSuccess={(url) => setEditingSubService({...editingSubService, data: {...editingSubService.data, mobileHeroImage: url}})} />
+                                <DragDropImageUploader currentImage={editingSubService.data.mobileHeroImage} aspect={9/16} onUploadSuccess={(url) => { setEditingSubService({...editingSubService, data: {...editingSubService.data, mobileHeroImage: url}}); setEditingService({...editingService, portfolioImages: [...(editingService.portfolioImages || []), url]}); }} />
                               </div>
                             </div>
                           </div>
