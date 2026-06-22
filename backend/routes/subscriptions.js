@@ -66,7 +66,9 @@ router.post('/', async (req, res) => {
         const authPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
         
         const transporter = nodemailer.createTransport({
-          service: 'gmail',
+          host: 'smtp.gmail.com',
+          port: 465,
+          secure: true,
           auth: {
             user: authUser,
             pass: authPass

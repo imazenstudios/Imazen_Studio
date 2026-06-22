@@ -80,7 +80,9 @@ router.post('/forgot-password', async (req, res) => {
 
     // Send email
     const transporter = nodemailer.createTransport({
-      service: 'gmail', // or use host/port from env
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.EMAIL_USER || 'test@gmail.com',
         pass: process.env.EMAIL_PASS || 'password'
