@@ -193,9 +193,9 @@ const ReferenceLandingPage = () => {
 
       {/* HEADER */}
       <header className="absolute top-0 left-0 w-full z-50 p-6 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
-        <Link to="/">
+        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <img src={pageData?.logoUrl || "/images/logo.png"} alt="{pageData?.heroSubheading || 'Imazen Studios'}" className="h-12 w-auto object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" />
-        </Link>
+        </button>
         <button 
           onClick={() => setIsModalOpen(true)}
           className="px-6 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-full font-oswald uppercase tracking-widest text-sm transition-all"
