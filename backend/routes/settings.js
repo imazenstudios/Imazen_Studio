@@ -26,15 +26,16 @@ router.put('/blocked-weekdays', async (req, res) => {
     
     if (!settings) {
       settings = new Settings({ blockedWeekdays, weekdayCapacities });
+      await settings.save();
     } else {
-      if (blockedWeekdays !== undefined) settings.blockedWeekdays = blockedWeekdays;
-      if (weekdayCapacities !== undefined) {
-        settings.set('weekdayCapacities', weekdayCapacities);
-        settings.markModified('weekdayCapacities');
-      }
+      const updateData = {};
+      if (blockedWeekdays !== undefined) updateData.blockedWeekdays = blockedWeekdays;
+      if (weekdayCapacities !== undefined) updateData.weekdayCapacities = weekdayCapacities;
+      
+      await Settings.updateOne({ _id: settings._id }, { $set: updateData });
+      settings = await Settings.findOne();
     }
     
-    await settings.save();
     res.json(settings);
   } catch (error) {
     res.status(500).json({ error: 'Server error updating blocked weekdays' });
