@@ -25,6 +25,7 @@ const AdminDashboard = () => {
   const [filterInquiries, setFilterInquiries] = useState('all');
   const [filterPending, setFilterPending] = useState('all');
   const [filterConfirmed, setFilterConfirmed] = useState('all');
+  const [highlightedBookingId, setHighlightedBookingId] = useState(null);
 
   // Data States
   const [content, setContent] = useState([]);
@@ -3036,7 +3037,7 @@ const AdminDashboard = () => {
                             [b.name, b.phone, b.email].some(val => val && String(val).toLowerCase().includes(bookingSearchText.toLowerCase()));
                           return matchesMonth && matchesStatus && matchesSearch;
                         }).map(booking => (
-                          <div key={booking._id} className={`${glassPanel} p-6 flex flex-col relative`}>
+                          <div key={booking._id} id={`booking-${booking._id}`} className={`${glassPanel} p-6 flex flex-col relative transition-all duration-500 ${highlightedBookingId === booking._id ? 'border-2 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)] scale-[1.02] bg-emerald-900/10' : ''}`}>
                             <button 
                               onClick={() => setEditingBooking(booking)}
                               className="absolute top-4 right-4 text-[10px] text-gray-400 hover:text-white uppercase tracking-widest flex items-center gap-1 bg-black/40 px-2 py-1 rounded"
@@ -3189,7 +3190,7 @@ const AdminDashboard = () => {
 
                 {/* CALENDAR TAB */}
                 {activeTab === 'calendar' && (
-                  <CalendarView allBookings={bookings} />
+                  <CalendarView allBookings={bookings} setActiveTab={setActiveTab} setHighlightedBookingId={setHighlightedBookingId} />
                 )}
 
                 {/* SLOTS TAB */}

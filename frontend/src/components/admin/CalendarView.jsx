@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const CalendarView = ({ allBookings }) => {
+const CalendarView = ({ allBookings, setActiveTab, setHighlightedBookingId }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [monthlyCapacities, setMonthlyCapacities] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -124,21 +124,38 @@ const CalendarView = ({ allBookings }) => {
         </div>
       </div>
       
+      <AnimatePresence>
       {selectedEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-[#111] border border-white/20 p-6 rounded-2xl w-full max-w-md relative text-white">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-[#111] border border-white/20 p-8 rounded-2xl w-full max-w-md relative text-white shadow-2xl">
             <button onClick={() => setSelectedEvent(null)} className="absolute top-4 right-4 text-gray-400 hover:text-white">&times;</button>
-            <h3 className="text-xl font-oswald uppercase tracking-widest mb-4 border-b border-white/10 pb-2">Booking Details</h3>
-            <div className="space-y-3 text-sm">
-              <p><span className="text-gray-500">Name:</span> {selectedEvent.name}</p>
-              <p><span className="text-gray-500">Phone:</span> {selectedEvent.phone}</p>
-              <p><span className="text-gray-500">Service:</span> {selectedEvent.shootType || selectedEvent.studioName}</p>
-              <p><span className="text-gray-500">Package:</span> {selectedEvent.package}</p>
-              <p><span className="text-gray-500">Status:</span> <span className="uppercase tracking-widest text-xs border border-white/20 px-2 py-1 rounded ml-2">{selectedEvent.status}</span></p>
+            <h3 className="text-xl font-oswald uppercase tracking-widest mb-6 border-b border-white/10 pb-4">Booking Details</h3>
+            <div className="space-y-4 text-sm mb-8">
+              <p className="flex justify-between"><span className="text-gray-500 uppercase text-xs tracking-widest">Name</span> <span>{selectedEvent.name}</span></p>
+              <p className="flex justify-between"><span className="text-gray-500 uppercase text-xs tracking-widest">Phone</span> <span>{selectedEvent.phone}</span></p>
+              <p className="flex justify-between"><span className="text-gray-500 uppercase text-xs tracking-widest">Service</span> <span className="text-right">{selectedEvent.shootType || selectedEvent.studioName}</span></p>
+              <p className="flex justify-between"><span className="text-gray-500 uppercase text-xs tracking-widest">Package</span> <span>{selectedEvent.package}</span></p>
+              <p className="flex justify-between items-center"><span className="text-gray-500 uppercase text-xs tracking-widest">Status</span> <span className="uppercase tracking-widest text-[10px] border border-white/20 px-3 py-1 rounded-full">{selectedEvent.status}</span></p>
             </div>
+            <button 
+              onClick={() => {
+                if (setHighlightedBookingId) setHighlightedBookingId(selectedEvent._id);
+                setSelectedEvent(null);
+                if (setActiveTab) setActiveTab('bookings');
+                // Optional: Scroll to it after a short delay to let the tab render
+                setTimeout(() => {
+                  const el = document.getElementById(`booking-${selectedEvent._id}`);
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+              }}
+              className="w-full bg-white text-black font-oswald text-xs font-bold uppercase tracking-[0.2em] py-3 rounded hover:bg-gray-200 transition-colors"
+            >
+              View In Bookings Tab &rarr;
+            </button>
           </motion.div>
         </div>
       )}
+      </AnimatePresence>
 
       <div className="flex flex-col md:flex-row gap-6 items-start">
         <div className={`w-full ${selectedDate ? 'md:w-2/3' : ''} transition-all duration-300 bg-[#0a0a0a] border border-white/10 p-6 rounded-2xl`}>

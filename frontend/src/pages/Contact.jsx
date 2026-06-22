@@ -105,9 +105,9 @@ const Contact = () => {
                   onChange={(e) => setFormData({...formData, interestedIn: e.target.value})}
                   className="w-full bg-black border border-white/10 rounded-xl p-4 text-white focus:border-white focus:bg-white/5 outline-none transition-all font-sans appearance-none cursor-pointer"
                 >
-                  <option value="Select Event">Select Event</option>
+                  <option value="Select Event" className="bg-[#111] text-white">Select Event</option>
                   {services.map(s => (
-                    <option key={s._id} value={s.name}>{s.name}</option>
+                    <option key={s._id} value={s.name} className="bg-[#111] text-white">{s.name}</option>
                   ))}
                 </select>
               </div>
