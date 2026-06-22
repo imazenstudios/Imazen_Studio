@@ -3267,7 +3267,7 @@ const AdminDashboard = () => {
                                 <p className="text-[10px] text-gray-500 font-sans">Set maximum bookings for Morning/Afternoon/Evening</p>
                               </div>
                               <div className="flex gap-2">
-                                {[1, 2, 3, 4].map(num => (
+                                {[1, 2, 3].map(num => (
                                   <button 
                                     key={num}
                                     onClick={() => handleSetDailyCapacity(num)}
