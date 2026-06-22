@@ -29,15 +29,17 @@ router.put('/blocked-weekdays', async (req, res) => {
       settings = new Settings({ blockedWeekdays, weekdayCapacities });
       await settings.save();
     } else {
-      const updateData = {};
-      if (blockedWeekdays !== undefined) updateData.blockedWeekdays = blockedWeekdays;
-      if (weekdayCapacities !== undefined) updateData.weekdayCapacities = weekdayCapacities;
-      
-      await Settings.updateOne({ _id: settings._id }, { $set: updateData });
-      settings = await Settings.findOne();
+      if (blockedWeekdays !== undefined) settings.blockedWeekdays = blockedWeekdays;
+      if (weekdayCapacities !== undefined) {
+        settings.weekdayCapacities = weekdayCapacities;
+        settings.markModified('weekdayCapacities');
+      }
+      await settings.save();
     }
     
-    res.json(settings);
+    // Return lean object so frontend gets a plain JS object map
+    const savedSettings = await Settings.findById(settings._id).lean();
+    res.json(savedSettings);
   } catch (error) {
     res.status(500).json({ error: 'Server error updating blocked weekdays' });
   }
