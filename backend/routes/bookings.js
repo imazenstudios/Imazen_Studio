@@ -38,13 +38,16 @@ router.get('/slots/:date', async (req, res) => {
     // Get default capacity based on weekday
     const settings = await Settings.findOne() || new Settings();
     const dayIndex = new Date(date).getDay();
-    const defaultCapacity = settings.weekdayCapacities ? (settings.weekdayCapacities.get(dayIndex.toString()) ?? 3) : 3;
+    
+    // Check if the entire weekday is blocked (holiday)
+    const isHoliday = settings.blockedWeekdays && settings.blockedWeekdays.includes(dayIndex);
+    const defaultCapacity = isHoliday ? 0 : (settings.weekdayCapacities ? (settings.weekdayCapacities.get(dayIndex.toString()) ?? 3) : 3);
 
     for (let slot of slots) {
       let slotRecord = await SlotCapacity.findOne({ date, slot });
       
-      // If legacy block (maxCapacity=0), keep 0, otherwise use global defaultCapacity
-      let maxCap = (slotRecord && slotRecord.maxCapacity === 0) ? 0 : defaultCapacity;
+      // If legacy block (maxCapacity=0) or holiday, keep 0, otherwise use global defaultCapacity
+      let maxCap = (slotRecord && slotRecord.maxCapacity === 0) || isHoliday ? 0 : defaultCapacity;
       let blockedCount = slotRecord ? slotRecord.blockedCount : 0;
       let currentBookings = slotRecord ? slotRecord.currentBookings : 0;
       
@@ -125,11 +128,12 @@ router.post('/studio', async (req, res) => {
     // 1. Validate capacity for ALL requested slots
     const settings = await Settings.findOne() || new Settings();
     const dayIndex = new Date(date).getDay();
-    const defaultCapacity = settings.weekdayCapacities ? (settings.weekdayCapacities.get(dayIndex.toString()) ?? 3) : 3;
+    const isHoliday = settings.blockedWeekdays && settings.blockedWeekdays.includes(dayIndex);
+    const defaultCapacity = isHoliday ? 0 : (settings.weekdayCapacities ? (settings.weekdayCapacities.get(dayIndex.toString()) ?? 3) : 3);
 
     for (const slot of slots) {
       const slotRecord = await SlotCapacity.findOne({ date, slot });
-      let maxCap = slotRecord ? slotRecord.maxCapacity : defaultCapacity;
+      let maxCap = (slotRecord && slotRecord.maxCapacity === 0) || isHoliday ? 0 : defaultCapacity;
       let blockedCount = slotRecord ? slotRecord.blockedCount : 0;
       let currentBookings = slotRecord ? slotRecord.currentBookings : 0;
 
@@ -183,11 +187,12 @@ router.post('/', async (req, res) => {
     // Get default capacity for this weekday
     const settings = await Settings.findOne() || new Settings();
     const dayIndex = new Date(date).getDay();
-    const defaultCapacity = settings.weekdayCapacities ? (settings.weekdayCapacities.get(dayIndex.toString()) ?? 3) : 3;
+    const isHoliday = settings.blockedWeekdays && settings.blockedWeekdays.includes(dayIndex);
+    const defaultCapacity = isHoliday ? 0 : (settings.weekdayCapacities ? (settings.weekdayCapacities.get(dayIndex.toString()) ?? 3) : 3);
 
     // Check capacity first
     let slotRecord = await SlotCapacity.findOne({ date, slot });
-    let maxCap = slotRecord ? slotRecord.maxCapacity : defaultCapacity;
+    let maxCap = (slotRecord && slotRecord.maxCapacity === 0) || isHoliday ? 0 : defaultCapacity;
     let blockedCount = slotRecord ? slotRecord.blockedCount : 0;
     let currentBookings = slotRecord ? slotRecord.currentBookings : 0;
     
