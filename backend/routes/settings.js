@@ -18,16 +18,20 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Update blocked weekdays
+// Update blocked weekdays and weekday capacities
 router.put('/blocked-weekdays', async (req, res) => {
   try {
-    const { blockedWeekdays } = req.body;
+    const { blockedWeekdays, weekdayCapacities } = req.body;
     let settings = await Settings.findOne();
     
     if (!settings) {
-      settings = new Settings({ blockedWeekdays });
+      settings = new Settings({ blockedWeekdays, weekdayCapacities });
     } else {
-      settings.blockedWeekdays = blockedWeekdays;
+      if (blockedWeekdays !== undefined) settings.blockedWeekdays = blockedWeekdays;
+      if (weekdayCapacities !== undefined) {
+        settings.set('weekdayCapacities', weekdayCapacities);
+        settings.markModified('weekdayCapacities');
+      }
     }
     
     await settings.save();
@@ -35,6 +39,11 @@ router.put('/blocked-weekdays', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Server error updating blocked weekdays' });
   }
+});
+
+router.get('/debug', async (req, res) => {
+  const settings = await Settings.findOne();
+  res.json({ settings });
 });
 
 // Update analytics IDs
