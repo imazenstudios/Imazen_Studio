@@ -35,9 +35,14 @@ router.get('/slots/:date', async (req, res) => {
     const allServices = await Service.find();
     const exclusiveServiceNames = allServices.filter(s => s.limitOnePerSession).map(s => s.name);
 
+    // Get default capacity based on weekday
+    const settings = await Settings.findOne() || new Settings();
+    const dayIndex = new Date(date).getDay();
+    const defaultCapacity = settings.weekdayCapacities ? (settings.weekdayCapacities.get(dayIndex.toString()) ?? 3) : 3;
+
     for (let slot of slots) {
       let slotRecord = await SlotCapacity.findOne({ date, slot });
-      let capacity = slotRecord ? (slotRecord.maxCapacity - slotRecord.currentBookings) : 3;
+      let capacity = slotRecord ? (slotRecord.maxCapacity - slotRecord.currentBookings) : defaultCapacity;
       let status = capacity > 0 ? 'Available' : 'Fully Booked';
 
       // Enforce Exclusivity Rule
@@ -66,11 +71,19 @@ router.get('/slots/:date', async (req, res) => {
         }
       }
 
+      // Fetch actual booking details to display in the admin panel
+      const existingBookings = await Booking.find({ date, slot, bookingType: 'Client' });
+      const multiBookings = await Booking.find({ date, slots: slot, bookingType: 'Studio' });
+      const allBookings = [...existingBookings, ...multiBookings];
+
       availability.push({ 
         slot, 
         capacity: capacity < 0 ? 0 : capacity, 
         status,
-        maxCapacity: slotRecord ? slotRecord.maxCapacity : 3
+        maxCapacity: slotRecord ? slotRecord.maxCapacity : defaultCapacity,
+        blockedCount: slotRecord ? slotRecord.blockedCount : 0,
+        currentBookings: slotRecord ? slotRecord.currentBookings : 0,
+        bookingDetails: allBookings.map(b => ({ name: b.name, shootType: b.shootType }))
       });
     }
 
@@ -104,9 +117,17 @@ router.post('/studio', async (req, res) => {
     }
 
     // 1. Validate capacity for ALL requested slots
+    const settings = await Settings.findOne() || new Settings();
+    const dayIndex = new Date(date).getDay();
+    const defaultCapacity = settings.weekdayCapacities ? (settings.weekdayCapacities.get(dayIndex.toString()) ?? 3) : 3;
+
     for (const slot of slots) {
       const slotRecord = await SlotCapacity.findOne({ date, slot });
-      if (slotRecord && slotRecord.currentBookings >= slotRecord.maxCapacity) {
+      let maxCap = slotRecord ? slotRecord.maxCapacity : defaultCapacity;
+      let blockedCount = slotRecord ? slotRecord.blockedCount : 0;
+      let currentBookings = slotRecord ? slotRecord.currentBookings : 0;
+
+      if (currentBookings >= (maxCap - blockedCount)) {
         return res.status(400).json({ error: `Slot ${slot} is fully booked on ${date}.` });
       }
     }
@@ -135,7 +156,7 @@ router.post('/studio', async (req, res) => {
         await slotRecord.save();
       } else {
         slotRecord = new SlotCapacity({
-          date, slot, currentBookings: 1
+          date, slot, currentBookings: 1, maxCapacity: defaultCapacity
         });
         await slotRecord.save();
       }
@@ -153,10 +174,18 @@ router.post('/', async (req, res) => {
   try {
     const { name, email, phone, babyAge, shootType, package: pkg, date, slot, notes } = req.body;
 
+    // Get default capacity for this weekday
+    const settings = await Settings.findOne() || new Settings();
+    const dayIndex = new Date(date).getDay();
+    const defaultCapacity = settings.weekdayCapacities ? (settings.weekdayCapacities.get(dayIndex.toString()) ?? 3) : 3;
+
     // Check capacity first
     let slotRecord = await SlotCapacity.findOne({ date, slot });
+    let maxCap = slotRecord ? slotRecord.maxCapacity : defaultCapacity;
+    let blockedCount = slotRecord ? slotRecord.blockedCount : 0;
+    let currentBookings = slotRecord ? slotRecord.currentBookings : 0;
     
-    if (slotRecord && slotRecord.currentBookings >= slotRecord.maxCapacity) {
+    if (currentBookings >= (maxCap - blockedCount)) {
       return res.status(400).json({ error: 'Slot is fully booked' });
     }
 
@@ -199,7 +228,7 @@ router.post('/', async (req, res) => {
       await slotRecord.save();
     } else {
       slotRecord = new SlotCapacity({
-        date, slot, currentBookings: 1
+        date, slot, currentBookings: 1, maxCapacity: defaultCapacity
       });
       await slotRecord.save();
     }
@@ -469,20 +498,36 @@ router.put('/slots/block', async (req, res) => {
     
     let slotRecord = await SlotCapacity.findOne({ date, slot });
     
+    // Get default capacity if record doesn't exist
+    const settings = await Settings.findOne() || new Settings();
+    const dayIndex = new Date(date).getDay();
+    const defaultCapacity = settings.weekdayCapacities ? (settings.weekdayCapacities.get(dayIndex.toString()) ?? 3) : 3;
+
     if (!slotRecord) {
       slotRecord = new SlotCapacity({
         date, 
         slot, 
         currentBookings: 0,
-        maxCapacity: action === 'block' ? 0 : 3
+        blockedCount: 0,
+        maxCapacity: defaultCapacity
       });
-    } else {
-      slotRecord.maxCapacity = action === 'block' ? 0 : 3;
+    }
+
+    if (action === 'block_single') {
+      slotRecord.blockedCount += 1;
+    } else if (action === 'open_single') {
+      slotRecord.blockedCount = Math.max(0, slotRecord.blockedCount - 1);
+    } else if (action === 'block') {
+      // Legacy behavior just in case
+      slotRecord.maxCapacity = 0;
+    } else if (action === 'open') {
+      slotRecord.maxCapacity = defaultCapacity;
     }
     
     await slotRecord.save();
     res.json(slotRecord);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Server error updating slot capacity' });
   }
 });
