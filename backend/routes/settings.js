@@ -7,10 +7,11 @@ const router = express.Router();
 // Get settings
 router.get('/', async (req, res) => {
   try {
-    let settings = await Settings.findOne();
+    let settings = await Settings.findOne().lean();
     if (!settings) {
       settings = new Settings();
       await settings.save();
+      settings = settings.toObject();
     }
     res.json(settings);
   } catch (error) {
