@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const CalendarView = ({ allBookings, setActiveTab, setHighlightedBookingId }) => {
+const CalendarView = ({ allBookings, setActiveTab, setHighlightedBookingId, settings }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [monthlyCapacities, setMonthlyCapacities] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -40,8 +40,23 @@ const CalendarView = ({ allBookings, setActiveTab, setHighlightedBookingId }) =>
     let totalBooked = 0;
     dayCapacities.forEach(c => totalBooked += c.currentBookings);
     
+    // Dynamic background color based on global capacity max bounds
+    const dayIndex = new Date(dateStr).getUTCDay();
+    const isHoliday = settings?.blockedWeekdays?.includes(dayIndex);
+    let maxCap = 3;
+    if (isHoliday) {
+      maxCap = 0;
+    } else if (settings?.weekdayCapacities) {
+      const capNum = typeof settings.weekdayCapacities.get === 'function' 
+        ? settings.weekdayCapacities.get(dayIndex.toString()) 
+        : settings.weekdayCapacities[dayIndex.toString()];
+      if (capNum !== undefined && capNum !== null) maxCap = capNum;
+    }
+    
+    const maxDailyLimit = maxCap * 3;
+    
     if (totalBooked === 0) return 'green';
-    if (totalBooked >= 9) return 'red';
+    if (totalBooked >= maxDailyLimit) return 'red';
     return 'yellow';
   };
 
@@ -58,7 +73,22 @@ const CalendarView = ({ allBookings, setActiveTab, setHighlightedBookingId }) =>
     
     let totalBooked = 0;
     dayCaps.forEach(c => totalBooked += c.currentBookings);
-    let bgCol = totalBooked === 0 ? 'bg-green-500' : (totalBooked >= 9 ? 'bg-red-500' : 'bg-yellow-500');
+    
+    // Dynamic max capacity
+    const dayIndex = new Date(selectedDate).getUTCDay();
+    const isHoliday = settings?.blockedWeekdays?.includes(dayIndex);
+    let maxCap = 3;
+    if (isHoliday) {
+      maxCap = 0;
+    } else if (settings?.weekdayCapacities) {
+      const capNum = typeof settings.weekdayCapacities.get === 'function' 
+        ? settings.weekdayCapacities.get(dayIndex.toString()) 
+        : settings.weekdayCapacities[dayIndex.toString()];
+      if (capNum !== undefined && capNum !== null) maxCap = capNum;
+    }
+    
+    const maxDailyLimit = maxCap * 3;
+    let bgCol = totalBooked === 0 ? 'bg-green-500' : (totalBooked >= maxDailyLimit ? 'bg-red-500' : 'bg-yellow-500');
 
     const slotTypes = ['Morning', 'Afternoon', 'Evening'];
     const grid = [];
@@ -68,7 +98,7 @@ const CalendarView = ({ allBookings, setActiveTab, setHighlightedBookingId }) =>
       const capRecord = dayCaps.find(c => c.slot === type);
       const manualBlocks = capRecord ? capRecord.currentBookings - bookingsForSlot.length : 0;
       
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < maxCap; i++) {
         if (i < bookingsForSlot.length) {
           const b = bookingsForSlot[i];
           grid.push({ type, booked: true, text: b.shootType || b.studioName || 'Booked', status: b.status, isManual: false, booking: b });
@@ -91,8 +121,8 @@ const CalendarView = ({ allBookings, setActiveTab, setHighlightedBookingId }) =>
           {slotTypes.map((type, rIdx) => (
             <div key={type}>
               <h4 className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">{type}</h4>
-              <div className="grid grid-cols-3 gap-2">
-                {grid.slice(rIdx * 3, rIdx * 3 + 3).map((spot, idx) => (
+              <div className={`grid gap-2 ${maxCap === 1 ? 'grid-cols-1' : maxCap === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                {grid.slice(rIdx * maxCap, rIdx * maxCap + maxCap).map((spot, idx) => (
                   <div 
                     key={idx} 
                     onClick={() => spot.booked && !spot.isManual && setSelectedEvent(spot.booking)}
@@ -120,7 +150,7 @@ const CalendarView = ({ allBookings, setActiveTab, setHighlightedBookingId }) =>
       <div className="flex justify-between items-center bg-gradient-to-r from-blue-900/20 to-transparent p-6 rounded-2xl border border-blue-500/20">
         <div>
           <h2 className="text-lg font-oswald text-white uppercase tracking-widest mb-1">Booking Calendar</h2>
-          <p className="text-xs text-blue-300/70 tracking-wide">Visualize and manage your daily 9-slot capacity.</p>
+          <p className="text-xs text-blue-300/70 tracking-wide">Visualize and manage your daily slot capacity.</p>
         </div>
       </div>
       

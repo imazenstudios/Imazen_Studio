@@ -3201,7 +3201,7 @@ const AdminDashboard = () => {
 
                 {/* CALENDAR TAB */}
                 {activeTab === 'calendar' && (
-                  <CalendarView allBookings={bookings} setActiveTab={setActiveTab} setHighlightedBookingId={setHighlightedBookingId} />
+                  <CalendarView allBookings={bookings} setActiveTab={setActiveTab} setHighlightedBookingId={setHighlightedBookingId} settings={settings} />
                 )}
 
                 {/* SLOTS TAB */}
