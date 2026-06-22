@@ -5,7 +5,6 @@ import axios from 'axios';
 const Gallery = () => {
   const [images, setImages] = useState([]);
   const [filter, setFilter] = useState('All');
-  const [categories, setCategories] = useState(['All']);
   const [isLoading, setIsLoading] = useState(true);
   const [activeMediaType, setActiveMediaType] = useState('image');
   const [lightboxIndex, setLightboxIndex] = useState(null);
@@ -25,9 +24,6 @@ const Gallery = () => {
       .then(res => {
         if (res.data && res.data.length > 0) {
           setImages(res.data);
-          // Extract unique categories
-          const uniqueCategories = ['All', ...new Set(res.data.map(img => img.category))];
-          setCategories(uniqueCategories);
         } else {
           // Fallback data
           const fallback = [
@@ -37,7 +33,6 @@ const Gallery = () => {
             { id: 4, category: 'Family', url: 'https://images.unsplash.com/photo-1517594539167-a8dc824c0d05?q=80&w=1000' }
           ];
           setImages(fallback);
-          setCategories(['All', 'Maternity', 'Newborn', 'Baby', 'Family']);
         }
         setIsLoading(false);
       })
@@ -47,8 +42,10 @@ const Gallery = () => {
       });
   }, []);
 
-  const categoryFiltered = filter === 'All' ? images : images.filter(img => img.category === filter);
-  const filteredImages = categoryFiltered.filter(img => activeMediaType === 'video' ? img.type === 'video' : img.type !== 'video');
+  const typeFilteredData = images.filter(img => activeMediaType === 'video' ? img.type === 'video' : img.type !== 'video');
+  const categories = ['All', ...new Set(typeFilteredData.map(img => img.category))];
+  const categoryFiltered = filter === 'All' ? typeFilteredData : typeFilteredData.filter(img => img.category === filter);
+  const filteredImages = categoryFiltered;
 
   useEffect(() => {
     const handleKeyDown = (e) => {
