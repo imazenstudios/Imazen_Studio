@@ -30,6 +30,7 @@ export const getMailer = (user, pass) => {
         from: formattedFrom,
         to: toArray,
         subject: options.subject,
+        reply_to: 'imazenstudios@gmail.com',
       };
 
       if (options.text) resendOptions.text = options.text;
