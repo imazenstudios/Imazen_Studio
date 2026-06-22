@@ -1,4 +1,7 @@
 import express from 'express';
+import dns from 'dns';
+
+dns.setDefaultResultOrder('ipv4first');
 
 import authRoutes from './routes/auth.js';
 import adminUsersRoutes from './routes/adminUsers.js';
