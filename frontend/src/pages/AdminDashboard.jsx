@@ -148,6 +148,8 @@ const AdminDashboard = () => {
   const [inquirySearch, setInquirySearch] = useState('');
   const [inquiryFilter, setInquiryFilter] = useState('All');
   const [customersSearch, setCustomersSearch] = useState('');
+  const [leadSearch, setLeadSearch] = useState('');
+  const [leadFilter, setLeadFilter] = useState('All');
   const [followUpModal, setFollowUpModal] = useState(null); // { type: 'booking' | 'inquiry', id: string }
   const [followUpNote, setFollowUpNote] = useState('');
   const [editingNoteId, setEditingNoteId] = useState(null);
@@ -3508,8 +3510,54 @@ const AdminDashboard = () => {
                 {/* LEADS TAB */}
                 {activeTab === 'leads' && (
                   <div className="space-y-8">
-                    <div className="flex justify-between items-center bg-black/40 p-6 rounded-2xl border border-white/5 shadow-2xl backdrop-blur-md">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-black/40 p-6 rounded-2xl border border-white/5 shadow-2xl backdrop-blur-md gap-4">
                       <h2 className="text-xl font-oswald text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500 uppercase tracking-widest">Landing Page Leads</h2>
+                      <div className="flex flex-wrap items-center gap-2 md:gap-4 w-full md:w-auto">
+                        <input 
+                          type="text" 
+                          placeholder="Search Name, Email, Phone..."
+                          className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white outline-none w-full md:w-64"
+                          value={leadSearch}
+                          onChange={(e) => setLeadSearch(e.target.value)}
+                        />
+                        <select 
+                          className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white outline-none w-full md:w-auto uppercase tracking-widest"
+                          value={leadFilter}
+                          onChange={e => setLeadFilter(e.target.value)}
+                        >
+                          <option value="All">All Statuses</option>
+                          <option value="new">New</option>
+                          <option value="contacted">Contacted</option>
+                          <option value="pending">Pending</option>
+                          <option value="confirmed">Confirmed</option>
+                          <option value="cancelled">Cancelled</option>
+                          <option value="junk lead">Junk Lead</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* STATS ROW */}
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      <div className="bg-black/40 border border-white/5 p-4 rounded-xl">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Total Leads</p>
+                        <p className="text-2xl font-bold font-oswald text-white">{leads.length}</p>
+                      </div>
+                      <div className="bg-black/40 border border-emerald-500/20 p-4 rounded-xl">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">New</p>
+                        <p className="text-2xl font-bold font-oswald text-emerald-500">{leads.filter(l => l.status === 'new').length}</p>
+                      </div>
+                      <div className="bg-black/40 border border-blue-500/20 p-4 rounded-xl">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Contacted</p>
+                        <p className="text-2xl font-bold font-oswald text-blue-500">{leads.filter(l => l.status === 'contacted').length}</p>
+                      </div>
+                      <div className="bg-black/40 border border-yellow-500/20 p-4 rounded-xl">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Pending</p>
+                        <p className="text-2xl font-bold font-oswald text-yellow-500">{leads.filter(l => l.status === 'pending').length}</p>
+                      </div>
+                      <div className="bg-black/40 border border-purple-500/20 p-4 rounded-xl">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Confirmed</p>
+                        <p className="text-2xl font-bold font-oswald text-purple-500">{leads.filter(l => l.status === 'confirmed').length}</p>
+                      </div>
                     </div>
                     <div className="bg-black/40 rounded-2xl border border-white/5 overflow-hidden shadow-2xl">
                       <div className="overflow-x-auto custom-scrollbar">
@@ -3525,7 +3573,11 @@ const AdminDashboard = () => {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-white/5">
-                            {leads.map((lead) => (
+                            {leads.filter(l => {
+                              const matchesSearch = leadSearch.trim() === '' || [l.name, l.email, l.phone].some(val => val && String(val).toLowerCase().includes(leadSearch.toLowerCase()));
+                              const matchesStatus = leadFilter === 'All' || l.status === leadFilter;
+                              return matchesSearch && matchesStatus;
+                            }).map((lead) => (
                               <tr key={lead._id} className="hover:bg-white/5 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap">{new Date(lead.createdAt).toLocaleDateString()}</td>
                                 <td className="px-6 py-4"><span className="bg-white/10 px-3 py-1 rounded-full text-xs">{lead.landingPageSource}</span></td>
