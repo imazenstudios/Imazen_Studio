@@ -3520,7 +3520,7 @@ const AdminDashboard = () => {
                                 <td className="px-6 py-4 text-emerald-400">{new Date(lead.eventDate).toLocaleDateString()}</td>
                                 <td className="px-6 py-4">
                                   <select 
-                                    className="bg-black/50 border border-white/10 rounded px-3 py-1 text-xs uppercase"
+                                    className="bg-[#1a1a1a] text-white border border-white/20 rounded px-3 py-1 text-xs uppercase cursor-pointer"
                                     value={lead.status || 'new'}
                                     onChange={async (e) => {
                                       try {
@@ -3529,12 +3529,12 @@ const AdminDashboard = () => {
                                       } catch(err) { console.error(err); }
                                     }}
                                   >
-                                    <option value="new">New</option>
-                                    <option value="contacted">Contacted</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="confirmed">Confirmed</option>
-                                    <option value="cancelled">Cancelled</option>
-                                    <option value="junk lead">Junk Lead</option>
+                                    <option className="bg-[#1a1a1a] text-white" value="new">New</option>
+                                    <option className="bg-[#1a1a1a] text-white" value="contacted">Contacted</option>
+                                    <option className="bg-[#1a1a1a] text-white" value="pending">Pending</option>
+                                    <option className="bg-[#1a1a1a] text-white" value="confirmed">Confirmed</option>
+                                    <option className="bg-[#1a1a1a] text-white" value="cancelled">Cancelled</option>
+                                    <option className="bg-[#1a1a1a] text-white" value="junk lead">Junk Lead</option>
                                   </select>
                                 </td>
                                 <td className="px-6 py-4 text-right">

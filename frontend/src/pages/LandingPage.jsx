@@ -631,7 +631,6 @@ const ReferenceLandingPage = () => {
               </button>
               
               <h3 className="text-2xl font-oswald uppercase tracking-widest mb-2 text-white">Book Your Shoot</h3>
-              <p className="text-gray-400 text-sm tracking-widest uppercase mb-8">Packages from {pageData?.heroPriceAmount || '₹3,999/-'}</p>
               
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
