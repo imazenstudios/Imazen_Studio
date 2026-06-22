@@ -214,6 +214,7 @@ const ReferenceLandingPage = () => {
               keyboard={{ enabled: true }}
               autoplay={{ delay: 5000, disableOnInteraction: false }}
               loop={true}
+              fadeEffect={{ crossFade: true }}
               allowTouchMove={true}
               className="w-full h-full [&>.swiper-button-next]:hidden md:[&>.swiper-button-next]:flex [&>.swiper-button-prev]:hidden md:[&>.swiper-button-prev]:flex"
             >
@@ -325,7 +326,7 @@ const ReferenceLandingPage = () => {
                 initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.1 }}
                 className="group relative bg-[#111] rounded-2xl overflow-hidden border border-white/5 hover:border-white/30 transition-all duration-500"
               >
-                <div className="h-64 overflow-hidden relative">
+                <div className="h-80 overflow-hidden relative">
                   {card.images && card.images.length > 0 ? (
                     <Swiper modules={[Autoplay, Navigation]} navigation={true} autoplay={{ delay: 3000, disableOnInteraction: false }} loop={true} className="w-full h-full opacity-80 group-hover:opacity-100 transition-opacity">
                       {card.images.map((img, i) => (
@@ -352,7 +353,7 @@ const ReferenceLandingPage = () => {
               initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
               className="group relative bg-[#111] rounded-2xl overflow-hidden border border-white/5 hover:border-white/30 transition-all duration-500"
             >
-              <div className="h-64 overflow-hidden relative">
+              <div className="h-80 overflow-hidden relative">
                 <Swiper modules={[Autoplay, Navigation]} navigation={true} autoplay={{ delay: 3000, disableOnInteraction: false }} loop={true} className="w-full h-full opacity-80 group-hover:opacity-100 transition-opacity">
                   <SwiperSlide><img src="/images/experience_bg.jpeg" alt="Newborn" className="w-full h-full object-cover" /></SwiperSlide>
                   <SwiperSlide><img src="/images/about_bg.jpeg" alt="Newborn 2" className="w-full h-full object-cover" /></SwiperSlide>
@@ -371,7 +372,7 @@ const ReferenceLandingPage = () => {
               initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}
               className="group relative bg-[#111] rounded-2xl overflow-hidden border border-white/5 hover:border-white/30 transition-all duration-500"
             >
-              <div className="h-64 overflow-hidden relative">
+              <div className="h-80 overflow-hidden relative">
                 <Swiper modules={[Autoplay, Navigation]} navigation={true} autoplay={{ delay: 3500, disableOnInteraction: false }} loop={true} className="w-full h-full opacity-80 group-hover:opacity-100 transition-opacity">
                   <SwiperSlide><img src="/images/mobile.jpeg" alt="Milestone" className="w-full h-full object-cover" /></SwiperSlide>
                   <SwiperSlide><img src="/images/studio.jpeg" alt="Milestone 2" className="w-full h-full object-cover" /></SwiperSlide>
@@ -390,7 +391,7 @@ const ReferenceLandingPage = () => {
               initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }}
               className="group relative bg-[#111] rounded-2xl overflow-hidden border border-white/5 hover:border-white/30 transition-all duration-500"
             >
-              <div className="h-64 overflow-hidden relative">
+              <div className="h-80 overflow-hidden relative">
                 <Swiper modules={[Autoplay, Navigation]} navigation={true} autoplay={{ delay: 4000, disableOnInteraction: false }} loop={true} className="w-full h-full opacity-80 group-hover:opacity-100 transition-opacity">
                   <SwiperSlide><img src="/images/banner_bg.webp" alt="Toddler" className="w-full h-full object-cover" /></SwiperSlide>
                   <SwiperSlide><img src="/images/experience_bg.jpeg" alt="Toddler 2" className="w-full h-full object-cover" /></SwiperSlide>
