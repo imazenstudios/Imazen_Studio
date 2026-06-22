@@ -15,6 +15,7 @@ import Footer from '../components/Footer';
 
 const ReferenceLandingPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeVideo, setActiveVideo] = useState(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
@@ -125,25 +126,70 @@ const ReferenceLandingPage = () => {
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-gray-500/30 overflow-x-hidden relative">
       
-      {/* FLOATING BUTTONS */}
-      <div className="fixed bottom-6 right-6 z-[60] flex flex-col items-end gap-4">
-        <div className="bg-white text-black text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.4)]">
-          {pageData?.floatingBubbleText || 'Hurry, Limited Slots Available!'}
-        </div>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="bg-white hover:bg-gray-200 text-black px-6 py-3 rounded-full font-oswald uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(255,255,255,0.3)] flex items-center gap-2 transition-all animate-bounce"
-        >
-          {pageData?.floatingButtonText || 'Book Now'}
-        </button>
-      </div>
+      
+      {/* YOUTUBE VIDEO MODAL */}
+      <AnimatePresence>
+        {activeVideo && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+          >
+            <button 
+              onClick={() => setActiveVideo(null)}
+              className="absolute top-6 right-6 text-white text-4xl hover:text-gray-300 z-[110]"
+            >
+              &times;
+            </button>
+            <div className="w-full max-w-5xl aspect-video rounded-xl overflow-hidden shadow-2xl relative">
+              <iframe 
+                width="100%" 
+                height="100%" 
+                src={`https://www.youtube.com/embed/${activeVideo}?autoplay=1`} 
+                title="YouTube video player" 
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                allowFullScreen
+              ></iframe>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <button 
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className="fixed bottom-6 left-6 z-[60] bg-[#111] hover:bg-[#222] border border-white/20 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all opacity-80 hover:opacity-100"
-      >
-        ↑
-      </button>
+      {/* FLOATING BUTTONS */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="fixed bottom-6 right-6 z-[60] flex flex-col items-end gap-4"
+            >
+              <div className="bg-transparent text-white border border-white/50 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                {pageData?.floatingBubbleText || 'Hurry, Limited Slots Available!'}
+              </div>
+              <button 
+                onClick={() => setIsModalOpen(true)}
+                className="bg-white hover:bg-gray-200 text-black px-6 py-3 rounded-full font-oswald uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(255,255,255,0.3)] flex items-center gap-2 transition-all animate-bounce"
+              >
+                {pageData?.floatingButtonText || 'Book Now'}
+              </button>
+            </motion.div>
+
+            <motion.button 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="fixed bottom-6 left-6 z-[60] bg-[#111] hover:bg-[#222] border border-white/20 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all opacity-80 hover:opacity-100"
+            >
+              ↑
+            </motion.button>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* HEADER */}
       <header className="absolute top-0 left-0 w-full z-50 p-6 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
@@ -225,15 +271,17 @@ const ReferenceLandingPage = () => {
 
       
       {/* 2. INTRO VIDEO */}
-      <section className="relative py-24 px-6 max-w-7xl mx-auto flex justify-center">
-        <div className="w-full aspect-video bg-black/50 border border-white/10 rounded-xl overflow-hidden shadow-2xl relative">
-            {pageData?.displayVideoUrl ? (
-              <video src={pageData.displayVideoUrl} controls autoPlay muted loop className="w-full h-full object-cover cursor-pointer" controlsList="nodownload" onClick={(e) => { if(e.target.requestFullscreen) e.target.requestFullscreen(); else if(e.target.webkitRequestFullscreen) e.target.webkitRequestFullscreen(); }} />
-            ) : (
-              <video src="/images/intro.mp4" controls autoPlay muted loop className="w-full h-full object-cover cursor-pointer" controlsList="nodownload" onClick={(e) => { if(e.target.requestFullscreen) e.target.requestFullscreen(); else if(e.target.webkitRequestFullscreen) e.target.webkitRequestFullscreen(); }} />
-            )}
-        </div>
-      </section>
+      {pageData?.showDisplayVideo !== false && (
+        <section className="relative py-24 px-6 max-w-7xl mx-auto flex justify-center">
+          <div className="w-full aspect-video bg-black/50 border border-white/10 rounded-xl overflow-hidden shadow-2xl relative">
+              {pageData?.displayVideoUrl ? (
+                <video src={pageData.displayVideoUrl} controls autoPlay muted loop className="w-full h-full object-cover cursor-pointer" controlsList="nodownload" onClick={(e) => { if(e.target.requestFullscreen) e.target.requestFullscreen(); else if(e.target.webkitRequestFullscreen) e.target.webkitRequestFullscreen(); }} />
+              ) : (
+                <video src="/images/intro.mp4" controls autoPlay muted loop className="w-full h-full object-cover cursor-pointer" controlsList="nodownload" onClick={(e) => { if(e.target.requestFullscreen) e.target.requestFullscreen(); else if(e.target.webkitRequestFullscreen) e.target.webkitRequestFullscreen(); }} />
+              )}
+          </div>
+        </section>
+      )}
 
       
       <section className="py-12 px-6 lg:px-12 max-w-5xl mx-auto flex flex-col text-center">
@@ -471,7 +519,7 @@ const ReferenceLandingPage = () => {
               if (!videoId) return null;
               
               return (
-                <SwiperSlide key={i} className="!w-[300px] md:!w-[500px] aspect-video overflow-hidden border border-white/10 relative cursor-pointer hover:border-white/30 transition-colors">
+                <SwiperSlide key={i} className="!w-[300px] md:!w-[500px] aspect-video overflow-hidden border border-white/10 relative cursor-pointer hover:border-white/30 transition-colors" onClick={() => setActiveVideo(videoId)}>
                   <img src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} className="h-full w-auto max-w-none object-cover transition-transform duration-700 hover:scale-105" alt="Video Thumbnail" />
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="w-16 h-16 rounded-full bg-black/50 border border-white/50 flex items-center justify-center backdrop-blur-sm">
@@ -486,64 +534,65 @@ const ReferenceLandingPage = () => {
       </section>
 
       {/* 7. PACKAGES (NEW SECTION) */}
-      <section className="py-24 bg-[#050505] relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-5xl font-oswald uppercase tracking-widest mb-4">{pageData?.packagesHeading || "Investment"}</h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-white to-transparent mx-auto"></div>
-            <p className="mt-6 text-gray-400 font-light max-w-2xl mx-auto">Transparent pricing for premium quality. Choose a package that suits your needs.</p>
-          </div>
+      {pageData?.showPackages && (
+        <section className="py-24 bg-[#050505] relative overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl sm:text-5xl font-oswald uppercase tracking-widest mb-4">{pageData?.packagesHeading || "Investment"}</h2>
+              <div className="w-24 h-1 bg-gradient-to-r from-white to-transparent mx-auto"></div>
+              <p className="mt-6 text-gray-400 font-light max-w-2xl mx-auto">Transparent pricing for premium quality. Choose a package that suits your needs.</p>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {(pageData?.customPackages?.length > 0 ? pageData.customPackages : activePackages).length > 0 ? (
-              (pageData?.customPackages?.length > 0 ? pageData.customPackages : activePackages).map((pkg, i) => (
-                <motion.div 
-                  key={i}
-                  initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                  className="bg-[#111] p-8 rounded-2xl border border-white/10 hover:border-white/40 transition-colors relative group"
-                >
-                  <h3 className="text-xl font-oswald uppercase tracking-widest mb-4">{pkg.name}</h3>
-                  {pkg.price && (
-                    <div className="text-4xl font-oswald mb-6 text-white group-hover:scale-105 transition-transform origin-left">
-                      ₹{pkg.price}
-                    </div>
-                  )}
-                  {(pkg.features || (pkg.description && pkg.description.split('\\n'))) && (
-                    <ul className="space-y-3 mb-8">
-                      {(pkg.features || (pkg.description ? pkg.description.split('\\n') : [])).map((f, idx) => f.trim() && (
-                        <li key={idx} className="text-gray-400 text-sm font-light flex items-start gap-3">
-                          <span className="text-gray-600 mt-1">✓</span>
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  <button 
-                    onClick={() => { setFormData({...formData, interestedIn: pkg.name}); setIsModalOpen(true); }}
-                    className="w-full py-3 border border-white/20 hover:bg-white hover:text-black uppercase tracking-widest text-sm font-oswald transition-colors rounded-full"
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {(pageData?.customPackages || []).length > 0 ? (
+                (pageData?.customPackages || []).map((pkg, i) => (
+                  <motion.div 
+                    key={i}
+                    initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+                    className="bg-[#111] p-8 rounded-2xl border border-white/10 hover:border-white/40 transition-colors relative group"
                   >
-                    Select Package
-                  </button>
-                </motion.div>
-              ))
-            ) : (
-              <div className="col-span-full text-center text-gray-500 py-12">Loading packages...</div>
-            )}
+                    <h3 className="text-xl font-oswald uppercase tracking-widest mb-4 text-gray-400">{pkg.name}</h3>
+                    {pkg.price && (
+                      <div className="text-4xl font-oswald mb-6 text-white group-hover:scale-105 transition-transform origin-left">
+                        ₹{pkg.price}
+                      </div>
+                    )}
+                    {(pkg.features || (pkg.description && pkg.description.split('\\n'))) && (
+                      <ul className="space-y-3 mb-8">
+                        {(pkg.features || (pkg.description ? pkg.description.split('\\n') : [])).map((f, idx) => f.trim() && (
+                          <li key={idx} className="text-gray-400 text-sm font-light flex items-start gap-3">
+                            <span className="text-gray-600 mt-1">✓</span>
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <button 
+                      onClick={() => { setFormData({...formData, interestedIn: pkg.name}); setIsModalOpen(true); }}
+                      className="w-full py-3 border border-white/20 hover:bg-white hover:text-black uppercase tracking-widest text-sm font-oswald transition-colors rounded-full"
+                    >
+                      Select Package
+                    </button>
+                  </motion.div>
+                ))
+              ) : (
+                <div className="col-span-full text-center text-gray-500 py-12">Loading packages...</div>
+              )}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 8. FINAL CTA BANNER */}
-      <section className="relative py-32 flex items-center justify-center text-center">
-        <div 
-          className="absolute inset-0 z-0 bg-fixed bg-center bg-cover opacity-100"
-          style={{ backgroundImage: "url('/images/studio.jpeg')" }}
+      <section className="relative py-32 mt-20 text-center overflow-hidden">
+        <div className="absolute inset-0 z-0 bg-cover bg-center bg-fixed opacity-40"
+          style={{ backgroundImage: `url(${pageData?.parallaxFooter?.imageUrl || '/images/studio.jpeg'})` }}
         />
         <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#050505]/80 via-black/30 to-[#050505]/80" />
 
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.8 }}
-          className="relative z-10 max-w-3xl px-4"
+          className={`relative z-10 max-w-3xl px-4 mx-auto text-${pageData?.parallaxFooter?.align || 'center'}`}
         >
           <h2 className="text-4xl sm:text-6xl font-oswald uppercase tracking-widest mb-6">{pageData?.parallaxFooter?.heading || 'Affordable Premium Baby Shoot'}</h2>
           <div className="text-3xl font-oswald text-gray-300 mb-8 border-y border-gray-500/30 py-6 inline-block">

@@ -20,8 +20,11 @@ const AdminDashboard = () => {
   const [dashboardEndDate, setDashboardEndDate] = useState('');
   const [dashboardTypeFilter, setDashboardTypeFilter] = useState('all'); // 'all', 'leads', 'inquiries'
   const [dashboardDateFilter, setDashboardDateFilter] = useState('all'); // 'all', 'today', 'thisWeek'
-
-
+  const [filterBookings, setFilterBookings] = useState('all');
+  const [filterLeads, setFilterLeads] = useState('all');
+  const [filterInquiries, setFilterInquiries] = useState('all');
+  const [filterPending, setFilterPending] = useState('all');
+  const [filterConfirmed, setFilterConfirmed] = useState('all');
 
   // Data States
   const [content, setContent] = useState([]);
@@ -474,6 +477,32 @@ const AdminDashboard = () => {
   const handleDeleteHero = async (id) => {
     if(window.confirm('Delete this slide?')) {
       await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/hero/${id}`).catch(console.error);
+      fetchData();
+    }
+  };
+
+  const handleMoveHeroSlide = async (index, direction) => {
+    const newSlides = [...heroSlides];
+    if (direction === 'up' && index > 0) {
+      [newSlides[index - 1], newSlides[index]] = [newSlides[index], newSlides[index - 1]];
+    } else if (direction === 'down' && index < newSlides.length - 1) {
+      [newSlides[index + 1], newSlides[index]] = [newSlides[index], newSlides[index + 1]];
+    } else {
+      return; // Can't move
+    }
+
+    // Assign new order values
+    newSlides.forEach((s, i) => { s.order = i; });
+    setHeroSlides(newSlides); // Optimistic UI update
+
+    try {
+      await Promise.all([
+        axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/hero/${newSlides[index]._id}`, { order: newSlides[index].order }, { headers: { Authorization: `Bearer ${localStorage.getItem('adminToken') || localStorage.getItem('token')}` } }),
+        axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/hero/${newSlides[direction === 'up' ? index - 1 : index + 1]._id}`, { order: newSlides[direction === 'up' ? index - 1 : index + 1].order }, { headers: { Authorization: `Bearer ${localStorage.getItem('adminToken') || localStorage.getItem('token')}` } })
+      ]);
+    } catch (err) {
+      console.error('Failed to update hero order', err);
+      // Revert if failed
       fetchData();
     }
   };
@@ -1101,37 +1130,127 @@ const AdminDashboard = () => {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-                <div className={glassPanel + " p-6 flex flex-col"}>
-                  <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest mb-2">Total Bookings</div>
-                  <div className="text-5xl font-oswald text-white mb-4">{dashboardFilteredBookings.length}</div>
-                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest">All scheduled shoots</div>
-                </div>
-                <div className={glassPanel + " p-6 flex flex-col"}>
-                  <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest mb-2">Total Leads</div>
-                  <div className="text-5xl font-oswald text-white mb-4">{dashboardFilteredLeads.length}</div>
-                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest">Landing page inquiries</div>
-                </div>
-                <div className={glassPanel + " p-6 flex flex-col"}>
-                  <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest mb-2">Total Inquiries</div>
-                  <div className="text-5xl font-oswald text-white mb-4">{dashboardFilteredInquiries.length}</div>
-                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest">General inquiries</div>
-                </div>
-                <div className={glassPanel + " p-6 flex flex-col"}>
-                  <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest mb-2">Pending</div>
-                  <div className="text-5xl font-oswald text-white mb-4">
-                    {dashboardFilteredLeads.filter(l => l.status === 'PENDING' || l.status === 'Pending').length + dashboardFilteredInquiries.filter(i => i.status === 'PENDING' || i.status === 'Pending').length + dashboardFilteredBookings.filter(b => b.status === 'PENDING' || b.status === 'Pending').length}
+                {/* Total Bookings */}
+                <div className={glassPanel + " p-6 flex flex-col relative group"}>
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest">Total Bookings</div>
+                    <select className="bg-transparent border border-white/10 text-gray-400 text-[9px] uppercase outline-none focus:border-white/30 rounded py-0.5 px-1" value={filterBookings} onChange={(e) => setFilterBookings(e.target.value)}>
+                      <option value="all" className="bg-black">All</option>
+                      <option value="today" className="bg-black">Today</option>
+                      <option value="past7" className="bg-black">Past 7 Days</option>
+                    </select>
                   </div>
-                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest">Needs review (Combined)</div>
-                </div>
-                <div className={glassPanel + " p-6 flex flex-col"}>
-                  <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest mb-2">Confirmed</div>
                   <div className="text-5xl font-oswald text-white mb-4">
-                    {dashboardFilteredLeads.filter(l => l.status === 'CONFIRMED' || l.status === 'CONTACTED' || l.status === 'Confirmed' || l.status === 'Contacted').length + dashboardFilteredInquiries.filter(i => i.status === 'CONFIRMED' || i.status === 'Confirmed').length + dashboardFilteredBookings.filter(b => b.status === 'CONFIRMED' || b.status === 'Confirmed' || b.status === 'COMPLETED').length}
+                    {(() => {
+                      const now = new Date();
+                      return dashboardFilteredBookings.filter(b => {
+                        if (filterBookings === 'today') return new Date(b.created || b.createdAt || b.date).toDateString() === now.toDateString();
+                        if (filterBookings === 'past7') return new Date(b.created || b.createdAt || b.date) >= new Date(now.setDate(now.getDate() - 7));
+                        return true;
+                      }).length;
+                    })()}
                   </div>
-                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest">Converted (Combined)</div>
+                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest mt-auto">All scheduled shoots</div>
+                </div>
+
+                {/* Total Leads */}
+                <div className={glassPanel + " p-6 flex flex-col relative group"}>
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest">Total Leads</div>
+                    <select className="bg-transparent border border-white/10 text-gray-400 text-[9px] uppercase outline-none focus:border-white/30 rounded py-0.5 px-1" value={filterLeads} onChange={(e) => setFilterLeads(e.target.value)}>
+                      <option value="all" className="bg-black">All</option>
+                      <option value="today" className="bg-black">Today</option>
+                      <option value="past7" className="bg-black">Past 7 Days</option>
+                    </select>
+                  </div>
+                  <div className="text-5xl font-oswald text-white mb-4">
+                    {(() => {
+                      const now = new Date();
+                      return dashboardFilteredLeads.filter(l => {
+                        if (filterLeads === 'today') return new Date(l.created || l.createdAt).toDateString() === now.toDateString();
+                        if (filterLeads === 'past7') return new Date(l.created || l.createdAt) >= new Date(now.setDate(now.getDate() - 7));
+                        return true;
+                      }).length;
+                    })()}
+                  </div>
+                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest mt-auto">Landing page inquiries</div>
+                </div>
+
+                {/* Total Inquiries */}
+                <div className={glassPanel + " p-6 flex flex-col relative group"}>
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest">Total Inquiries</div>
+                    <select className="bg-transparent border border-white/10 text-gray-400 text-[9px] uppercase outline-none focus:border-white/30 rounded py-0.5 px-1" value={filterInquiries} onChange={(e) => setFilterInquiries(e.target.value)}>
+                      <option value="all" className="bg-black">All</option>
+                      <option value="today" className="bg-black">Today</option>
+                      <option value="past7" className="bg-black">Past 7 Days</option>
+                    </select>
+                  </div>
+                  <div className="text-5xl font-oswald text-white mb-4">
+                    {(() => {
+                      const now = new Date();
+                      return dashboardFilteredInquiries.filter(i => {
+                        if (filterInquiries === 'today') return new Date(i.created || i.createdAt).toDateString() === now.toDateString();
+                        if (filterInquiries === 'past7') return new Date(i.created || i.createdAt) >= new Date(now.setDate(now.getDate() - 7));
+                        return true;
+                      }).length;
+                    })()}
+                  </div>
+                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest mt-auto">General inquiries</div>
+                </div>
+
+                {/* Pending */}
+                <div className={glassPanel + " p-6 flex flex-col relative group"}>
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest">Pending</div>
+                    <select className="bg-transparent border border-white/10 text-gray-400 text-[9px] uppercase outline-none focus:border-white/30 rounded py-0.5 px-1" value={filterPending} onChange={(e) => setFilterPending(e.target.value)}>
+                      <option value="all" className="bg-black">All</option>
+                      <option value="today" className="bg-black">Today</option>
+                      <option value="past7" className="bg-black">Past 7 Days</option>
+                    </select>
+                  </div>
+                  <div className="text-5xl font-oswald text-white mb-4">
+                    {(() => {
+                      const now = new Date();
+                      const filterFunc = (item) => {
+                        if (filterPending === 'today') return new Date(item.created || item.createdAt || item.date).toDateString() === now.toDateString();
+                        if (filterPending === 'past7') return new Date(item.created || item.createdAt || item.date) >= new Date(now.setDate(now.getDate() - 7));
+                        return true;
+                      };
+                      return dashboardFilteredLeads.filter(l => (l.status === 'PENDING' || l.status === 'Pending') && filterFunc(l)).length + 
+                             dashboardFilteredInquiries.filter(i => (i.status === 'PENDING' || i.status === 'Pending') && filterFunc(i)).length + 
+                             dashboardFilteredBookings.filter(b => (b.status === 'PENDING' || b.status === 'Pending') && filterFunc(b)).length;
+                    })()}
+                  </div>
+                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest mt-auto">Needs review (Combined)</div>
+                </div>
+
+                {/* Confirmed */}
+                <div className={glassPanel + " p-6 flex flex-col relative group"}>
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest">Confirmed</div>
+                    <select className="bg-transparent border border-white/10 text-gray-400 text-[9px] uppercase outline-none focus:border-white/30 rounded py-0.5 px-1" value={filterConfirmed} onChange={(e) => setFilterConfirmed(e.target.value)}>
+                      <option value="all" className="bg-black">All</option>
+                      <option value="today" className="bg-black">Today</option>
+                      <option value="past7" className="bg-black">Past 7 Days</option>
+                    </select>
+                  </div>
+                  <div className="text-5xl font-oswald text-white mb-4">
+                    {(() => {
+                      const now = new Date();
+                      const filterFunc = (item) => {
+                        if (filterConfirmed === 'today') return new Date(item.created || item.createdAt || item.date).toDateString() === now.toDateString();
+                        if (filterConfirmed === 'past7') return new Date(item.created || item.createdAt || item.date) >= new Date(now.setDate(now.getDate() - 7));
+                        return true;
+                      };
+                      return dashboardFilteredLeads.filter(l => (l.status === 'CONFIRMED' || l.status === 'CONTACTED' || l.status === 'Confirmed' || l.status === 'Contacted') && filterFunc(l)).length + 
+                             dashboardFilteredInquiries.filter(i => (i.status === 'CONFIRMED' || i.status === 'Confirmed') && filterFunc(i)).length + 
+                             dashboardFilteredBookings.filter(b => (b.status === 'CONFIRMED' || b.status === 'Confirmed' || b.status === 'COMPLETED') && filterFunc(b)).length;
+                    })()}
+                  </div>
+                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest mt-auto">Converted (Combined)</div>
                 </div>
               </div>
-
               <div className={glassPanel + " p-8 mt-8"}>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                   <h3 className="text-xl font-oswald uppercase tracking-widest text-white">Recent Inquiries</h3>
@@ -1382,6 +1501,8 @@ const AdminDashboard = () => {
                               <h3 className="text-xs text-white font-oswald uppercase tracking-[0.3em]">{slide.text}</h3>
                             </div>
                             <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={() => handleMoveHeroSlide(i, 'up')} className="w-8 h-8 rounded-full bg-gray-700 text-white flex items-center justify-center hover:scale-110 transition-transform">↑</button>
+                              <button onClick={() => handleMoveHeroSlide(i, 'down')} className="w-8 h-8 rounded-full bg-gray-700 text-white flex items-center justify-center hover:scale-110 transition-transform">↓</button>
                               <button onClick={() => setEditingHero(slide)} className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 transition-transform">✎</button>
                               <button onClick={() => handleDeleteHero(slide._id)} className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center hover:scale-110 transition-transform">×</button>
                             </div>
@@ -1509,18 +1630,82 @@ const AdminDashboard = () => {
                             </div>
                           </div>
                           {editingLandingPage.showPackages && (
+                            <>
                             <div className="mt-4">
                               <label className="block text-[9px] text-gray-500 mb-1 uppercase">Packages Heading</label>
                               <input type="text" className={glassInput + " py-2 text-sm"} placeholder="e.g. Investment" value={editingLandingPage.packagesHeading || ""} onChange={e => setEditingLandingPage({...editingLandingPage, packagesHeading: e.target.value})} />
                             </div>
+                            
+                            <div className="mt-4 border border-white/10 p-4 rounded-xl">
+                              <div className="flex justify-between items-center mb-4">
+                                <h4 className="text-xs uppercase text-gray-400 tracking-widest">Custom Packages</h4>
+                                <button type="button" onClick={() => setEditingLandingPage({...editingLandingPage, customPackages: [...(editingLandingPage.customPackages || []), {name: '', price: '', description: ''}]})} className="text-[10px] bg-white/10 hover:bg-white/20 px-3 py-1 rounded uppercase tracking-widest">+ Add Package</button>
+                              </div>
+                              {(editingLandingPage.customPackages || []).map((pkg, idx) => (
+                                <div key={idx} className="mb-4 bg-black/30 p-3 rounded border border-white/5 relative">
+                                  <button type="button" onClick={() => {
+                                    const newPkgs = [...editingLandingPage.customPackages];
+                                    newPkgs.splice(idx, 1);
+                                    setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
+                                  }} className="absolute top-2 right-2 text-red-500 hover:text-red-400">&times;</button>
+                                  <div className="grid grid-cols-2 gap-3 mb-2">
+                                    <input type="text" className={glassInput + " py-1 text-xs"} placeholder="Package Name (e.g. Silver)" value={pkg.name} onChange={e => {
+                                      const newPkgs = [...editingLandingPage.customPackages];
+                                      newPkgs[idx].name = e.target.value;
+                                      setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
+                                    }} />
+                                    <input type="text" className={glassInput + " py-1 text-xs"} placeholder="Price (e.g. 10000)" value={pkg.price} onChange={e => {
+                                      const newPkgs = [...editingLandingPage.customPackages];
+                                      newPkgs[idx].price = e.target.value;
+                                      setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
+                                    }} />
+                                  </div>
+                                  <textarea className={glassInput + " py-1 text-xs"} rows="2" placeholder="Features (one per line)" value={pkg.description} onChange={e => {
+                                    const newPkgs = [...editingLandingPage.customPackages];
+                                    newPkgs[idx].description = e.target.value;
+                                    setEditingLandingPage({...editingLandingPage, customPackages: newPkgs});
+                                  }}></textarea>
+                                </div>
+                              ))}
+                            </div>
+                            </>
                           )}
                           
-                        {/* LOGO UPLOAD */}
-                        <div className="border-t border-white/5 pt-6 mt-6 mb-6">
-                           <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase mb-4">Header Logo</h3>
-                           <DragDropImageUploader currentImage={editingLandingPage.logoUrl || ''} onUploadSuccess={(url) => setEditingLandingPage({...editingLandingPage, logoUrl: url})} />
-                        </div>
-
+                          {/* HERO TEXT SETTINGS */}
+                          <div className="border-t border-white/5 pt-6 mt-6 mb-6">
+                            <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase mb-4">Hero Section Text</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-[9px] text-gray-500 mb-1 uppercase">Hero Subheading</label>
+                                <input type="text" className={glassInput + " py-2 text-xs"} placeholder="e.g. Imazen Studios" value={editingLandingPage.heroSubheading || ""} onChange={e => setEditingLandingPage({...editingLandingPage, heroSubheading: e.target.value})} />
+                              </div>
+                              <div>
+                                <label className="block text-[9px] text-gray-500 mb-1 uppercase">Hero Heading</label>
+                                <input type="text" className={glassInput + " py-2 text-xs"} placeholder="e.g. Beautiful Baby Photography" value={editingLandingPage.heroHeading || ""} onChange={e => setEditingLandingPage({...editingLandingPage, heroHeading: e.target.value})} />
+                              </div>
+                              <div className="col-span-full">
+                                <label className="block text-[9px] text-gray-500 mb-1 uppercase">Hero Quote</label>
+                                <input type="text" className={glassInput + " py-2 text-xs"} placeholder="e.g. Your Baby's Smile..." value={editingLandingPage.heroQuote || ""} onChange={e => setEditingLandingPage({...editingLandingPage, heroQuote: e.target.value})} />
+                              </div>
+                              <div className="col-span-full">
+                                <label className="block text-[9px] text-gray-500 mb-1 uppercase">Hero Description</label>
+                                <textarea className={glassInput + " py-2 text-xs"} rows="2" placeholder="Professional baby shoots..." value={editingLandingPage.heroDescription || ""} onChange={e => setEditingLandingPage({...editingLandingPage, heroDescription: e.target.value})}></textarea>
+                              </div>
+                              <div>
+                                <label className="block text-[9px] text-gray-500 mb-1 uppercase">Price Text</label>
+                                <input type="text" className={glassInput + " py-2 text-xs"} placeholder="Packages Start From Just" value={editingLandingPage.heroPriceText || ""} onChange={e => setEditingLandingPage({...editingLandingPage, heroPriceText: e.target.value})} />
+                              </div>
+                              <div>
+                                <label className="block text-[9px] text-gray-500 mb-1 uppercase">Price Amount</label>
+                                <input type="text" className={glassInput + " py-2 text-xs"} placeholder="₹3,999/-" value={editingLandingPage.heroPriceAmount || ""} onChange={e => setEditingLandingPage({...editingLandingPage, heroPriceAmount: e.target.value})} />
+                              </div>
+                              <div className="col-span-full">
+                                <label className="block text-[9px] text-gray-500 mb-1 uppercase">Button Text</label>
+                                <input type="text" className={glassInput + " py-2 text-xs"} placeholder="Book Your Shoot Now" value={editingLandingPage.heroButtonText || ""} onChange={e => setEditingLandingPage({...editingLandingPage, heroButtonText: e.target.value})} />
+                              </div>
+                            </div>
+                          </div>
+                          
                         {/* HERO CAROUSEL */}
    <div className="mb-4">
      <label className="block text-[9px] text-gray-500 mb-1 uppercase">Hero Text Alignment</label>
@@ -1715,14 +1900,31 @@ const AdminDashboard = () => {
 
                         {/* DISPLAY VIDEO */}
                         <div className="border-t border-white/5 pt-6 mt-6">
-                           <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase mb-4">Display Video</h3>
-                           <DragDropVideoUploader currentVideo={editingLandingPage.displayVideoUrl} onUploadSuccess={(url) => setEditingLandingPage({...editingLandingPage, displayVideoUrl: url})} />
+                           <div className="flex justify-between items-center mb-4">
+                             <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase">Display Video</h3>
+                             <label className="flex items-center gap-2 cursor-pointer">
+                               <input type="checkbox" className="form-checkbox text-blue-500 rounded bg-black border-white/20" checked={editingLandingPage.showDisplayVideo !== false} onChange={e => setEditingLandingPage({...editingLandingPage, showDisplayVideo: e.target.checked})} />
+                               <span className="text-[10px] uppercase text-gray-400 tracking-widest">Show Video</span>
+                             </label>
+                           </div>
+                           <input type="text" className="bg-transparent border border-white/10 text-white font-sans outline-none focus:border-white/50 rounded transition-colors [color-scheme:dark] py-2 text-sm w-full mb-4" placeholder="Paste YouTube Link here (e.g. https://youtu.be/...)" value={editingLandingPage.displayVideoUrl || ""} onChange={e => setEditingLandingPage({...editingLandingPage, displayVideoUrl: e.target.value})} />
+                           <DragDropVideoUploader currentVideo={editingLandingPage.displayVideoUrl || editingLandingPage.localVideoUrl} onUploadSuccess={(url) => setEditingLandingPage({...editingLandingPage, displayVideoUrl: url})} />
                         </div>
 
                         {/* APPROACH SECTIONS */}
                         <div className="border-t border-white/5 pt-6 mt-6">
+                          <div className="space-y-4 mb-6">
+                            <div>
+                              <label className="block text-[9px] text-gray-500 mb-1 uppercase">Main Heading</label>
+                              <input type="text" className="bg-transparent border border-white/10 text-white font-sans outline-none focus:border-white/50 rounded transition-colors [color-scheme:dark] py-2 text-sm" placeholder="e.g. Our Approach" value={editingLandingPage.approachHeading || ""} onChange={e => setEditingLandingPage({...editingLandingPage, approachHeading: e.target.value})} />
+                            </div>
+                            <div>
+                              <label className="block text-[9px] text-gray-500 mb-1 uppercase">Main Description</label>
+                              <textarea className="bg-transparent border border-white/10 text-white font-sans outline-none focus:border-white/50 rounded transition-colors [color-scheme:dark] py-2 text-sm" rows="2" placeholder="e.g. Capturing the purest moments..." value={editingLandingPage.approachDescription || ""} onChange={e => setEditingLandingPage({...editingLandingPage, approachDescription: e.target.value})}></textarea>
+                            </div>
+                          </div>
                           <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase">Our Approach</h3>
+                            <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase">Our Approach Sections</h3>
                             <button type="button" onClick={() => {
                               const newSections = [...(editingLandingPage.approachSections || []), { heading: '', description: '', align: 'center' }];
                               setEditingLandingPage({...editingLandingPage, approachSections: newSections});
@@ -2026,6 +2228,18 @@ const AdminDashboard = () => {
                             <div>
                               <label className="block text-xs uppercase text-gray-400 mb-2">Heading</label>
                               <input type="text" className={glassInput} value={editingLandingPage.parallaxFooter?.heading || ''} onChange={e => setEditingLandingPage({...editingLandingPage, parallaxFooter: {...(editingLandingPage.parallaxFooter || {}), heading: e.target.value}})} placeholder="e.g. Ready to Begin Your Story?" />
+                            </div>
+                            <div>
+                              <label className="block text-xs uppercase text-gray-400 mb-2">Subheading</label>
+                              <input type="text" className={glassInput} value={editingLandingPage.parallaxFooter?.subheading || ''} onChange={e => setEditingLandingPage({...editingLandingPage, parallaxFooter: {...(editingLandingPage.parallaxFooter || {}), subheading: e.target.value}})} placeholder="e.g. Starts From Just ₹3,999/-" />
+                            </div>
+                            <div>
+                              <label className="block text-xs uppercase text-gray-400 mb-2">Button Text</label>
+                              <input type="text" className={glassInput} value={editingLandingPage.parallaxFooter?.buttonText || ''} onChange={e => setEditingLandingPage({...editingLandingPage, parallaxFooter: {...(editingLandingPage.parallaxFooter || {}), buttonText: e.target.value}})} placeholder="e.g. Claim Your Spot Now" />
+                            </div>
+                            <div>
+                              <label className="block text-xs uppercase text-gray-400 mb-2">Description</label>
+                              <textarea className={glassInput} value={editingLandingPage.parallaxFooter?.description || ''} onChange={e => setEditingLandingPage({...editingLandingPage, parallaxFooter: {...(editingLandingPage.parallaxFooter || {}), description: e.target.value}})} placeholder="e.g. Let us capture your beautiful moments..." rows="3"></textarea>
                             </div>
                             <div>
                               <label className="block text-xs uppercase text-gray-400 mb-2">Background Image</label>

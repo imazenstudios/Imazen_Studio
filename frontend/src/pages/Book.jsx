@@ -84,10 +84,10 @@ const Book = () => {
         ];
       }
 
-      setSlots(fetchedSlots);
+      setAvailableSlots(fetchedSlots);
     } catch (error) {
       console.error(error);
-      setSlots([]);
+      setAvailableSlots([]);
     }
     setIsLoadingSlots(false);
   };

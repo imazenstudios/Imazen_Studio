@@ -63,6 +63,7 @@ const landingPageSchema = new mongoose.Schema({
 
   
   displayVideoUrl: { type: String },
+  showDisplayVideo: { type: Boolean, default: true },
   approachSections: [{
     heading: { type: String },
     description: { type: String },
