@@ -2546,23 +2546,25 @@ const AdminDashboard = () => {
                               <DragDropImageUploader currentImage={''} multiple={true} onUploadSuccess={(urls) => {
                                 const newImgs = [...(editingSubService.data.portfolioImages || []), ...urls];
                                 setEditingSubService({...editingSubService, data: {...editingSubService.data, portfolioImages: newImgs}});
-                                      // Auto-remove from main portfolio
-                                      const removedImg = editingSubService.data.portfolioImages[idx];
-                                      if (editingService.portfolioImages) {
-                                        const mainNewImgs = editingService.portfolioImages.filter(img => img !== removedImg);
-                                        setEditingService({...editingService, portfolioImages: mainNewImgs});
-                                      }
-                                const mainNewImgs = [...(editingService.portfolioImages || []), ...urls];
-                                setEditingService({...editingService, portfolioImages: mainNewImgs});
+                                // Auto-add to Cinematic Gallery
+                                urls.forEach(url => {
+                                  axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/gallery`, { url, category: editingService.name, type: 'image' }).catch(console.error);
+                                });
                               }} />
                               <div className="mt-4 grid grid-cols-4 gap-2">
                                 {(editingSubService.data.portfolioImages || []).map((img, idx) => (
                                   <div key={idx} className="relative group">
                                     <img src={img} className="w-full h-12 object-cover rounded border border-white/10" />
-                                    <button type="button" onClick={() => {
+                                    <button type="button" onClick={async () => {
                                       const newImgs = [...editingSubService.data.portfolioImages];
+                                      const removedUrl = newImgs[idx];
                                       newImgs.splice(idx, 1);
                                       setEditingSubService({...editingSubService, data: {...editingSubService.data, portfolioImages: newImgs}});
+                                      try {
+                                        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/gallery`);
+                                        const found = res.data.find(img => img.url === removedUrl);
+                                        if (found) await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/gallery/${found._id}`);
+                                      } catch (err) { console.error(err); }
                                     }} className="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">×</button>
                                   </div>
                                 ))}
