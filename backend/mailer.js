@@ -8,7 +8,7 @@ export const getMailer = (user, pass) => {
     sendMail: async (options) => {
       // Enforce the verified domain as the sender. 
       // If the domain is imazenstudios.com, the from MUST end in @imazenstudios.com
-      const fromEmail = 'noreply@imazenstudios.com';
+      const fromEmail = 'info@imazenstudios.com';
       const fromName = 'Imazen Studios';
       const formattedFrom = `${fromName} <${fromEmail}>`;
 
