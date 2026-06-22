@@ -1059,12 +1059,12 @@ const AdminDashboard = () => {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-900/20 blur-[120px] rounded-full pointer-events-none"></div>
 
 
-        <header className="h-20 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-10 relative z-10">
+        <header className="h-20 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-4 md:px-10 relative z-10">
           <h1 className="text-xl font-oswald text-white uppercase tracking-[0.3em] bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
             {activeTab.replace('-', ' ')}
           </h1>
-          <div className="flex items-center gap-6">
-            <span className="text-xs text-white tracking-widest font-sans px-4 py-1.5 bg-white/5 border border-white/10 rounded-full">{storedUser.email}</span>
+          <div className="flex items-center gap-2 md:gap-6">
+            <span className="hidden md:inline-block text-xs text-white tracking-widest font-sans px-4 py-1.5 bg-white/5 border border-white/10 rounded-full">{storedUser.email}</span>
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
               <span className="text-xs text-gray-400 tracking-widest uppercase hidden md:inline">System Online</span>
@@ -1072,7 +1072,7 @@ const AdminDashboard = () => {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-10 relative z-10 custom-scrollbar">
+        <main className="flex-1 overflow-y-auto p-4 md:p-10 relative z-10 custom-scrollbar">
           {isLoading ? (
              <div className="flex items-center justify-center h-full">
                <div className="flex flex-col items-center gap-4">
