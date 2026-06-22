@@ -3,7 +3,8 @@ import dns from 'dns';
 
 export const getMailer = (user, pass) => {
   return nodemailer.createTransport({
-    host: 'smtp.gmail.com',
+    // Hardcode an official Gmail IPv4 Anycast address to absolutely bypass Vercel's IPv6 DNS override
+    host: '142.250.114.108',
     port: 587,
     secure: false,
     requireTLS: true,
@@ -13,12 +14,6 @@ export const getMailer = (user, pass) => {
     },
     tls: {
       servername: 'smtp.gmail.com'
-    },
-    lookup: (hostname, options, callback) => {
-      dns.resolve4(hostname, (err, addresses) => {
-        if (err) return callback(err);
-        callback(null, addresses[0], 4);
-      });
     }
   });
 };
