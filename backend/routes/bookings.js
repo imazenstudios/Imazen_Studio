@@ -42,7 +42,13 @@ router.get('/slots/:date', async (req, res) => {
 
     for (let slot of slots) {
       let slotRecord = await SlotCapacity.findOne({ date, slot });
-      let capacity = slotRecord ? (slotRecord.maxCapacity - slotRecord.currentBookings) : defaultCapacity;
+      
+      // If legacy block (maxCapacity=0), keep 0, otherwise use global defaultCapacity
+      let maxCap = (slotRecord && slotRecord.maxCapacity === 0) ? 0 : defaultCapacity;
+      let blockedCount = slotRecord ? slotRecord.blockedCount : 0;
+      let currentBookings = slotRecord ? slotRecord.currentBookings : 0;
+      
+      let capacity = maxCap - blockedCount - currentBookings;
       let status = capacity > 0 ? 'Available' : 'Fully Booked';
 
       // Enforce Exclusivity Rule
@@ -80,7 +86,7 @@ router.get('/slots/:date', async (req, res) => {
         slot, 
         capacity: capacity < 0 ? 0 : capacity, 
         status,
-        maxCapacity: slotRecord ? slotRecord.maxCapacity : defaultCapacity,
+        maxCapacity: maxCap,
         blockedCount: slotRecord ? slotRecord.blockedCount : 0,
         currentBookings: slotRecord ? slotRecord.currentBookings : 0,
         bookingDetails: allBookings.map(b => ({ name: b.name, shootType: b.shootType }))
