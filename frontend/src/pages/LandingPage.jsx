@@ -93,7 +93,7 @@ const ReferenceLandingPage = () => {
       };
       
       await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/leads`, payload);
-      window.location.href = '/thank-you?type=lead';
+      navigate('/thank-you?type=lead');
     } catch (err) {
       console.error(err);
       setIsSubmitting(false);

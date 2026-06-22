@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 
 const ThankYou = () => {
   const location = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const searchParams = new URLSearchParams(location.search);
   const type = searchParams.get('type') || 'contact'; // 'booking', 'contact', 'lead'
 
