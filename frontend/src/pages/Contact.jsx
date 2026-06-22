@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -9,47 +9,41 @@ const Contact = () => {
     name: '',
     email: '',
     phone: '',
-    subject: '',
-    message: ''
+    interestedIn: ''
   });
-  const [submitted, setSubmitted] = useState(false);
-
+  const [services, setServices] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/services`);
+        setServices(res.data);
+        // Default to Select Event
+        setFormData(prev => ({ ...prev, interestedIn: 'Select Event' }));
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchServices();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/inquiries`, formData);
-      navigate('/thank-you?type=contact');
+      const payload = {
+        ...formData,
+        landingPageSource: 'Contact Us Page'
+      };
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/leads`, payload);
+      navigate('/thank-you?type=lead');
     } catch (error) {
       console.error(error);
       alert('There was an error sending your message. Please try again.');
     }
     setIsSubmitting(false);
   };
-
-  if (submitted) {
-    return (
-      <div className="min-h-screen bg-black pt-32 pb-20 flex items-center justify-center">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-          <h2 className="font-oswald font-bold text-4xl text-white uppercase tracking-widest mb-6">Message Sent</h2>
-          <p className="font-sans text-gray-400 text-sm max-w-md mx-auto leading-relaxed">
-            Thank you for reaching out to Imazen Studios. We will get back to you shortly.
-          </p>
-          <button 
-            onClick={() => {
-              setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
-              setSubmitted(false);
-            }} 
-            className="mt-8 px-8 py-4 border border-white/20 text-white font-sans text-xs uppercase tracking-[0.3em] hover:bg-white hover:text-black transition-all"
-          >
-            Send Another Message
-          </button>
-        </motion.div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-black pt-32 pb-20 relative overflow-hidden">
@@ -104,26 +98,19 @@ const Contact = () => {
                 />
               </div>
               <div>
-                <label className="block text-xs uppercase text-gray-500 tracking-widest mb-2">Subject</label>
-                <input 
-                  type="text" 
+                <label className="block text-xs uppercase text-gray-500 tracking-widest mb-2">Interested In</label>
+                <select 
                   required
-                  value={formData.subject}
-                  onChange={(e) => setFormData({...formData, subject: e.target.value})}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white focus:border-white focus:bg-white/5 outline-none transition-all font-sans"
-                />
+                  value={formData.interestedIn}
+                  onChange={(e) => setFormData({...formData, interestedIn: e.target.value})}
+                  className="w-full bg-black border border-white/10 rounded-xl p-4 text-white focus:border-white focus:bg-white/5 outline-none transition-all font-sans appearance-none cursor-pointer"
+                >
+                  <option value="Select Event">Select Event</option>
+                  {services.map(s => (
+                    <option key={s._id} value={s.name}>{s.name}</option>
+                  ))}
+                </select>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-xs uppercase text-gray-500 tracking-widest mb-2">Message</label>
-              <textarea 
-                required
-                rows={5}
-                value={formData.message}
-                onChange={(e) => setFormData({...formData, message: e.target.value})}
-                className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white focus:border-white focus:bg-white/5 outline-none transition-all font-sans resize-none"
-              ></textarea>
             </div>
 
             <div className="pt-4 text-center">
