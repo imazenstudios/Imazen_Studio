@@ -33,11 +33,14 @@ const Contact = () => {
     setIsSubmitting(true);
     try {
       const payload = {
-        ...formData,
-        landingPageSource: 'Contact Us Page'
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        subject: formData.interestedIn,
+        message: `I am interested in ${formData.interestedIn}.`
       };
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/leads`, payload);
-      navigate('/thank-you?type=lead');
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/inquiries`, payload);
+      navigate('/thank-you?type=contact');
     } catch (error) {
       console.error(error);
       alert('There was an error sending your message. Please try again.');

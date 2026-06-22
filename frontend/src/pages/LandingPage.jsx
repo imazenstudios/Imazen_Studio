@@ -89,7 +89,7 @@ const ReferenceLandingPage = () => {
       const payload = { 
         ...formData, 
         interestedIn: selectedSub ? selectedSub.title : (selectedService ? selectedService.title : 'Baby Shoot'),
-        landingPageSource: 'Reference Baby Photography' 
+        landingPageSource: pageData?.name || 'Landing Page' 
       };
       
       await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/leads`, payload);
