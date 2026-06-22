@@ -70,7 +70,7 @@ router.post('/', async (req, res) => {
         
         const clientEmailHtml = `
           <div style="background-color: #0a0a0a; padding: 40px 30px; font-family: Arial, sans-serif; color: #ffffff; max-width: 600px; margin: 0 auto; border-radius: 8px;">
-            <div style="margin-bottom: 40px;">
+            <div style="text-align: center; margin-bottom: 40px;">
               <img src="https://imazenstudios.com/images/logo4.jpeg" alt="Imazen Studios" style="max-width: 200px; height: auto;" />
             </div>
             <p style="font-size: 15px; line-height: 1.6; margin-bottom: 25px; color: #e5e5e5;">Hi ${name},</p>
