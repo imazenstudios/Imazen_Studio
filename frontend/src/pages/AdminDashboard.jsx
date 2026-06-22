@@ -2554,7 +2554,7 @@ const AdminDashboard = () => {
                               <div className="mt-4 grid grid-cols-4 gap-2">
                                 {(editingSubService.data.portfolioImages || []).map((img, idx) => (
                                   <div key={idx} className="relative group">
-                                    <img src={img} className="w-full h-12 object-cover rounded border border-white/10" />
+                                    <img src={img} className="w-full h-32 object-contain bg-black/40 rounded border border-white/10" />
                                     <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                       {idx > 0 && (
                                         <button type="button" onClick={() => {
