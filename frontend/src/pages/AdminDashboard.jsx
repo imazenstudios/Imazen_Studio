@@ -1023,7 +1023,7 @@ const AdminDashboard = () => {
           {allowedTabs.map(tab => (
             <button 
               key={tab}
-              onClick={() => { setActiveTab(tab); setIsMobileMenuOpen(false); }}
+              onClick={async () => { setActiveTab(tab); setIsMobileMenuOpen(false); }}
               className={`w-full flex items-center gap-4 px-5 py-4 rounded-xl text-xs font-sans uppercase tracking-[0.2em] transition-all duration-300 ${
                 activeTab === tab 
                 ? 'bg-gradient-to-r from-white/10 to-transparent text-white border-l-2 border-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]' 
