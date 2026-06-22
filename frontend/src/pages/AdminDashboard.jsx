@@ -2496,15 +2496,15 @@ const AdminDashboard = () => {
                             <div className="space-y-6">
                               <div>
                                 <label className="block text-xs uppercase text-gray-400 mb-2">Cover Thumbnail</label>
-                                <DragDropImageUploader currentImage={editingSubService.data.imageUrl} onUploadSuccess={(url) => { setEditingSubService({...editingSubService, data: {...editingSubService.data, imageUrl: url}}); setEditingService({...editingService, portfolioImages: [...(editingService.portfolioImages || []), url]}); }} />
+                                <DragDropImageUploader currentImage={editingSubService.data.imageUrl} onUploadSuccess={(url) => setEditingSubService({...editingSubService, data: {...editingSubService.data, imageUrl: url}})} />
                               </div>
                               <div>
                                 <label className="block text-xs uppercase text-gray-400 mb-2">Hero Background</label>
-                                <DragDropImageUploader currentImage={editingSubService.data.heroImage} aspect={16/9} onUploadSuccess={(url) => { setEditingSubService({...editingSubService, data: {...editingSubService.data, heroImage: url}}); setEditingService({...editingService, portfolioImages: [...(editingService.portfolioImages || []), url]}); }} />
+                                <DragDropImageUploader currentImage={editingSubService.data.heroImage} aspect={16/9} onUploadSuccess={(url) => setEditingSubService({...editingSubService, data: {...editingSubService.data, heroImage: url}})} />
                               </div>
                               <div>
                                 <label className="block text-xs uppercase text-gray-400 mb-2">Mobile Hero (Vertical)</label>
-                                <DragDropImageUploader currentImage={editingSubService.data.mobileHeroImage} aspect={9/16} onUploadSuccess={(url) => { setEditingSubService({...editingSubService, data: {...editingSubService.data, mobileHeroImage: url}}); setEditingService({...editingService, portfolioImages: [...(editingService.portfolioImages || []), url]}); }} />
+                                <DragDropImageUploader currentImage={editingSubService.data.mobileHeroImage} aspect={9/16} onUploadSuccess={(url) => setEditingSubService({...editingSubService, data: {...editingSubService.data, mobileHeroImage: url}})} />
                               </div>
                             </div>
                           </div>
@@ -2546,6 +2546,12 @@ const AdminDashboard = () => {
                               <DragDropImageUploader currentImage={''} multiple={true} onUploadSuccess={(urls) => {
                                 const newImgs = [...(editingSubService.data.portfolioImages || []), ...urls];
                                 setEditingSubService({...editingSubService, data: {...editingSubService.data, portfolioImages: newImgs}});
+                                      // Auto-remove from main portfolio
+                                      const removedImg = editingSubService.data.portfolioImages[idx];
+                                      if (editingService.portfolioImages) {
+                                        const mainNewImgs = editingService.portfolioImages.filter(img => img !== removedImg);
+                                        setEditingService({...editingService, portfolioImages: mainNewImgs});
+                                      }
                                 const mainNewImgs = [...(editingService.portfolioImages || []), ...urls];
                                 setEditingService({...editingService, portfolioImages: mainNewImgs});
                               }} />

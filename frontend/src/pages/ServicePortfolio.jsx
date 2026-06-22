@@ -74,13 +74,13 @@ const ServicePortfolio = () => {
     if (!serviceData) return null;
     
     if (activeSub === 'ALL') {
-      const allImages = [...(serviceData.portfolioImages || [])];
-      const allVideos = [...(serviceData.portfolioVideos || [])];
+      const imgSet = new Set(serviceData.portfolioImages || []);
+      const vidSet = new Set(serviceData.portfolioVideos || []);
       
       if (serviceData.subServices) {
         serviceData.subServices.forEach(sub => {
-          if (sub.portfolioImages) allImages.push(...sub.portfolioImages);
-          if (sub.portfolioVideos) allVideos.push(...sub.portfolioVideos);
+          if (sub.portfolioImages) sub.portfolioImages.forEach(img => imgSet.add(img));
+          if (sub.portfolioVideos) sub.portfolioVideos.forEach(vid => vidSet.add(vid));
         });
       }
 
@@ -90,8 +90,8 @@ const ServicePortfolio = () => {
         tagline: serviceData.tagline,
         heroImage: serviceData.heroImage,
         mobileHeroImage: serviceData.mobileHeroImage || serviceData.heroImage,
-        images: allImages.map(url => ({url})),
-        videos: allVideos.map(url => ({url}))
+        images: Array.from(imgSet).map(url => ({url})),
+        videos: Array.from(vidSet).map(url => ({url}))
       };
     } else {
       const sub = serviceData.subServices?.find(s => s.slug === activeSub);
