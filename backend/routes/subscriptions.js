@@ -7,7 +7,7 @@ const logoPath = path.join(__dirnamePath, '../../frontend/public/images/logo.png
 
 import Subscription from '../models/Subscription.js';
 import Booking from '../models/Booking.js';
-import nodemailer from 'nodemailer';
+import { getMailer } from '../mailer.js';
 import Settings from '../models/Settings.js';
 
 const router = express.Router();
@@ -64,18 +64,7 @@ router.post('/', async (req, res) => {
       if ((process.env.SMTP_USER || process.env.EMAIL_USER) && (process.env.SMTP_PASS || process.env.EMAIL_PASS)) {
         const authUser = process.env.SMTP_USER || process.env.EMAIL_USER;
         const authPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
-        
-        const transporter = nodemailer.createTransport({
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
-          requireTLS: true,
-          family: 4,
-          auth: {
-            user: authUser,
-            pass: authPass
-          }
-        });
+        const transporter = getMailer(authUser, authPass);
 
         const settings = await Settings.findOne() || {};
         

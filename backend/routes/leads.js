@@ -6,24 +6,15 @@ const __dirnamePath = path.dirname(__filenamePath);
 const logoPath = path.join(__dirnamePath, '../../frontend/public/images/logo.png');
 
 import Lead from '../models/Lead.js';
-import nodemailer from 'nodemailer';
+import { getMailer } from '../mailer.js';
 
 const router = express.Router();
 
+// Configure Nodemailer transporter lazily to ensure env vars are loaded
 let transporter;
 const getTransporter = () => {
   if (!transporter) {
-    transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      requireTLS: true,
-      family: 4,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
+    transporter = getMailer();
   }
   return transporter;
 };

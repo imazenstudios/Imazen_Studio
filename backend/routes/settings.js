@@ -1,6 +1,6 @@
 import express from 'express';
 import Settings from '../models/Settings.js';
-import nodemailer from 'nodemailer';
+import { getMailer } from '../mailer.js';
 
 const router = express.Router();
 
@@ -140,17 +140,7 @@ router.post('/test-email', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Email credentials (EMAIL_USER / EMAIL_PASS) are not configured on the server.' });
     }
 
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      requireTLS: true,
-      family: 4,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
+    const transporter = getMailer();
 
     const info = await transporter.sendMail({
       from: `"Imazen Test" <${process.env.EMAIL_USER}>`,

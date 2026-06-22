@@ -2,7 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import AdminUser from '../models/AdminUser.js';
-import nodemailer from 'nodemailer';
+import { getMailer } from '../mailer.js';
 
 const router = express.Router();
 
@@ -79,17 +79,10 @@ router.post('/forgot-password', async (req, res) => {
     await user.save();
 
     // Send email
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      requireTLS: true,
-      family: 4,
-      auth: {
-        user: process.env.EMAIL_USER || 'test@gmail.com',
-        pass: process.env.EMAIL_PASS || 'password'
-      }
-    });
+    const transporter = getMailer(
+      process.env.EMAIL_USER || 'test@gmail.com',
+      process.env.EMAIL_PASS || 'password'
+    );
 
     const mailOptions = {
       from: process.env.EMAIL_USER || 'no-reply@imazenstudios.com',
