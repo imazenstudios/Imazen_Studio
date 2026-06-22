@@ -31,7 +31,13 @@ router.put('/blocked-weekdays', async (req, res) => {
     } else {
       if (blockedWeekdays !== undefined) settings.blockedWeekdays = blockedWeekdays;
       if (weekdayCapacities !== undefined) {
-        settings.weekdayCapacities = weekdayCapacities;
+        if (!settings.weekdayCapacities) {
+          settings.weekdayCapacities = new Map();
+        }
+        // Safely iterate over the object and set each key on the Map
+        for (const [key, value] of Object.entries(weekdayCapacities)) {
+          settings.weekdayCapacities.set(key, value);
+        }
         settings.markModified('weekdayCapacities');
       }
       await settings.save();
