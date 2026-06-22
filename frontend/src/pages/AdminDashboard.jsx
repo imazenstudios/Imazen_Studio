@@ -3263,25 +3263,15 @@ const AdminDashboard = () => {
                                   return (
                                     <div key={dayIndex} className="flex justify-between items-center bg-black/20 p-2 px-4 rounded border border-white/5">
                                       <span className="text-xs uppercase font-oswald text-gray-300 tracking-widest">{day}</span>
-                                      <div className="flex gap-2">
+                                          <div className="flex gap-2">
                                         {[1, 2, 3].map(num => {
                                           const isSelected = currentCapacity === num;
                                           return (
                                             <button 
                                               key={num}
-                                              onClick={async () => {
+                                              onClick={() => {
                                                 const newCapacities = { ...(settings.weekdayCapacities || { '0':3,'1':3,'2':3,'3':3,'4':3,'5':3,'6':3 }), [dayIndex]: num };
                                                 setSettings({ ...settings, weekdayCapacities: newCapacities });
-                                                try {
-                                                  // Wait for DB to fully save the map
-                                                  await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings/blocked-weekdays`, { weekdayCapacities: newCapacities });
-                                                  // If the selected slotDate is this weekday, fetch updated slots from the global setting
-                                                  if (new Date(slotDate).getUTCDay() === dayIndex) {
-                                                    fetchSlotsForAdmin(slotDate);
-                                                  }
-                                                } catch(e) {
-                                                  console.error(e);
-                                                }
                                               }}
                                               className={`w-8 h-8 rounded flex items-center justify-center text-xs font-oswald transition-colors border ${isSelected ? 'bg-white text-black border-white' : 'bg-black text-gray-400 border-white/10 hover:border-white/50'}`}
                                             >
@@ -3293,6 +3283,26 @@ const AdminDashboard = () => {
                                     </div>
                                   );
                                 })}
+                              </div>
+                              <div className="mt-6 flex justify-end">
+                                <button 
+                                  onClick={async () => {
+                                    try {
+                                      const newCapacities = settings.weekdayCapacities || { '0':3,'1':3,'2':3,'3':3,'4':3,'5':3,'6':3 };
+                                      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings/blocked-weekdays`, { weekdayCapacities: newCapacities });
+                                      alert("Global Slots saved successfully!");
+                                      if (slotDate) {
+                                        fetchSlotsForAdmin(slotDate);
+                                      }
+                                    } catch(e) {
+                                      alert("Error saving slots. Please check your connection. Error: " + e.message);
+                                      console.error(e);
+                                    }
+                                  }}
+                                  className="px-6 py-2 bg-white text-black font-oswald uppercase tracking-widest text-sm hover:bg-gray-200 transition-colors"
+                                >
+                                  Save Global Slots
+                                </button>
                               </div>
                             </div>
                             
