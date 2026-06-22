@@ -234,7 +234,7 @@ const ReferenceLandingPage = () => {
             <h2 className="text-sm sm:text-base font-oswald uppercase tracking-[0.3em] text-gray-400 mb-4 drop-shadow-md">
               {pageData?.heroSubheading || 'Imazen Studios'}
             </h2>
-            <h1 className="text-5xl sm:text-7xl md:text-8xl font-oswald uppercase tracking-tight leading-[1.1] mb-6 text-white drop-shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+            <h1 className="text-5xl sm:text-6xl lg:text-8xl font-oswald uppercase tracking-tight leading-[1.1] mb-6 text-white drop-shadow-[0_0_30px_rgba(0,0,0,0.5)]">
               <span style={{ whiteSpace: 'pre-line' }}>{pageData?.heroHeading || 'Beautiful Baby\nPhotography'}</span>
             </h1>
           </motion.div>
