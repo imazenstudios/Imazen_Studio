@@ -36,7 +36,7 @@ router.get('/slots/:date', async (req, res) => {
     const exclusiveServiceNames = allServices.filter(s => s.limitOnePerSession).map(s => s.name);
 
     // Get default capacity based on weekday
-    const settings = await Settings.findOne() || new Settings();
+    const settings = await Settings.findOne().lean() || {};
     // Parse date as UTC to avoid server timezone offset shifting the day of week
     const dayIndex = new Date(date).getUTCDay();
     
@@ -208,7 +208,7 @@ router.post('/', async (req, res) => {
     const { name, email, phone, babyAge, shootType, package: pkg, date, slot, notes } = req.body;
 
     // Get default capacity for this weekday
-    const settings = await Settings.findOne() || new Settings();
+    const settings = await Settings.findOne().lean() || {};
     const dayIndex = new Date(date).getUTCDay();
     const isHoliday = settings.blockedWeekdays && settings.blockedWeekdays.includes(dayIndex);
     let defaultCapacity = 3;
