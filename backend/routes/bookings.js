@@ -149,7 +149,7 @@ router.post('/', async (req, res) => {
           : [settings.contactEmail || 'hello@imazenstudios.in'];
 
         const emailHtml = `
-          <img src="https://imazenstudios.com/images/logo.png" alt="Imazen Studios" style="max-width: 150px; height: auto; margin-bottom: 20px;" />
+          <img src="https://imazenstudios.com/images/logo4.jpeg" alt="Imazen Studios" style="max-width: 150px; height: auto; margin-bottom: 20px;" />
           <h2>New Booking Request</h2>
           <p><strong>Name:</strong> ${name}</p>
           <p><strong>Email:</strong> ${email}</p>
@@ -166,7 +166,7 @@ router.post('/', async (req, res) => {
         const clientEmailHtml = `
           <div style="background-color: #0a0a0a; padding: 40px 30px; font-family: Arial, sans-serif; color: #ffffff; max-width: 600px; margin: 0 auto; border-radius: 8px;">
             <div style="margin-bottom: 40px;">
-              <img src="https://imazenstudios.com/images/logo.png" alt="Imazen Studios" style="max-width: 200px; height: auto;" />
+              <img src="https://imazenstudios.com/images/logo4.jpeg" alt="Imazen Studios" style="max-width: 200px; height: auto;" />
             </div>
             <p style="font-size: 15px; line-height: 1.6; margin-bottom: 25px; color: #e5e5e5;">
               Hi ${name},

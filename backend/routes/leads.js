@@ -39,7 +39,7 @@ router.post('/', async (req, res) => {
             html: `
               <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
                 <div style="text-align: center; margin-bottom: 20px;">
-                  <img src="https://imazenstudios.com/images/logo.png" alt="Imazen Studios" style="max-width: 150px; height: auto;" />
+                  <img src="https://imazenstudios.com/images/logo4.jpeg" alt="Imazen Studios" style="max-width: 150px; height: auto;" />
                 </div>
                 <h2 style="color: #000; text-transform: uppercase; letter-spacing: 2px;">Thank you, ${lead.name}!</h2>
                 <p>We have successfully received your inquiry ${lead.interestedIn ? `for <strong>${lead.interestedIn}</strong>` : ''}${lead.eventDate ? ` for the date: <strong>${new Date(lead.eventDate).toLocaleDateString()}</strong>` : ''}.</p>
@@ -62,7 +62,7 @@ router.post('/', async (req, res) => {
             html: `
               <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px; background-color: #fcfcfc;">
                 <div style="text-align: center; margin-bottom: 20px;">
-                  <img src="https://imazenstudios.com/images/logo.png" alt="Imazen Studios" style="max-width: 150px; height: auto;" />
+                  <img src="https://imazenstudios.com/images/logo4.jpeg" alt="Imazen Studios" style="max-width: 150px; height: auto;" />
                 </div>
                 <h2 style="color: #d4af37; text-transform: uppercase;">New Landing Page Lead</h2>
                 <p><strong>Name:</strong> ${lead.name}</p>
