@@ -12,30 +12,71 @@ import Settings from '../models/Settings.js';
 
 const router = express.Router();
 
+import Service from '../models/Service.js';
+
 // Get available slots for a given date
 router.get('/slots/:date', async (req, res) => {
   try {
     const { date } = req.params;
+    const { serviceId } = req.query;
     const slots = ['Morning', 'Afternoon', 'Evening'];
     const availability = [];
 
+    // Identify if requested service is exclusive
+    let isRequestedExclusive = false;
+    if (serviceId) {
+      const requestedService = await Service.findOne({ slug: serviceId });
+      if (requestedService && requestedService.limitOnePerSession) {
+        isRequestedExclusive = true;
+      }
+    }
+
+    // Get all exclusive service names to check existing bookings
+    const allServices = await Service.find();
+    const exclusiveServiceNames = allServices.filter(s => s.limitOnePerSession).map(s => s.name);
+
     for (let slot of slots) {
       let slotRecord = await SlotCapacity.findOne({ date, slot });
-      if (!slotRecord) {
-        // If no record exists, it means 0 bookings, capacity is full 3
-        availability.push({ slot, capacity: 3, status: 'Available' });
-      } else {
-        const remaining = slotRecord.maxCapacity - slotRecord.currentBookings;
-        availability.push({ 
-          slot, 
-          capacity: remaining, 
-          status: remaining > 0 ? 'Available' : 'Fully Booked' 
-        });
+      let capacity = slotRecord ? (slotRecord.maxCapacity - slotRecord.currentBookings) : 3;
+      let status = capacity > 0 ? 'Available' : 'Fully Booked';
+
+      // Enforce Exclusivity Rule
+      if (status === 'Available' && isRequestedExclusive) {
+        // If the client wants an exclusive shoot, we must check if the session already contains ANY exclusive shoot
+        const existingBookings = await Booking.find({ date, slot, bookingType: 'Client' });
+        // Also check multi-slots (studio bookings) - studio bookings are exclusive by nature?
+        const multiBookings = await Booking.find({ date, slots: slot, bookingType: 'Studio' });
+        const allBookings = [...existingBookings, ...multiBookings];
+
+        let hasExclusive = false;
+        for (let b of allBookings) {
+          if (b.bookingType === 'Studio') {
+            hasExclusive = true; // Studio takes up the whole slot conceptually, or at least is exclusive
+            break;
+          }
+          if (b.shootType && exclusiveServiceNames.some(name => b.shootType.startsWith(name))) {
+            hasExclusive = true;
+            break;
+          }
+        }
+
+        if (hasExclusive) {
+          status = 'Fully Booked';
+          capacity = 0; // Prevent booking this slot for this specific service
+        }
       }
+
+      availability.push({ 
+        slot, 
+        capacity: capacity < 0 ? 0 : capacity, 
+        status,
+        maxCapacity: slotRecord ? slotRecord.maxCapacity : 3
+      });
     }
 
     res.json(availability);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Server error fetching slots' });
   }
 });
@@ -117,6 +158,33 @@ router.post('/', async (req, res) => {
     
     if (slotRecord && slotRecord.currentBookings >= slotRecord.maxCapacity) {
       return res.status(400).json({ error: 'Slot is fully booked' });
+    }
+
+    // Enforce Exclusivity Rule
+    const allServices = await Service.find();
+    const exclusiveServiceNames = allServices.filter(s => s.limitOnePerSession).map(s => s.name);
+    
+    if (shootType && exclusiveServiceNames.some(name => shootType.startsWith(name))) {
+      // This is an exclusive shoot. Check if session already has one
+      const existingBookings = await Booking.find({ date, slot, bookingType: 'Client' });
+      const multiBookings = await Booking.find({ date, slots: slot, bookingType: 'Studio' });
+      const allBookings = [...existingBookings, ...multiBookings];
+      
+      let hasExclusive = false;
+      for (let b of allBookings) {
+        if (b.bookingType === 'Studio') {
+          hasExclusive = true;
+          break;
+        }
+        if (b.shootType && exclusiveServiceNames.some(name => b.shootType.startsWith(name))) {
+          hasExclusive = true;
+          break;
+        }
+      }
+      
+      if (hasExclusive) {
+        return res.status(400).json({ error: 'This session already has an exclusive shoot booked.' });
+      }
     }
 
     // Create booking
@@ -416,6 +484,29 @@ router.put('/slots/block', async (req, res) => {
     res.json(slotRecord);
   } catch (error) {
     res.status(500).json({ error: 'Server error updating slot capacity' });
+  }
+});
+
+// Admin: Set maxCapacity for all slots on a date
+router.put('/slots/capacity', async (req, res) => {
+  try {
+    const { date, capacity } = req.body;
+    const slots = ['Morning', 'Afternoon', 'Evening'];
+    
+    for (let slot of slots) {
+      let slotRecord = await SlotCapacity.findOne({ date, slot });
+      if (!slotRecord) {
+        slotRecord = new SlotCapacity({ date, slot, currentBookings: 0, maxCapacity: capacity });
+      } else {
+        // If it's blocked (0), don't unblock it unless capacity is > 0?
+        // Wait, if they set capacity, it should override everything
+        slotRecord.maxCapacity = capacity;
+      }
+      await slotRecord.save();
+    }
+    res.json({ message: 'Capacity updated successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error updating capacities' });
   }
 });
 

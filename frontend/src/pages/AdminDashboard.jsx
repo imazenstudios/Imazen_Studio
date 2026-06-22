@@ -650,6 +650,16 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleSetDailyCapacity = async (capacity) => {
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/slots/capacity`, { date: slotDate, capacity });
+      fetchSlotsForAdmin(slotDate);
+    } catch (error) {
+      console.error(error);
+      alert('Error updating capacity');
+    }
+  };
+
   const handleToggleBlockedWeekday = async (dayIndex) => {
     try {
       const currentBlocked = settings.blockedWeekdays || [];
@@ -2421,10 +2431,14 @@ const AdminDashboard = () => {
                                <label className="block text-xs uppercase text-gray-400 mb-2">Tagline (for Portfolio Page)</label>
                                <input type="text" className={glassInput} placeholder="e.g. Capturing Moments That Last Forever" value={editingService.tagline || ''} onChange={e => setEditingService({...editingService, tagline: e.target.value})} />
                              </div>
-                             <div className="col-span-2">
+                             <div className="col-span-2 flex gap-6">
                                <label className="flex items-center gap-2 text-xs uppercase text-gray-400 cursor-pointer">
                                  <input type="checkbox" className="w-4 h-4" checked={editingService.slotsActive !== false} onChange={e => setEditingService({...editingService, slotsActive: e.target.checked})} />
                                  Slots Active (Show in Booking)
+                               </label>
+                               <label className="flex items-center gap-2 text-xs uppercase text-gray-400 cursor-pointer">
+                                 <input type="checkbox" className="w-4 h-4" checked={editingService.limitOnePerSession || false} onChange={e => setEditingService({...editingService, limitOnePerSession: e.target.checked})} />
+                                 Limit to 1 per session (Exclusive)
                                </label>
                              </div>
                            </div>
@@ -3247,6 +3261,23 @@ const AdminDashboard = () => {
                            <div className="text-xs text-gray-500 tracking-widest uppercase">Loading slots...</div>
                         ) : (
                           <div className="space-y-4">
+                            <div className="flex justify-between items-center mb-6 bg-black/40 p-4 rounded-xl border border-white/5">
+                              <div>
+                                <label className="block text-xs uppercase text-gray-500 font-oswald tracking-widest mb-1">Slots per session</label>
+                                <p className="text-[10px] text-gray-500 font-sans">Set maximum bookings for Morning/Afternoon/Evening</p>
+                              </div>
+                              <div className="flex gap-2">
+                                {[1, 2, 3, 4].map(num => (
+                                  <button 
+                                    key={num}
+                                    onClick={() => handleSetDailyCapacity(num)}
+                                    className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-oswald transition-colors border ${slotData[0]?.maxCapacity === num ? 'bg-white text-black border-white' : 'bg-black text-gray-400 border-white/10 hover:border-white/50'}`}
+                                  >
+                                    {num}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
                             {slotData.map((slot, idx) => (
                               <div key={idx} className="flex items-center justify-between p-4 border border-white/5 bg-black/20 rounded-xl">
                                 <div>

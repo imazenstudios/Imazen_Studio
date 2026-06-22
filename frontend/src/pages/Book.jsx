@@ -72,7 +72,7 @@ const Book = () => {
   const fetchSlots = async (date) => {
     setIsLoadingSlots(true);
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/slots/${date}`).catch(() => null);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/slots/${date}?serviceId=${formData.serviceId}`).catch(() => null);
       let fetchedSlots = [];
       if (res && res.data) {
         fetchedSlots = res.data;

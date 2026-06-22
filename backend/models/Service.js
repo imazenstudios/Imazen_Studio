@@ -42,6 +42,7 @@ const serviceSchema = new mongoose.Schema({
   slug: { type: String, required: true, unique: true }, // e.g. "maternity-stories"
   order: { type: Number, default: 0 },
   slotsActive: { type: Boolean, default: true },
+  limitOnePerSession: { type: Boolean, default: false },
   tagline: { type: String }, // e.g. "Capturing Moments That Last Forever"
   description: { type: String },
   imageUrl: { type: String },
