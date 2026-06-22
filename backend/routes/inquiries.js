@@ -32,15 +32,10 @@ router.post('/', async (req, res) => {
           from: `"Imazen Studios" <${process.env.EMAIL_USER}>`,
           to: inquiry.email,
           subject: "Thank you for contacting Imazen Studios!",
-          attachments: [{
-            filename: 'logo.png',
-            path: logoPath,
-            cid: 'imazenlogo'
-          }],
           html: `
             <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
               <div style="text-align: center; margin-bottom: 20px;">
-                <img src="cid:imazenlogo" alt="Imazen Studios" style="max-width: 150px; height: auto;" />
+                <img src="https://imazenstudios.com/images/logo2.png" alt="Imazen Studios" style="max-width: 150px; height: auto;" />
               </div>
               <h2 style="color: #000; text-transform: uppercase; letter-spacing: 2px;">Thank you, ${inquiry.name}!</h2>
               <p>We have successfully received your inquiry regarding <strong>"${inquiry.subject}"</strong>.</p>

@@ -36,15 +36,10 @@ router.post('/', async (req, res) => {
             from: `"Imazen Studios" <${process.env.EMAIL_USER}>`,
             to: lead.email,
             subject: "Thank you for your interest in Imazen Studios!",
-            attachments: [{
-              filename: 'logo.png',
-              path: logoPath,
-              cid: 'imazenlogo'
-            }],
             html: `
               <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
                 <div style="text-align: center; margin-bottom: 20px;">
-                  <img src="cid:imazenlogo" alt="Imazen Studios" style="max-width: 150px; height: auto;" />
+                  <img src="https://imazenstudios.com/images/logo2.png" alt="Imazen Studios" style="max-width: 150px; height: auto;" />
                 </div>
                 <h2 style="color: #000; text-transform: uppercase; letter-spacing: 2px;">Thank you, ${lead.name}!</h2>
                 <p>We have successfully received your inquiry ${lead.interestedIn ? `for <strong>${lead.interestedIn}</strong>` : ''}${lead.eventDate ? ` for the date: <strong>${new Date(lead.eventDate).toLocaleDateString()}</strong>` : ''}.</p>

@@ -149,7 +149,7 @@ router.post('/', async (req, res) => {
           : [settings.contactEmail || 'hello@imazenstudios.in'];
 
         const emailHtml = `
-          <img src="cid:imazenlogo" alt="Imazen Studios" style="max-width: 150px; height: auto; margin-bottom: 20px;" />
+          <img src="https://imazenstudios.com/images/logo2.png" alt="Imazen Studios" style="max-width: 150px; height: auto; margin-bottom: 20px;" />
           <h2>New Booking Request</h2>
           <p><strong>Name:</strong> ${name}</p>
           <p><strong>Email:</strong> ${email}</p>

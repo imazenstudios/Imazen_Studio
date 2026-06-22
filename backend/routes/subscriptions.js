@@ -71,7 +71,7 @@ router.post('/', async (req, res) => {
         const clientEmailHtml = `
           <div style="background-color: #0a0a0a; padding: 40px 30px; font-family: Arial, sans-serif; color: #ffffff; max-width: 600px; margin: 0 auto; border-radius: 8px;">
             <div style="margin-bottom: 40px;">
-              <img src="cid:imazenlogo" alt="Imazen Studios" style="max-width: 200px; height: auto;" />
+              <img src="https://imazenstudios.com/images/logo2.png" alt="Imazen Studios" style="max-width: 200px; height: auto;" />
             </div>
             <p style="font-size: 15px; line-height: 1.6; margin-bottom: 25px; color: #e5e5e5;">Hi ${name},</p>
             <p style="font-size: 15px; line-height: 1.6; margin-bottom: 25px; color: #e5e5e5;">
@@ -91,12 +91,7 @@ router.post('/', async (req, res) => {
           from: `"Imazen Studios" <${authUser}>`,
           to: email,
           subject: 'Your Imazen Studios Subscription',
-          html: clientEmailHtml,
-          attachments: [{
-            filename: 'logo.png',
-            path: logoPath,
-            cid: 'imazenlogo'
-          }]
+          html: clientEmailHtml
         });
       }
     } catch (emailError) {
