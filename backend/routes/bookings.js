@@ -42,7 +42,18 @@ router.get('/slots/:date', async (req, res) => {
     
     // Check if the entire weekday is blocked (holiday)
     const isHoliday = settings.blockedWeekdays && settings.blockedWeekdays.includes(dayIndex);
-    const defaultCapacity = isHoliday ? 0 : (settings.weekdayCapacities ? (settings.weekdayCapacities.get(dayIndex.toString()) ?? 3) : 3);
+    let defaultCapacity = 3;
+    if (isHoliday) {
+      defaultCapacity = 0;
+    } else if (settings.weekdayCapacities) {
+      const capStr = dayIndex.toString();
+      const capNum = typeof settings.weekdayCapacities.get === 'function' 
+        ? settings.weekdayCapacities.get(capStr) 
+        : settings.weekdayCapacities[capStr];
+      if (capNum !== undefined && capNum !== null) {
+        defaultCapacity = capNum;
+      }
+    }
 
     for (let slot of slots) {
       let slotRecord = await SlotCapacity.findOne({ date, slot });
@@ -130,7 +141,18 @@ router.post('/studio', async (req, res) => {
     const settings = await Settings.findOne() || new Settings();
     const dayIndex = new Date(date).getUTCDay();
     const isHoliday = settings.blockedWeekdays && settings.blockedWeekdays.includes(dayIndex);
-    const defaultCapacity = isHoliday ? 0 : (settings.weekdayCapacities ? (settings.weekdayCapacities.get(dayIndex.toString()) ?? 3) : 3);
+    let defaultCapacity = 3;
+    if (isHoliday) {
+      defaultCapacity = 0;
+    } else if (settings.weekdayCapacities) {
+      const capStr = dayIndex.toString();
+      const capNum = typeof settings.weekdayCapacities.get === 'function' 
+        ? settings.weekdayCapacities.get(capStr) 
+        : settings.weekdayCapacities[capStr];
+      if (capNum !== undefined && capNum !== null) {
+        defaultCapacity = capNum;
+      }
+    }
 
     for (const slot of slots) {
       const slotRecord = await SlotCapacity.findOne({ date, slot });
@@ -189,7 +211,18 @@ router.post('/', async (req, res) => {
     const settings = await Settings.findOne() || new Settings();
     const dayIndex = new Date(date).getUTCDay();
     const isHoliday = settings.blockedWeekdays && settings.blockedWeekdays.includes(dayIndex);
-    const defaultCapacity = isHoliday ? 0 : (settings.weekdayCapacities ? (settings.weekdayCapacities.get(dayIndex.toString()) ?? 3) : 3);
+    let defaultCapacity = 3;
+    if (isHoliday) {
+      defaultCapacity = 0;
+    } else if (settings.weekdayCapacities) {
+      const capStr = dayIndex.toString();
+      const capNum = typeof settings.weekdayCapacities.get === 'function' 
+        ? settings.weekdayCapacities.get(capStr) 
+        : settings.weekdayCapacities[capStr];
+      if (capNum !== undefined && capNum !== null) {
+        defaultCapacity = capNum;
+      }
+    }
 
     // Check capacity first
     let slotRecord = await SlotCapacity.findOne({ date, slot });
