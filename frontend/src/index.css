@@ -48,3 +48,10 @@
     color: transparent;
   }
 }
+
+/* Fix iOS Parallax issue */
+@supports (-webkit-touch-callout: none) {
+  .bg-fixed {
+    background-attachment: scroll !important;
+  }
+}
