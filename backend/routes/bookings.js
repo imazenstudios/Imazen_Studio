@@ -146,6 +146,7 @@ router.post('/', async (req, res) => {
           host: 'smtp.gmail.com',
           port: 465,
           secure: true,
+          family: 4,
           auth: {
             user: authUser,
             pass: authPass
