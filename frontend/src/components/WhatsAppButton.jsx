@@ -18,7 +18,7 @@ const WhatsAppButton = () => {
 
   return (
     <motion.a
-      href={`https://wa.me/${number}`}
+      href={`https://wa.me/${number}?text=${encodeURIComponent("Hi, I am interested in a photoshoot. Could you please share more details?")}`}
       target="_blank"
       rel="noopener noreferrer"
       initial={{ scale: 0 }}
