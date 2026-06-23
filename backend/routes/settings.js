@@ -31,18 +31,11 @@ router.put('/blocked-weekdays', async (req, res) => {
     } else {
       const updateData = {};
       if (blockedWeekdays !== undefined) updateData.blockedWeekdays = blockedWeekdays;
+      if (weekdayCapacities !== undefined) updateData.weekdayCapacities = weekdayCapacities;
       
-      const updateOperator = { $set: updateData };
-      
-      if (weekdayCapacities !== undefined) {
-        for (const [key, value] of Object.entries(weekdayCapacities)) {
-          updateOperator.$set[`weekdayCapacities.${key}`] = value;
-        }
-      }
-      
-      await Settings.updateOne(
+      await Settings.collection.updateOne(
         { _id: settings._id },
-        updateOperator
+        { $set: updateData }
       );
     }
     
