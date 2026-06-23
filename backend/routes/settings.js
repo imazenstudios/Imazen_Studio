@@ -29,18 +29,21 @@ router.put('/blocked-weekdays', async (req, res) => {
       settings = new Settings({ blockedWeekdays, weekdayCapacities });
       await settings.save();
     } else {
-      if (blockedWeekdays !== undefined) settings.blockedWeekdays = blockedWeekdays;
+      const updateData = {};
+      if (blockedWeekdays !== undefined) updateData.blockedWeekdays = blockedWeekdays;
+      
+      const updateOperator = { $set: updateData };
+      
       if (weekdayCapacities !== undefined) {
-        if (!settings.weekdayCapacities) {
-          settings.weekdayCapacities = new Map();
-        }
-        // Safely iterate over the object and set each key on the Map
         for (const [key, value] of Object.entries(weekdayCapacities)) {
-          settings.weekdayCapacities.set(key, value);
+          updateOperator.$set[`weekdayCapacities.${key}`] = value;
         }
-        settings.markModified('weekdayCapacities');
       }
-      await settings.save();
+      
+      await Settings.updateOne(
+        { _id: settings._id },
+        updateOperator
+      );
     }
     
     // Return lean object so frontend gets a plain JS object map
