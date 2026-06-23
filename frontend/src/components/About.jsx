@@ -84,11 +84,11 @@ const About = () => {
               </p>
               
               {content?.features && content.features.length > 0 && (
-                <ul className="mt-8 space-y-4 text-left">
+                <ul className="mt-8 space-y-4 text-center flex flex-col items-center">
                   {content.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center justify-center text-xs font-sans tracking-[0.2em] text-gray-300 uppercase">
-                      <span className="w-1.5 h-1.5 bg-white rounded-full mr-4 opacity-50"></span>
-                      {feature}
+                    <li key={idx} className="flex items-center justify-center text-xs font-sans tracking-[0.2em] text-gray-300 uppercase max-w-4xl">
+                      <span className="w-1.5 h-1.5 bg-white rounded-full mr-4 opacity-50 flex-shrink-0"></span>
+                      <span className="text-center">{feature}</span>
                     </li>
                   ))}
                 </ul>
