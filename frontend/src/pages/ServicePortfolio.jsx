@@ -148,8 +148,6 @@ const ServicePortfolio = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <Navbar />
-
       <section className="relative h-[80vh] md:h-[90vh] w-full flex items-center justify-center overflow-hidden transition-all duration-1000">
         <div 
           className="absolute inset-0 bg-cover bg-center scale-105 hidden md:block transition-all duration-1000"
@@ -314,8 +312,6 @@ const ServicePortfolio = () => {
         </AnimatePresence>
 
       </section>
-
-      <Footer />
 
       {/* Lightbox Modal */}
       <AnimatePresence>

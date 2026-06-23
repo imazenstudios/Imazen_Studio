@@ -90,7 +90,6 @@ const Studio = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <Navbar />
 
       {/* Hero Section */}
       <section className="relative h-[80vh] md:h-[90vh] w-full flex items-center justify-center overflow-hidden">

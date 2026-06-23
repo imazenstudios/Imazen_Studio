@@ -23,7 +23,6 @@ const TestimonialsPage = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col font-sans">
-      <Navbar />
       
       <main className="flex-1 pt-32 pb-24 px-6 relative z-10">
         <div className="max-w-6xl mx-auto">
