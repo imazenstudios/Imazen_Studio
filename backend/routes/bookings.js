@@ -291,26 +291,28 @@ router.post('/', async (req, res) => {
           : [settings.contactEmail || 'hello@imazenstudios.in'];
 
         const emailHtml = `
-          <div style="text-align: center; margin-bottom: 20px;">
-            <img src="https://imazenstudios.com/images/logo4.jpeg" alt="Imazen Studios" style="max-width: 150px; height: auto;" />
+          <div style="background-color: #000000; padding: 40px 30px; font-family: Arial, sans-serif; color: #ffffff; max-width: 600px; margin: 0 auto; border-radius: 8px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="https://imazenstudios.com/images/logo.png" alt="Imazen Studios" style="max-width: 150px; height: auto;" />
+            </div>
+            <h2 style="color: #ffffff;">New Booking Request</h2>
+            <p style="color: #ffffff;"><strong>Name:</strong> ${name}</p>
+            <p style="color: #ffffff;"><strong>Email:</strong> ${email}</p>
+            <p style="color: #ffffff;"><strong>Phone:</strong> ${phone}</p>
+            <p style="color: #ffffff;"><strong>Shoot Type:</strong> ${shootType}</p>
+            <p style="color: #ffffff;"><strong>Package:</strong> ${pkg}</p>
+            <p style="color: #ffffff;"><strong>Date:</strong> ${date}</p>
+            <p style="color: #ffffff;"><strong>Slot:</strong> ${slot}</p>
+            <p style="color: #ffffff;"><strong>Baby Age:</strong> ${babyAge || 'N/A'}</p>
+            <p style="color: #ffffff;"><strong>Notes:</strong> ${notes || 'N/A'}</p>
           </div>
-          <h2>New Booking Request</h2>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Phone:</strong> ${phone}</p>
-          <p><strong>Shoot Type:</strong> ${shootType}</p>
-          <p><strong>Package:</strong> ${pkg}</p>
-          <p><strong>Date:</strong> ${date}</p>
-          <p><strong>Slot:</strong> ${slot}</p>
-          <p><strong>Baby Age:</strong> ${babyAge || 'N/A'}</p>
-          <p><strong>Notes:</strong> ${notes || 'N/A'}</p>
         `;
 
         // Send to Client
         const clientEmailHtml = `
-          <div style="background-color: #0a0a0a; padding: 40px 30px; font-family: Arial, sans-serif; color: #ffffff; max-width: 600px; margin: 0 auto; border-radius: 8px;">
+          <div style="background-color: #000000; padding: 40px 30px; font-family: Arial, sans-serif; color: #ffffff; max-width: 600px; margin: 0 auto; border-radius: 8px;">
             <div style="text-align: center; margin-bottom: 40px;">
-              <img src="https://imazenstudios.com/images/logo4.jpeg" alt="Imazen Studios" style="max-width: 200px; height: auto;" />
+              <img src="https://imazenstudios.com/images/logo.png" alt="Imazen Studios" style="max-width: 200px; height: auto;" />
             </div>
             <p style="font-size: 15px; line-height: 1.6; margin-bottom: 25px; color: #e5e5e5;">
               Hi ${name},

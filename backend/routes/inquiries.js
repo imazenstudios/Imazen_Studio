@@ -33,20 +33,20 @@ router.post('/', async (req, res) => {
           to: inquiry.email,
           subject: "Thank you for contacting Imazen Studios!",
           html: `
-            <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+            <div style="background-color: #000000; font-family: Arial, sans-serif; color: #ffffff; max-width: 600px; margin: 0 auto; padding: 20px; border-radius: 10px;">
               <div style="text-align: center; margin-bottom: 20px;">
-                <img src="https://imazenstudios.com/images/logo4.jpeg" alt="Imazen Studios" style="max-width: 150px; height: auto;" />
+                <img src="https://imazenstudios.com/images/logo.png" alt="Imazen Studios" style="max-width: 150px; height: auto;" />
               </div>
-              <h2 style="color: #000; text-transform: uppercase; letter-spacing: 2px;">Thank you, ${inquiry.name}!</h2>
+              <h2 style="color: #ffffff; text-transform: uppercase; letter-spacing: 2px;">Thank you, ${inquiry.name}!</h2>
               <p>We have successfully received your inquiry regarding <strong>"${inquiry.subject}"</strong>.</p>
               <p>Our team at Imazen Studios is currently reviewing your message and will get back to you shortly.</p>
               <br/>
               <p><strong>Your Message:</strong></p>
-              <blockquote style="background: #f9f9f9; padding: 15px; border-left: 4px solid #000; font-style: italic;">
+              <blockquote style="background: #1a1a1a; padding: 15px; border-left: 4px solid #ffffff; font-style: italic; color: #ffffff;">
                 ${inquiry.message}
               </blockquote>
               <br/>
-              <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+              <hr style="border: none; border-top: 1px solid #333333; margin: 20px 0;" />
               <p style="font-size: 12px; color: #999;">
                 Imazen Studios<br/>
                 This is an automated message.
