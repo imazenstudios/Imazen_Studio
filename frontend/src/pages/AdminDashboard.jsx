@@ -250,7 +250,7 @@ const AdminDashboard = () => {
   
   const fetchData = async () => {
     try {
-      setIsLoading(true);
+      // setIsLoading(true); // Removed to prevent page jumping to top on background refreshes
       const [
         contentRes, 
         servicesRes, 
