@@ -6,6 +6,11 @@ const settingsSchema = new mongoose.Schema({
     default: [],
     // 0 = Sunday, 1 = Monday, 2 = Tuesday, 3 = Wednesday, 4 = Thursday, 5 = Friday, 6 = Saturday
   },
+  weekdayCapacities: {
+    type: Map,
+    of: Number,
+    default: { '0': 3, '1': 3, '2': 3, '3': 3, '4': 3, '5': 3, '6': 3 }
+  },
   metaPixelId: { type: String, default: '' },
   googleAnalyticsId: { type: String, default: '' },
   contactEmail: { type: String, default: 'hello@imazenstudios.in' },

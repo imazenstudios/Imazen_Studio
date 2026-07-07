@@ -9,6 +9,7 @@ const slotCapacitySchema = new mongoose.Schema({
     required: true 
   },
   currentBookings: { type: Number, default: 0 },
+  blockedCount: { type: Number, default: 0 },
   maxCapacity: { type: Number, default: 3 }
 }, { timestamps: true });
 

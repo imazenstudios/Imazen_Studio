@@ -5,12 +5,13 @@ import axios from 'axios';
 import DragDropImageUploader from '../components/DragDropImageUploader';
 import DragDropVideoUploader from '../components/DragDropVideoUploader';
 import CalendarView from '../components/admin/CalendarView';
+import BusinessView from '../components/admin/BusinessView';
 
 const AdminDashboard = () => {
   const storedUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
   const userPermissions = storedUser.permissions || [];
   const isSuperAdmin = storedUser.isSuperAdmin === true || storedUser.email === 'ssaiprasanth333@gmail.com' || localStorage.getItem('adminBypass') === 'true';
-  const allTabs = ['dashboard', 'leads', 'inquiries', 'bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options'];
+  const allTabs = ['dashboard', 'leads', 'inquiries', 'bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options', 'business'];
   const allowedTabs = isSuperAdmin ? allTabs : allTabs.filter(tab => userPermissions.includes(tab));
   const initialTab = allowedTabs.includes('dashboard') ? 'dashboard' : (allowedTabs[0] || 'dashboard');
 
@@ -45,6 +46,8 @@ const AdminDashboard = () => {
   const [teamMembers, setTeamMembers] = useState([]);
   const [adminUsers, setAdminUsers] = useState([]);
   const [editingAdminUser, setEditingAdminUser] = useState(null);
+  const [partners, setPartners] = useState([]);
+  const [expenses, setExpenses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isGlobalSubmitting, setIsGlobalSubmitting] = useState(false);
@@ -131,6 +134,8 @@ const AdminDashboard = () => {
   const [editingTestimonial, setEditingTestimonial] = useState(null);
   const [editingLandingPage, setEditingLandingPage] = useState(null);
   const [editingTeamMember, setEditingTeamMember] = useState(null);
+  const [editingPartner, setEditingPartner] = useState(null);
+  const [editingExpense, setEditingExpense] = useState(null);
   
   // Gallery Upload State
   const [galleryCategory, setGalleryCategory] = useState('Maternity');
@@ -267,7 +272,9 @@ const AdminDashboard = () => {
         teamRes,
         studioRes,
         subscriptionsRes,
-        leadsRes
+        leadsRes,
+        partnersRes,
+        expensesRes
       ] = await Promise.all([
         axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/content`),
         axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/services`),
@@ -284,7 +291,9 @@ const AdminDashboard = () => {
         axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/team`),
         axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/studio`),
         axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/subscriptions`),
-        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/leads`)
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/leads`),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/partners`).catch(e => ({data: []})),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/expenses`).catch(e => ({data: []}))
       ]);
       setContent(contentRes.data);
       setServices(servicesRes.data);
@@ -302,6 +311,8 @@ const AdminDashboard = () => {
       setTeamMembers(teamRes.data);
       if(studioRes.data) setStudioData(studioRes.data);
       setSubscriptions(subscriptionsRes.data);
+      setPartners(partnersRes ? partnersRes.data : []);
+      setExpenses(expensesRes ? expensesRes.data : []);
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -622,6 +633,112 @@ const AdminDashboard = () => {
       } catch (error) {
         console.error(error);
       }
+    }
+  };
+
+  const handleAddPartner = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const newShare = Number(formData.get('sharePercentage'));
+    const totalCurrentShares = partners.reduce((sum, p) => sum + p.sharePercentage, 0);
+    if (totalCurrentShares + newShare > 100) {
+      alert(`Cannot add partner. Total shares would exceed 100% (currently ${totalCurrentShares}%).`);
+      return;
+    }
+    const data = {
+      name: formData.get('name'),
+      sharePercentage: newShare
+    };
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/partners`, data);
+      setPartners([...partners, res.data]);
+      setEditingPartner(null);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleUpdatePartner = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const newShare = Number(formData.get('sharePercentage'));
+    const totalCurrentShares = partners.reduce((sum, p) => p._id === editingPartner._id ? sum : sum + p.sharePercentage, 0);
+    if (totalCurrentShares + newShare > 100) {
+      alert(`Cannot update partner. Total shares would exceed 100% (other partners hold ${totalCurrentShares}%).`);
+      return;
+    }
+    const data = {
+      name: formData.get('name'),
+      sharePercentage: newShare
+    };
+    try {
+      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/partners/${editingPartner._id}`, data);
+      setPartners(partners.map(p => p._id === res.data._id ? res.data : p));
+      setEditingPartner(null);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeletePartner = async (id) => {
+    if(!window.confirm('Delete partner?')) return;
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/partners/${id}`);
+      setPartners(partners.filter(p => p._id !== id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAddExpense = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+      date: formData.get('date'),
+      amount: Number(formData.get('amount')),
+      type: formData.get('type'),
+      description: formData.get('description')
+    };
+    if (editingExpense && editingExpense.bookingId) {
+      data.bookingId = editingExpense.bookingId;
+    }
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/expenses`, data);
+      setExpenses([res.data, ...expenses]);
+      setEditingExpense(null);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleUpdateExpense = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+      date: formData.get('date'),
+      amount: Number(formData.get('amount')),
+      type: formData.get('type'),
+      description: formData.get('description')
+    };
+    if (editingExpense && editingExpense.bookingId) {
+      data.bookingId = editingExpense.bookingId;
+    }
+    try {
+      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/expenses/${editingExpense._id}`, data);
+      setExpenses(expenses.map(exp => exp._id === res.data._id ? res.data : exp));
+      setEditingExpense(null);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteExpense = async (id) => {
+    if(!window.confirm('Delete expense?')) return;
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/expenses/${id}`);
+      setExpenses(expenses.filter(exp => exp._id !== id));
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -3120,7 +3237,7 @@ const AdminDashboard = () => {
                                   <input type="number" name="totalAmount" defaultValue={booking.totalAmount || 0} className={`${glassInput} py-1 px-2 text-xs`} />
                                 </div>
                                 <div>
-                                  <label className="block text-xs uppercase text-white mb-1">Advance</label>
+                                  <label className="block text-xs uppercase text-white mb-1">Paid So Far</label>
                                   <input type="number" name="advanceAmount" defaultValue={booking.advanceAmount || 0} className={`${glassInput} py-1 px-2 text-xs text-green-400`} />
                                 </div>
                                 <div>
@@ -4122,7 +4239,7 @@ const AdminDashboard = () => {
                           <div>
                             <label className="block text-xs uppercase text-emerald-500/70 mb-3 tracking-widest">Select Permissions</label>
                             <div className="flex flex-wrap gap-4">
-                              {['dashboard', 'leads', 'inquiries', 'bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'developer options'].map(perm => (
+                              {['dashboard', 'leads', 'inquiries', 'bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'developer options', 'business'].map(perm => (
                                 <label key={perm} className="flex items-center gap-2 cursor-pointer">
                                   <input 
                                     type="checkbox" 
@@ -4243,7 +4360,7 @@ const AdminDashboard = () => {
                     <div>
                       <label className="block text-xs uppercase text-gray-500 mb-4 tracking-widest">Assign Permissions</label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-white/5 border border-white/10 rounded">
-                        {['dashboard', 'leads', 'inquiries', 'bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options']
+                        {['dashboard', 'leads', 'inquiries', 'bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options', 'business']
                           .filter(perm => isSuperAdmin || userPermissions.includes(perm))
                           .map(perm => (
                           <label key={perm} className={`flex items-center gap-3 ${storedUser.email === editingAdminUser.email ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}>
@@ -4506,6 +4623,20 @@ const AdminDashboard = () => {
 
               </div>
             </div>
+          )}
+
+          {activeTab === 'business' && (
+            <BusinessView 
+               bookings={bookings} 
+               expenses={expenses} 
+               partners={partners} 
+               onAddPartner={() => setEditingPartner({name: '', sharePercentage: 0})}
+               onAddExpense={() => setEditingExpense({date: new Date().toISOString().split('T')[0], amount: 0, type: 'Studio', description: ''})}
+               onEditPartner={setEditingPartner}
+               onEditExpense={setEditingExpense}
+               onDeletePartner={handleDeletePartner}
+               onDeleteExpense={handleDeleteExpense}
+            />
           )}
 
           <AnimatePresence>
@@ -4866,6 +4997,86 @@ const AdminDashboard = () => {
                 </motion.div>
               </div>
             )}
+            
+            {editingPartner && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  className="w-full max-w-md bg-[#111] border border-white/10 p-6 shadow-2xl rounded-xl"
+                >
+                  <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
+                    <h3 className="text-xl font-light uppercase tracking-widest text-white">
+                      {editingPartner._id ? 'Edit Partner' : 'Add Partner'}
+                    </h3>
+                    <button onClick={() => setEditingPartner(null)} className="text-white/50 hover:text-white transition-colors">
+                      ✕
+                    </button>
+                  </div>
+                  <form onSubmit={editingPartner._id ? handleUpdatePartner : handleAddPartner} className="space-y-4">
+                    <div>
+                      <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Partner Name</label>
+                      <input type="text" name="name" defaultValue={editingPartner.name} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white" />
+                    </div>
+                    <div>
+                      <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Share Percentage (%)</label>
+                      <input type="number" step="0.01" name="sharePercentage" defaultValue={editingPartner.sharePercentage} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white" />
+                    </div>
+                    <div className="pt-4 flex justify-end gap-4">
+                      <button type="button" onClick={() => setEditingPartner(null)} className="px-4 py-2 text-white/50 hover:text-white uppercase tracking-widest text-xs">Cancel</button>
+                      <button type="submit" className="px-6 py-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 uppercase tracking-widest text-xs font-bold rounded transition-colors">Save Partner</button>
+                    </div>
+                  </form>
+                </motion.div>
+              </div>
+            )}
+            
+            {editingExpense && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  className="w-full max-w-md bg-[#111] border border-white/10 p-6 shadow-2xl rounded-xl"
+                >
+                  <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
+                    <h3 className="text-xl font-light uppercase tracking-widest text-white">
+                      {editingExpense._id ? 'Edit Expense' : 'Add Expense'}
+                    </h3>
+                    <button onClick={() => setEditingExpense(null)} className="text-white/50 hover:text-white transition-colors">
+                      ✕
+                    </button>
+                  </div>
+                  <form onSubmit={editingExpense._id ? handleUpdateExpense : handleAddExpense} className="space-y-4">
+                    <div>
+                      <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Date</label>
+                      <input type="date" name="date" defaultValue={editingExpense.date} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white" />
+                    </div>
+                    <div>
+                      <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Type</label>
+                      <select name="type" defaultValue={editingExpense.type} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white">
+                        <option value="Studio">Studio</option>
+                        <option value="Shoot">Shoot</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Amount (₹)</label>
+                      <input type="number" name="amount" defaultValue={editingExpense.amount} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white" />
+                    </div>
+                    <div>
+                      <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Description</label>
+                      <input type="text" name="description" defaultValue={editingExpense.description} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white" />
+                    </div>
+                    <div className="pt-4 flex justify-end gap-4">
+                      <button type="button" onClick={() => setEditingExpense(null)} className="px-4 py-2 text-white/50 hover:text-white uppercase tracking-widest text-xs">Cancel</button>
+                      <button type="submit" className="px-6 py-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 uppercase tracking-widest text-xs font-bold rounded transition-colors">Save Expense</button>
+                    </div>
+                  </form>
+                </motion.div>
+              </div>
+            )}
+
           </AnimatePresence>
         </main>
       </div>

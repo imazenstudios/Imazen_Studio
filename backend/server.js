@@ -28,7 +28,7 @@ import teamRoutes from './routes/team.js';
 import studioRoutes from './routes/studio.js';
 import subscriptionsRoutes from './routes/subscriptions.js';
 import leadsRoutes from './routes/leads.js';
-
+import businessRoutes from './routes/business.js';
 dotenv.config();
 
 const app = express();
@@ -60,6 +60,7 @@ app.use('/api/team', teamRoutes);
 app.use('/api/studio', studioRoutes);
 app.use('/api/subscriptions', subscriptionsRoutes);
 app.use('/api/leads', leadsRoutes);
+app.use('/api/business', businessRoutes);
 
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/imazen-studios')
