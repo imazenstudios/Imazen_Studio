@@ -2,18 +2,30 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DragDropImageUploader from '../DragDropImageUploader';
 
-const BusinessView = ({ bookings, expenses, partners, onAddPartner, onAddExpense, onEditPartner, onEditExpense, onDeletePartner, onDeleteExpense }) => {
+const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner, onAddExpense, onEditPartner, onEditExpense, onDeletePartner, onDeleteExpense }) => {
   const [filterType, setFilterType] = useState('all');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
   
-  const [viewMode, setViewMode] = useState('overview'); // 'overview', 'confirmed_shoots', 'props'
+  const [viewMode, setViewMode] = useState('overview'); // 'overview', 'studio_shoots', 'props', 'events'
   const [propsData, setPropsData] = useState([]);
+  const [eventsData, setEventsData] = useState([]);
   const [editingProp, setEditingProp] = useState(null);
+  const [editingEvent, setEditingEvent] = useState(null);
 
   useEffect(() => {
     fetchProps();
+    fetchEvents();
   }, []);
+
+  const fetchEvents = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events`);
+      setEventsData(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const fetchProps = async () => {
     try {
@@ -69,6 +81,65 @@ const BusinessView = ({ bookings, expenses, partners, onAddPartner, onAddExpense
     }
   };
 
+  const handleSaveEvent = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    
+    const calculatedTotal = (editingEvent?.services || []).reduce((sum, item) => sum + item.price, 0);
+    const paidAmount = Number(formData.get('paidAmount') || 0);
+    const pendingAmount = calculatedTotal - paidAmount;
+
+    const data = {
+      name: formData.get('name'),
+      clientName: formData.get('clientName'),
+      email: formData.get('email'),
+      phone: formData.get('phone'),
+      paidAmount: paidAmount,
+      pendingAmount: pendingAmount,
+      status: formData.get('status'),
+      assignedTeamMember: formData.get('assignedTeamMember') || null,
+      services: editingEvent?.services || []
+    };
+    
+    try {
+      if (editingEvent._id) {
+        await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${editingEvent._id}`, data);
+      } else {
+        await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events`, data);
+      }
+      setEditingEvent(null);
+      fetchEvents();
+    } catch (error) {
+      console.error(error);
+      alert('Failed to save event: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
+  const handleDeleteEvent = async (id) => {
+    if(!window.confirm('Delete this event?')) return;
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${id}`);
+      fetchEvents();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleUpdateEventField = async (id, field, value) => {
+    try {
+      const data = { [field]: value };
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${id}`, data);
+      
+      // Update local state without full refetch for snappiness
+      setEventsData(prev => prev.map(ev => 
+        ev._id === id ? { ...ev, ...data } : ev
+      ));
+    } catch (error) {
+      console.error('Error updating event field:', error);
+      alert('Failed to update event field');
+    }
+  };
+
   const filterByDate = (items, dateField = 'date') => {
     return items.filter(item => {
       if (!item[dateField] && !item.createdAt) return true;
@@ -108,33 +179,43 @@ const BusinessView = ({ bookings, expenses, partners, onAddPartner, onAddExpense
   const confirmedBookings = filterByDate(bookings.filter(b => b.status === 'Confirmed' || b.status === 'Finished'), 'date');
   const filteredExpenses = filterByDate(expenses, 'date');
   const filteredProps = filterByDate(propsData, 'date');
+  const filteredEvents = filterByDate(eventsData, 'date');
 
   // Calculations
   const getTotals = () => {
     let shootEarnings = 0;
     let propEarnings = 0;
-    let pending = 0;
+    let eventEarnings = 0;
+    
+    let pendingShoots = 0;
+    let pendingProps = 0;
+    let pendingEvents = 0;
+
     let studioExpenses = 0;
     let shootExpenses = 0;
 
     if (viewMode === 'overview') {
-      // Overall Earnings: All bookings + Props
+      // Overall Earnings: All bookings + Props + Events
       allBookings.forEach(b => {
         shootEarnings += (b.totalAmount || 0) - (b.pendingAmount || 0);
-        pending += (b.pendingAmount || 0);
+        pendingShoots += (b.pendingAmount || 0);
       });
       filteredProps.forEach(p => {
-        propEarnings += p.paidAmount || p.totalAmount || 0; // Use paidAmount if available
-        pending += p.pendingAmount || 0;
+        propEarnings += p.paidAmount || p.totalAmount || 0;
+        pendingProps += p.pendingAmount || 0;
+      });
+      filteredEvents.forEach(e => {
+        eventEarnings += e.paidAmount || 0;
+        pendingEvents += e.pendingAmount || 0;
       });
       studioExpenses = filteredExpenses.filter(e => e.type === 'Studio').reduce((a, b) => a + b.amount, 0);
       shootExpenses = filteredExpenses.filter(e => e.type === 'Shoot').reduce((a, b) => a + b.amount, 0);
     } 
-    else if (viewMode === 'confirmed_shoots') {
-      // Earnings from confirmed shoots only
+    else if (viewMode === 'studio_shoots') {
+      // Earnings from studio shoots only
       confirmedBookings.forEach(b => {
         shootEarnings += (b.totalAmount || 0) - (b.pendingAmount || 0);
-        pending += (b.pendingAmount || 0);
+        pendingShoots += (b.pendingAmount || 0);
       });
       shootExpenses = filteredExpenses.filter(e => e.type === 'Shoot' && confirmedBookings.some(cb => cb._id === e.bookingId)).reduce((a, b) => a + b.amount, 0);
     }
@@ -142,15 +223,33 @@ const BusinessView = ({ bookings, expenses, partners, onAddPartner, onAddExpense
       // Earnings from props only
       filteredProps.forEach(p => {
         propEarnings += p.paidAmount || p.totalAmount || 0;
-        pending += p.pendingAmount || 0;
+        pendingProps += p.pendingAmount || 0;
+      });
+    }
+    else if (viewMode === 'events') {
+      // Earnings from events only
+      filteredEvents.forEach(e => {
+        eventEarnings += e.paidAmount || 0;
+        pendingEvents += e.pendingAmount || 0;
       });
     }
 
-    const earnings = shootEarnings + propEarnings;
+    const earnings = shootEarnings + propEarnings + eventEarnings;
+    const pending = pendingShoots + pendingProps + pendingEvents;
     const totalExpenses = studioExpenses + shootExpenses;
     const profit = earnings - totalExpenses;
+    
+    // Profit per category (approximate for overview breakdown)
+    const profitShoots = shootEarnings - shootExpenses;
+    const profitProps = propEarnings;
+    const profitEvents = eventEarnings;
 
-    return { earnings, shootEarnings, propEarnings, pending, studioExpenses, shootExpenses, totalExpenses, profit };
+    return { 
+      earnings, shootEarnings, propEarnings, eventEarnings, 
+      pending, pendingShoots, pendingProps, pendingEvents,
+      studioExpenses, shootExpenses, totalExpenses, 
+      profit, profitShoots, profitProps, profitEvents
+    };
   };
 
   const totals = getTotals();
@@ -194,28 +293,42 @@ const BusinessView = ({ bookings, expenses, partners, onAddPartner, onAddExpense
       <div className="bg-[#111] p-6 rounded-xl border border-white/5">
         <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Total Earnings</p>
         <p className="text-3xl font-light text-emerald-400">₹{totals.earnings.toLocaleString()}</p>
-        <p className="text-xs text-white/30 mt-2">
-          {viewMode === 'overview' && `Shoots: ₹${totals.shootEarnings} | Rentals: ₹${totals.propEarnings}`}
-          {viewMode === 'confirmed_shoots' && `Shoots: ₹${totals.shootEarnings}`}
+        <p className="text-xs text-white mt-2">
+          {viewMode === 'overview' && `Shoots: ₹${totals.shootEarnings} | Rentals: ₹${totals.propEarnings} | Events: ₹${totals.eventEarnings}`}
+          {viewMode === 'studio_shoots' && `Shoots: ₹${totals.shootEarnings}`}
           {viewMode === 'props' && `Rentals: ₹${totals.propEarnings}`}
+          {viewMode === 'events' && `Events: ₹${totals.eventEarnings}`}
         </p>
       </div>
       <div className="bg-[#111] p-6 rounded-xl border border-white/5">
         <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Pending Amount</p>
         <p className="text-3xl font-light text-amber-500">₹{totals.pending.toLocaleString()}</p>
+        <p className="text-xs text-white mt-2">
+          {viewMode === 'overview' && `Shoots: ₹${totals.pendingShoots} | Rentals: ₹${totals.pendingProps} | Events: ₹${totals.pendingEvents}`}
+          {viewMode === 'studio_shoots' && `Shoots: ₹${totals.pendingShoots}`}
+          {viewMode === 'props' && `Rentals: ₹${totals.pendingProps}`}
+          {viewMode === 'events' && `Events: ₹${totals.pendingEvents}`}
+        </p>
       </div>
       <div className="bg-[#111] p-6 rounded-xl border border-white/5">
         <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Total Expenses</p>
         <p className="text-3xl font-light text-red-400">₹{totals.totalExpenses.toLocaleString()}</p>
-        <p className="text-xs text-white/30 mt-2">
+        <p className="text-xs text-white mt-2">
           {viewMode === 'overview' && `Studio: ₹${totals.studioExpenses} | Shoot: ₹${totals.shootExpenses}`}
-          {viewMode === 'confirmed_shoots' && `Shoot Expenses: ₹${totals.shootExpenses}`}
+          {viewMode === 'studio_shoots' && `Shoot Expenses: ₹${totals.shootExpenses}`}
           {viewMode === 'props' && `No Expenses tracked`}
+          {viewMode === 'events' && `No Expenses tracked`}
         </p>
       </div>
       <div className="bg-[#111] p-6 rounded-xl border border-white/5">
         <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Net Profit</p>
         <p className="text-3xl font-light text-white">₹{totals.profit.toLocaleString()}</p>
+        <p className="text-xs text-white mt-2">
+          {viewMode === 'overview' && `Shoots: ₹${totals.profitShoots} | Rentals: ₹${totals.profitProps} | Events: ₹${totals.profitEvents}`}
+          {viewMode === 'studio_shoots' && `Shoots: ₹${totals.profitShoots}`}
+          {viewMode === 'props' && `Rentals: ₹${totals.profitProps}`}
+          {viewMode === 'events' && `Events: ₹${totals.profitEvents}`}
+        </p>
       </div>
     </div>
   );
@@ -226,8 +339,9 @@ const BusinessView = ({ bookings, expenses, partners, onAddPartner, onAddExpense
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/10 pb-4">
          <div className="flex gap-4">
            <button onClick={() => setViewMode('overview')} className={`text-sm uppercase tracking-widest ${viewMode === 'overview' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Overview</button>
-           <button onClick={() => setViewMode('confirmed_shoots')} className={`text-sm uppercase tracking-widest ${viewMode === 'confirmed_shoots' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Confirmed Shoots</button>
+           <button onClick={() => setViewMode('studio_shoots')} className={`text-sm uppercase tracking-widest ${viewMode === 'studio_shoots' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Studio Shoots</button>
            <button onClick={() => setViewMode('props')} className={`text-sm uppercase tracking-widest ${viewMode === 'props' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Props Rentals</button>
+           <button onClick={() => setViewMode('events')} className={`text-sm uppercase tracking-widest ${viewMode === 'events' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Events</button>
          </div>
       </div>
 
@@ -306,13 +420,13 @@ const BusinessView = ({ bookings, expenses, partners, onAddPartner, onAddExpense
         </div>
       )}
 
-      {viewMode === 'confirmed_shoots' && (
+      {viewMode === 'studio_shoots' && (
         <div className="space-y-8">
           {renderPartnerProfits()}
           
           <div className="bg-[#111] p-6 rounded-xl border border-white/5">
             <div className="flex justify-between items-center mb-6">
-              <h4 className="text-sm uppercase tracking-widest text-white/70">Confirmed Shoots Details</h4>
+              <h4 className="text-sm uppercase tracking-widest text-white/70">Studio Shoots Details</h4>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm text-white/70">
@@ -364,7 +478,7 @@ const BusinessView = ({ bookings, expenses, partners, onAddPartner, onAddExpense
                   })}
                   {confirmedBookings.length === 0 && (
                     <tr>
-                      <td colSpan="7" className="p-8 text-center text-white/30">No confirmed shoots found.</td>
+                      <td colSpan="7" className="p-8 text-center text-white/30">No studio shoots found.</td>
                     </tr>
                   )}
                 </tbody>
@@ -559,6 +673,229 @@ const BusinessView = ({ bookings, expenses, partners, onAddPartner, onAddExpense
               <div className="pt-6 flex justify-end gap-4 border-t border-white/10">
                 <button type="button" onClick={() => setEditingProp(null)} className="px-4 py-2 text-white/50 hover:text-white uppercase tracking-widest text-xs">Cancel</button>
                 <button type="submit" className="px-6 py-2 bg-white text-black hover:bg-white/90 uppercase tracking-widest text-xs font-bold rounded transition-colors">Save Prop Rental</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {viewMode === 'events' && (
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h3 className="text-sm uppercase tracking-widest text-white/70">Events ({filteredEvents.length})</h3>
+            <button onClick={() => setEditingEvent({name: '', services: [], paidAmount: 0, status: 'Scheduled'})} className="px-4 py-2 bg-white text-black hover:bg-white/90 uppercase tracking-widest text-xs font-bold rounded transition-colors">
+              + New Event
+            </button>
+          </div>
+
+          <div className="bg-[#111] rounded-xl border border-white/5 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredEvents.map(event => (
+                <div key={event._id} className="bg-black/40 border border-white/5 rounded-xl overflow-hidden group relative">
+                  <div className="p-4 space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-bold text-white text-lg">{event.name}</h4>
+                        <p className="text-xs text-white/50 uppercase tracking-widest mt-1">{event.status}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xs text-white/40 uppercase tracking-widest block mb-1">Total</span>
+                        <span className="text-white font-bold">₹{event.totalAmount?.toLocaleString()}</span>
+                      </div>
+                    </div>
+                    
+                    {event.clientName && (
+                      <div className="text-xs text-white/70 bg-white/5 p-2 rounded">
+                        <p><span className="text-white/40 uppercase">Client:</span> {event.clientName}</p>
+                        {event.phone && <p><span className="text-white/40 uppercase">Phone:</span> {event.phone}</p>}
+                        {event.email && <p><span className="text-white/40 uppercase">Email:</span> {event.email}</p>}
+                      </div>
+                    )}
+                    
+                    <div className="grid grid-cols-3 gap-2 py-2 border-y border-white/5">
+                      <div>
+                        <p className="text-[10px] text-white/40 uppercase tracking-widest">Paid</p>
+                        <p className="text-sm text-emerald-400">₹{(event.paidAmount || 0).toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-white/40 uppercase tracking-widest">Pending</p>
+                        <p className="text-sm text-amber-500">₹{(event.pendingAmount || 0).toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-white/40 uppercase tracking-widest">Profit</p>
+                        <p className="text-sm font-bold text-white">₹{(event.paidAmount || event.totalAmount || 0).toLocaleString()}</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest text-white/40 mb-1">Services</p>
+                      <div className="space-y-1">
+                        {event.services?.map((item, idx) => (
+                          <div key={idx} className="flex justify-between text-xs text-white/70 bg-white/5 px-2 py-1 rounded">
+                            <span>{item.name}</span>
+                            <span>₹{item.price}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="mb-4 grid grid-cols-2 gap-4 mt-4">
+                      <div className="bg-black/40 border border-white/5 rounded-xl p-3">
+                        <h4 className="text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Team Assignment</h4>
+                        <select 
+                          value={event.assignedTeamMember?._id || event.assignedTeamMember || ''} 
+                          onChange={(e) => handleUpdateEventField(event._id, 'assignedTeamMember', e.target.value)}
+                          className="w-full bg-black/50 border border-white/10 rounded px-2 py-1.5 text-xs text-white"
+                        >
+                          <option value="" className="bg-[#111] text-white">-- Unassigned --</option>
+                          {teamMembers?.map(tm => (
+                            <option key={tm._id} value={tm._id} className="bg-[#111] text-white">{tm.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="bg-black/40 border border-white/5 rounded-xl p-3">
+                        <h4 className="text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Shoot Status (Manual)</h4>
+                        <input 
+                          type="text" 
+                          placeholder="e.g. Editing Completed"
+                          value={event.status || ''} 
+                          onChange={(e) => handleUpdateEventField(event._id, 'status', e.target.value)}
+                          className="w-full bg-black/50 border border-white/10 rounded px-2 py-1.5 text-xs text-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 backdrop-blur p-2 rounded">
+                    <button onClick={() => setEditingEvent(event)} className="text-amber-500 hover:text-white text-xs">Edit</button>
+                    <button onClick={() => handleDeleteEvent(event._id)} className="text-red-500 hover:text-white text-xs">Delete</button>
+                  </div>
+                </div>
+              ))}
+              {filteredEvents.length === 0 && (
+                <div className="col-span-full py-12 text-center text-white/30 border border-white/5 rounded-xl border-dashed">
+                  No events found.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Events Modal */}
+      {editingEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="w-full max-w-lg bg-[#111] border border-white/10 p-6 shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
+              <h3 className="text-xl font-light uppercase tracking-widest text-white">
+                {editingEvent._id ? 'Edit Event' : 'New Event'}
+              </h3>
+              <button onClick={() => setEditingEvent(null)} className="text-white/50 hover:text-white">✕</button>
+            </div>
+            <form onSubmit={handleSaveEvent} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Event Name</label>
+                  <input type="text" name="name" defaultValue={editingEvent.name} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Status</label>
+                  <input type="text" name="status" defaultValue={editingEvent.status} placeholder="e.g. Scheduled, Completed" className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Client Name (Optional)</label>
+                  <input type="text" name="clientName" defaultValue={editingEvent.clientName} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Phone (Optional)</label>
+                  <input type="text" name="phone" defaultValue={editingEvent.phone} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Email (Optional)</label>
+                  <input type="email" name="email" defaultValue={editingEvent.email} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Assign Team Member</label>
+                  <select name="assignedTeamMember" defaultValue={editingEvent.assignedTeamMember?._id || editingEvent.assignedTeamMember || ''} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm">
+                    <option value="">-- Unassigned --</option>
+                    {teamMembers?.map(tm => (
+                      <option key={tm._id} value={tm._id}>{tm.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Paid Amount</label>
+                  <input 
+                    type="number" 
+                    name="paidAmount" 
+                    value={editingEvent.paidAmount || 0} 
+                    onChange={e => setEditingEvent({...editingEvent, paidAmount: Number(e.target.value)})}
+                    className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-emerald-400 text-sm" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Pending Amount</label>
+                  <input 
+                    type="number" 
+                    name="pendingAmount" 
+                    value={((editingEvent.services || []).reduce((sum, item) => sum + item.price, 0) - (editingEvent.paidAmount || 0))} 
+                    readOnly
+                    className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-amber-500 text-sm cursor-not-allowed opacity-50" 
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-xs uppercase tracking-widest text-white/50">Services Included</label>
+                  <button type="button" onClick={() => setEditingEvent({
+                    ...editingEvent, 
+                    services: [...(editingEvent.services || []), { name: '', price: 0 }]
+                  })} className="text-xs text-white/50 hover:text-white border border-white/10 px-2 py-1 rounded">+ Add Service</button>
+                </div>
+                <div className="space-y-2">
+                  {(editingEvent.services || []).map((item, idx) => (
+                    <div key={idx} className="flex gap-2">
+                      <input 
+                        type="text" 
+                        placeholder="Service Name" 
+                        value={item.name} 
+                        onChange={e => {
+                          const newItems = [...editingEvent.services];
+                          newItems[idx].name = e.target.value;
+                          setEditingEvent({...editingEvent, services: newItems});
+                        }}
+                        className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-xs text-white" 
+                        required
+                      />
+                      <input 
+                        type="number" 
+                        placeholder="Price" 
+                        value={item.price} 
+                        onChange={e => {
+                          const newItems = [...editingEvent.services];
+                          newItems[idx].price = Number(e.target.value);
+                          setEditingEvent({...editingEvent, services: newItems});
+                        }}
+                        className="w-24 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-xs text-white" 
+                        required
+                      />
+                      <button type="button" onClick={() => {
+                        const newItems = editingEvent.services.filter((_, i) => i !== idx);
+                        setEditingEvent({...editingEvent, services: newItems});
+                      }} className="text-red-500 hover:text-red-400">✕</button>
+                    </div>
+                  ))}
+                  {(!editingEvent.services || editingEvent.services.length === 0) && (
+                    <p className="text-xs text-white/30 italic">No services added. Click + Add Service.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-6 flex justify-end gap-4 border-t border-white/10">
+                <button type="button" onClick={() => setEditingEvent(null)} className="px-4 py-2 text-white/50 hover:text-white uppercase tracking-widest text-xs">Cancel</button>
+                <button type="submit" className="px-6 py-2 bg-white text-black hover:bg-white/90 uppercase tracking-widest text-xs font-bold rounded transition-colors">Save Event</button>
               </div>
             </form>
           </div>

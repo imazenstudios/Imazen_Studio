@@ -9,6 +9,8 @@ import Booking from '../models/Booking.js';
 import SlotCapacity from '../models/Slot.js';
 import { getMailer } from '../mailer.js';
 import Settings from '../models/Settings.js';
+import TeamMember from '../models/TeamMember.js';
+import { sendEmail } from '../mailer.js';
 
 const router = express.Router();
 
@@ -406,6 +408,11 @@ router.put('/:id/details', async (req, res) => {
     const existingBooking = await Booking.findById(req.params.id);
     if (!existingBooking) return res.status(404).json({ error: 'Booking not found' });
 
+    // Handle empty team member assignment
+    if (updateData.assignedTeamMember === '') {
+      updateData.assignedTeamMember = null;
+    }
+
     // Handle Slot Capacity changes if date/slot is changed
     if (updateData.date && updateData.slot && 
        (existingBooking.date !== updateData.date || existingBooking.slot !== updateData.slot)) {
@@ -439,6 +446,19 @@ router.put('/:id/details', async (req, res) => {
     }
 
     const booking = await Booking.findByIdAndUpdate(req.params.id, updateData, { returnDocument: 'after' });
+    
+    // Notify team member if assigned (and wasn't already assigned to this person)
+    if (booking.assignedTeamMember && String(existingBooking?.assignedTeamMember) !== String(booking.assignedTeamMember)) {
+      const teamMember = await TeamMember.findById(booking.assignedTeamMember);
+      if (teamMember && teamMember.email) {
+        await sendEmail({
+          to: teamMember.email,
+          subject: `You have been assigned to a Booking: ${booking.shootType || booking.package || 'Shoot'}`,
+          text: `Hi ${teamMember.name},\n\nYou have been assigned to a booking scheduled for ${booking.date} (${booking.slot || booking.slots?.join(', ')}).\n\nClient: ${booking.name || 'N/A'}\nPhone: ${booking.phone}\nStatus: ${booking.status}\n\nThanks,\nImazen OS`
+        }).catch(err => console.error("Failed to send assignment email:", err));
+      }
+    }
+
     res.json(booking);
   } catch (error) {
     console.error(error);

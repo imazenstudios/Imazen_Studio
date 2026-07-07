@@ -616,6 +616,20 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUpdateBookingDetails = async (id, data) => {
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${id}/details`, data);
+      
+      // Update local state without full refetch for snappy UI
+      setBookingsData(prev => prev.map(booking => 
+        booking._id === id ? { ...booking, ...data } : booking
+      ));
+    } catch (error) {
+      console.error('Error updating booking details:', error);
+      alert('Failed to update booking details');
+    }
+  };
+
   const handleUpdateBookingProgress = async (id, field, value) => {
     try {
       await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${id}/details`, { [field]: value });
@@ -3250,6 +3264,32 @@ const AdminDashboard = () => {
                               </form>
                             </div>
 
+                            <div className="mb-4 grid grid-cols-2 gap-4">
+                              <div className="bg-black/40 border border-white/5 rounded-xl p-3">
+                                <h4 className="text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Team Assignment</h4>
+                                <select 
+                                  value={booking.assignedTeamMember || ''} 
+                                  onChange={(e) => handleUpdateBookingDetails(booking._id, { assignedTeamMember: e.target.value })}
+                                  className={`${glassInput} w-full py-1.5 px-2 text-xs`}
+                                >
+                                  <option value="" className="bg-[#111] text-white">-- Unassigned --</option>
+                                  {teamMembers.map(tm => (
+                                    <option key={tm._id} value={tm._id} className="bg-[#111] text-white">{tm.name}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div className="bg-black/40 border border-white/5 rounded-xl p-3">
+                                <h4 className="text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Shoot Status (Manual)</h4>
+                                <input 
+                                  type="text" 
+                                  placeholder="e.g. Editing Completed"
+                                  value={booking.shootStatus || ''} 
+                                  onChange={(e) => handleUpdateBookingDetails(booking._id, { shootStatus: e.target.value })}
+                                  className={`${glassInput} w-full py-1.5 px-2 text-xs`}
+                                />
+                              </div>
+                            </div>
+
                             <div className="mb-4">
                               <button onClick={() => setFollowUpModal({ type: 'booking', id: booking._id })} className="text-[10px] text-green-400 hover:text-white flex items-center gap-1 uppercase tracking-widest transition-colors">
                                 <span>📋 Follow-up Notes ({booking.followUps?.length || 0})</span>
@@ -4164,7 +4204,6 @@ const AdminDashboard = () => {
                         <label className="block text-xs uppercase text-gray-500 mb-2 tracking-widest">Title (e.g. Lead Artist)</label>
                         <input 
                           type="text" 
-                          required 
                           className="w-full bg-black border border-white/10 p-4 text-white outline-none focus:border-white/50 transition-colors" 
                           value={editingTeamMember.title || ''} 
                           onChange={e => setEditingTeamMember({...editingTeamMember, title: e.target.value})} 
@@ -4174,7 +4213,6 @@ const AdminDashboard = () => {
                         <label className="block text-xs uppercase text-gray-500 mb-2 tracking-widest">Subtitle (e.g. Specialist)</label>
                         <input 
                           type="text" 
-                          required 
                           className="w-full bg-black border border-white/10 p-4 text-white outline-none focus:border-white/50 transition-colors" 
                           value={editingTeamMember.subtitle || ''} 
                           onChange={e => setEditingTeamMember({...editingTeamMember, subtitle: e.target.value})} 
@@ -4187,6 +4225,15 @@ const AdminDashboard = () => {
                           className="w-full bg-black border border-white/10 p-4 text-white outline-none focus:border-white/50 transition-colors" 
                           value={editingTeamMember.order || 0} 
                           onChange={e => setEditingTeamMember({...editingTeamMember, order: Number(e.target.value)})} 
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-xs uppercase text-gray-500 mb-2 tracking-widest">Email (For Assignment Notifications)</label>
+                        <input 
+                          type="email" 
+                          className="w-full bg-black border border-white/10 p-4 text-white outline-none focus:border-white/50 transition-colors" 
+                          value={editingTeamMember.email || ''} 
+                          onChange={e => setEditingTeamMember({...editingTeamMember, email: e.target.value})} 
                         />
                       </div>
                     </div>
@@ -4214,17 +4261,7 @@ const AdminDashboard = () => {
                       {editingTeamMember.hasAccess && (
                         <div className="bg-emerald-900/10 p-6 rounded border border-emerald-500/20 space-y-6 mt-6">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                              <label className="block text-xs uppercase text-emerald-500/70 mb-2 tracking-widest">Login Email</label>
-                              <input 
-                                type="email" 
-                                className="w-full bg-black border border-emerald-500/30 p-4 text-white outline-none focus:border-emerald-500 transition-colors" 
-                                value={editingTeamMember.email || ''} 
-                                onChange={e => setEditingTeamMember({...editingTeamMember, email: e.target.value})} 
-                                placeholder="team@imazen.in"
-                              />
-                            </div>
-                            <div>
+                            <div className="md:col-span-2">
                               <label className="block text-xs uppercase text-emerald-500/70 mb-2 tracking-widest">Login Password</label>
                               <input 
                                 type="password" 
@@ -4627,15 +4664,16 @@ const AdminDashboard = () => {
 
           {activeTab === 'business' && (
             <BusinessView 
-               bookings={bookings} 
-               expenses={expenses} 
-               partners={partners} 
-               onAddPartner={() => setEditingPartner({name: '', sharePercentage: 0})}
-               onAddExpense={() => setEditingExpense({date: new Date().toISOString().split('T')[0], amount: 0, type: 'Studio', description: ''})}
-               onEditPartner={setEditingPartner}
-               onEditExpense={setEditingExpense}
-               onDeletePartner={handleDeletePartner}
-               onDeleteExpense={handleDeleteExpense}
+              bookings={bookings} 
+              expenses={expenses} 
+              partners={partners} 
+              teamMembers={teamMembers}
+              onAddPartner={() => setEditingPartner({name: '', sharePercentage: 0})}
+              onAddExpense={() => setEditingExpense({date: new Date().toISOString().split('T')[0], amount: 0, type: 'Studio', description: ''})}
+              onEditPartner={setEditingPartner}
+              onEditExpense={setEditingExpense}
+              onDeletePartner={handleDeletePartner}
+              onDeleteExpense={handleDeleteExpense}
             />
           )}
 

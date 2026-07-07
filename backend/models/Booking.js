@@ -36,6 +36,8 @@ const bookingSchema = new mongoose.Schema({
   totalAmount: { type: Number, default: 0 },
   advanceAmount: { type: Number, default: 0 },
   pendingAmount: { type: Number, default: 0 },
+  assignedTeamMember: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamMember' },
+  shootStatus: { type: String, default: '' },
   // Follow-ups
   followUps: [{
     date: { type: Date, default: Date.now },

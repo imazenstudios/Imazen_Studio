@@ -53,3 +53,8 @@ export const getMailer = (user, pass) => {
     }
   };
 };
+
+export const sendEmail = async (options) => {
+  const mailer = getMailer();
+  return await mailer.sendMail(options);
+};
