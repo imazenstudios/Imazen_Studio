@@ -1,22 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DragDropImageUploader from '../DragDropImageUploader';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
-const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner, onAddExpense, onEditPartner, onEditExpense, onDeletePartner, onDeleteExpense }) => {
+const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBookingId, onAddPartner, onAddExpense, onEditPartner, onEditExpense, onDeletePartner, onDeleteExpense, defaultViewMode = 'overview' }) => {
   const [filterType, setFilterType] = useState('all');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
   
-  const [viewMode, setViewMode] = useState('overview'); // 'overview', 'studio_shoots', 'props', 'events'
+  const [viewMode, setViewMode] = useState(defaultViewMode); // 'overview', 'studio_shoots', 'props', 'events'
   const [propsData, setPropsData] = useState([]);
   const [eventsData, setEventsData] = useState([]);
+  const [rentalItems, setRentalItems] = useState([]);
   const [editingProp, setEditingProp] = useState(null);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
+  const [editingInventoryItem, setEditingInventoryItem] = useState(null);
+  const [inventoryImageUrl, setInventoryImageUrl] = useState('');
 
   useEffect(() => {
     fetchProps();
     fetchEvents();
+    fetchRentalItems();
   }, []);
+
+  useEffect(() => {
+    setViewMode(defaultViewMode);
+  }, [defaultViewMode]);
+
+  useEffect(() => {
+    if (highlightedBookingId && viewMode === 'studio_shoots') {
+      setTimeout(() => {
+        const el = document.getElementById(`business-booking-${highlightedBookingId}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 500);
+    }
+  }, [highlightedBookingId, viewMode]);
 
   const fetchEvents = async () => {
     try {
@@ -24,6 +43,15 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
       setEventsData(res.data);
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const fetchRentalItems = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/rental-items`);
+      setRentalItems(res.data);
+    } catch (error) {
+      console.error("Error fetching rental items:", error);
     }
   };
 
@@ -85,15 +113,16 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
     e.preventDefault();
     const formData = new FormData(e.target);
     
-    const calculatedTotal = (editingEvent?.services || []).reduce((sum, item) => sum + item.price, 0);
+    const totalAmount = Number(formData.get('totalAmount') || 0);
     const paidAmount = Number(formData.get('paidAmount') || 0);
-    const pendingAmount = calculatedTotal - paidAmount;
+    const pendingAmount = totalAmount - paidAmount;
 
     const data = {
       name: formData.get('name'),
       clientName: formData.get('clientName'),
       email: formData.get('email'),
       phone: formData.get('phone'),
+      totalAmount: totalAmount,
       paidAmount: paidAmount,
       pendingAmount: pendingAmount,
       status: formData.get('status'),
@@ -140,6 +169,55 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
     }
   };
 
+  const handleSaveInventoryItem = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+      name: formData.get('name'),
+      price: Number(formData.get('price') || 0),
+      imageUrl: inventoryImageUrl
+    };
+    
+    try {
+      if (editingInventoryItem?._id) {
+        await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/rental-items/${editingInventoryItem._id}`, data);
+      } else {
+        await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/rental-items`, data);
+      }
+      setEditingInventoryItem(null);
+      setInventoryImageUrl('');
+      e.target.reset();
+      fetchProps(); // this fetches rental items as well
+    } catch (error) {
+      console.error(error);
+      alert('Failed to save item');
+    }
+  };
+
+  const handleDeleteInventoryItem = async (id) => {
+    if(!window.confirm('Delete this inventory item?')) return;
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/rental-items/${id}`);
+      fetchProps();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleSendEventPdf = async (id) => {
+    const rawDiscount = window.prompt("Enter discount amount (if any) or leave blank for 0:");
+    if (rawDiscount === null) return; // User cancelled
+    const discount = Number(rawDiscount) || 0;
+
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${id}/send-pdf`, { discount });
+      alert("PDF Sent successfully!");
+    } catch (error) {
+      console.error(error);
+      alert('Failed to send PDF: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
   const filterByDate = (items, dateField = 'date') => {
     return items.filter(item => {
       if (!item[dateField] && !item.createdAt) return true;
@@ -182,74 +260,86 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
   const filteredEvents = filterByDate(eventsData, 'date');
 
   // Calculations
-  const getTotals = () => {
-    let shootEarnings = 0;
-    let propEarnings = 0;
-    let eventEarnings = 0;
-    
-    let pendingShoots = 0;
-    let pendingProps = 0;
-    let pendingEvents = 0;
-
-    let studioExpenses = 0;
-    let shootExpenses = 0;
-
-    if (viewMode === 'overview') {
-      // Overall Earnings: All bookings + Props + Events
-      allBookings.forEach(b => {
-        shootEarnings += (b.totalAmount || 0) - (b.pendingAmount || 0);
-        pendingShoots += (b.pendingAmount || 0);
-      });
-      filteredProps.forEach(p => {
-        propEarnings += p.paidAmount || p.totalAmount || 0;
-        pendingProps += p.pendingAmount || 0;
-      });
-      filteredEvents.forEach(e => {
-        eventEarnings += e.paidAmount || 0;
-        pendingEvents += e.pendingAmount || 0;
-      });
-      studioExpenses = filteredExpenses.filter(e => e.type === 'Studio').reduce((a, b) => a + b.amount, 0);
-      shootExpenses = filteredExpenses.filter(e => e.type === 'Shoot').reduce((a, b) => a + b.amount, 0);
-    } 
-    else if (viewMode === 'studio_shoots') {
-      // Earnings from studio shoots only
-      confirmedBookings.forEach(b => {
-        shootEarnings += (b.totalAmount || 0) - (b.pendingAmount || 0);
-        pendingShoots += (b.pendingAmount || 0);
-      });
-      shootExpenses = filteredExpenses.filter(e => e.type === 'Shoot' && confirmedBookings.some(cb => cb._id === e.bookingId)).reduce((a, b) => a + b.amount, 0);
-    }
-    else if (viewMode === 'props') {
-      // Earnings from props only
-      filteredProps.forEach(p => {
-        propEarnings += p.paidAmount || p.totalAmount || 0;
-        pendingProps += p.pendingAmount || 0;
-      });
-    }
-    else if (viewMode === 'events') {
-      // Earnings from events only
-      filteredEvents.forEach(e => {
-        eventEarnings += e.paidAmount || 0;
-        pendingEvents += e.pendingAmount || 0;
-      });
-    }
-
-    const earnings = shootEarnings + propEarnings + eventEarnings;
-    const pending = pendingShoots + pendingProps + pendingEvents;
-    const totalExpenses = studioExpenses + shootExpenses;
-    const profit = earnings - totalExpenses;
-    
-    // Profit per category (approximate for overview breakdown)
-    const profitShoots = shootEarnings - shootExpenses;
-    const profitProps = propEarnings;
-    const profitEvents = eventEarnings;
-
-    return { 
-      earnings, shootEarnings, propEarnings, eventEarnings, 
-      pending, pendingShoots, pendingProps, pendingEvents,
-      studioExpenses, shootExpenses, totalExpenses, 
-      profit, profitShoots, profitProps, profitEvents
-    };
+    const getTotals = () => {
+      let shootEarnings = 0;
+      let propEarnings = 0;
+      let eventEarnings = 0;
+      
+      let pendingShoots = 0;
+      let pendingProps = 0;
+      let pendingEvents = 0;
+  
+      let studioExpenses = 0;
+      let shootExpenses = 0;
+      let propExpenses = 0;
+      let eventExpenses = 0;
+  
+      if (viewMode === 'overview') {
+        // Overall Earnings: All bookings + Props + Events
+        allBookings.forEach(b => {
+          shootEarnings += (b.totalAmount || 0) - (b.pendingAmount || 0);
+          pendingShoots += (b.pendingAmount || 0);
+        });
+        filteredProps.forEach(p => {
+          propEarnings += p.paidAmount || p.totalAmount || 0;
+          pendingProps += p.pendingAmount || 0;
+        });
+        filteredEvents.forEach(e => {
+          eventEarnings += e.paidAmount || 0;
+          pendingEvents += e.pendingAmount || 0;
+        });
+        studioExpenses = filteredExpenses.filter(e => e.type === 'Studio').reduce((a, b) => a + b.amount, 0);
+        shootExpenses = filteredExpenses.filter(e => e.type === 'Shoot').reduce((a, b) => a + b.amount, 0);
+        propExpenses = filteredExpenses.filter(e => e.type === 'Prop').reduce((a, b) => a + b.amount, 0);
+        eventExpenses = filteredExpenses.filter(e => e.type === 'Event').reduce((a, b) => a + b.amount, 0);
+      } 
+      else if (viewMode === 'studio_shoots') {
+        // Earnings from studio shoots only
+        confirmedBookings.forEach(b => {
+          shootEarnings += (b.totalAmount || 0) - (b.pendingAmount || 0);
+          pendingShoots += (b.pendingAmount || 0);
+        });
+        shootExpenses = filteredExpenses.filter(e => e.type === 'Shoot' && confirmedBookings.some(cb => cb._id === e.bookingId)).reduce((a, b) => a + b.amount, 0);
+      }
+      else if (viewMode === 'props') {
+        // Earnings from props only
+        filteredProps.forEach(p => {
+          propEarnings += p.paidAmount || p.totalAmount || 0;
+          pendingProps += p.pendingAmount || 0;
+        });
+        propExpenses = filteredExpenses.filter(e => e.type === 'Prop').reduce((a, b) => a + b.amount, 0);
+      }
+      else if (viewMode === 'events') {
+        // Earnings from events only
+        filteredEvents.forEach(e => {
+          eventEarnings += e.paidAmount || 0;
+          pendingEvents += e.pendingAmount || 0;
+        });
+        eventExpenses = filteredExpenses.filter(e => e.type === 'Event').reduce((a, b) => a + b.amount, 0);
+      }
+  
+      const earnings = shootEarnings + propEarnings + eventEarnings;
+      const pending = pendingShoots + pendingProps + pendingEvents;
+      let totalExpenses = studioExpenses + shootExpenses + propExpenses + eventExpenses;
+      
+      // If we're not in overview, and looking at specific tabs, their expenses only represent their specific category
+      if (viewMode === 'studio_shoots') totalExpenses = shootExpenses;
+      if (viewMode === 'props') totalExpenses = propExpenses;
+      if (viewMode === 'events') totalExpenses = eventExpenses;
+  
+      const profit = earnings - totalExpenses;
+      
+      // Profit per category (approximate for overview breakdown)
+      const profitShoots = shootEarnings - shootExpenses;
+      const profitProps = propEarnings - propExpenses;
+      const profitEvents = eventEarnings - eventExpenses;
+  
+      return { 
+        earnings, shootEarnings, propEarnings, eventEarnings, 
+        pending, pendingShoots, pendingProps, pendingEvents,
+        studioExpenses, shootExpenses, propExpenses, eventExpenses, totalExpenses, 
+        profit, profitShoots, profitProps, profitEvents
+      };
   };
 
   const totals = getTotals();
@@ -330,6 +420,94 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
           {viewMode === 'events' && `Events: ₹${totals.profitEvents}`}
         </p>
       </div>
+
+      {/* Pie Chart Section */}
+      <div className="col-span-1 md:col-span-4 bg-[#111] p-6 rounded-xl border border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="w-full md:w-1/3">
+           <h4 className="text-sm uppercase tracking-widest text-white/70 mb-2">Financial Breakdown</h4>
+           <p className="text-xs text-white/40 mb-6">Visual representation of earnings and expenses for the current view.</p>
+           
+           <div className="space-y-4">
+             {(() => {
+               const data = viewMode === 'overview' 
+                 ? [
+                     { name: 'Shoot Earnings', value: totals.shootEarnings, color: '#10b981' },
+                     { name: 'Prop Earnings', value: totals.propEarnings, color: '#3b82f6' },
+                     { name: 'Event Earnings', value: totals.eventEarnings, color: '#f59e0b' }
+                   ].filter(d => d.value > 0)
+                 : [
+                     { name: 'Earnings', value: Math.max(0, totals.earnings), color: '#3b82f6' },
+                     { name: 'Pending', value: Math.max(0, totals.pending), color: '#f59e0b' },
+                     { name: 'Expenses', value: Math.max(0, totals.totalExpenses), color: '#ef4444' },
+                     { name: 'Profit', value: Math.max(0, totals.profit), color: '#10b981' }
+                   ];
+
+               if (data.length === 0 || data.every(d => d.value === 0)) return <p className="text-xs text-white/30 italic">No financial data to display.</p>;
+               
+               return data.map((d, i) => (
+                 <div key={i} className="flex justify-between items-center text-sm">
+                   <div className="flex items-center gap-2">
+                     <span className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }}></span>
+                     <span className="text-white/70">{d.name}</span>
+                   </div>
+                   <span className="font-mono text-white">₹{d.value.toLocaleString()}</span>
+                 </div>
+               ));
+             })()}
+           </div>
+        </div>
+        <div className="w-full md:w-2/3 h-64">
+           <ResponsiveContainer width="100%" height="100%">
+             <PieChart>
+               <Pie
+                 data={
+                   viewMode === 'overview' 
+                     ? [
+                         { name: 'Shoot Earnings', value: Math.max(0, totals.shootEarnings), color: '#10b981' },
+                         { name: 'Prop Earnings', value: Math.max(0, totals.propEarnings), color: '#3b82f6' },
+                         { name: 'Event Earnings', value: Math.max(0, totals.eventEarnings), color: '#f59e0b' }
+                       ]
+                     : [
+                         { name: 'Earnings', value: Math.max(0, totals.earnings), color: '#3b82f6' },
+                         { name: 'Pending', value: Math.max(0, totals.pending), color: '#f59e0b' },
+                         { name: 'Expenses', value: Math.max(0, totals.totalExpenses), color: '#ef4444' },
+                         { name: 'Profit', value: Math.max(0, totals.profit), color: '#10b981' }
+                       ]
+                 }
+                 cx="50%"
+                 cy="50%"
+                 innerRadius={60}
+                 outerRadius={100}
+                 paddingAngle={5}
+                 dataKey="value"
+               >
+                 {(
+                   viewMode === 'overview' 
+                     ? [
+                         { name: 'Shoot Earnings', value: Math.max(0, totals.shootEarnings), color: '#10b981' },
+                         { name: 'Prop Earnings', value: Math.max(0, totals.propEarnings), color: '#3b82f6' },
+                         { name: 'Event Earnings', value: Math.max(0, totals.eventEarnings), color: '#f59e0b' }
+                       ]
+                     : [
+                         { name: 'Earnings', value: Math.max(0, totals.earnings), color: '#3b82f6' },
+                         { name: 'Pending', value: Math.max(0, totals.pending), color: '#f59e0b' },
+                         { name: 'Expenses', value: Math.max(0, totals.totalExpenses), color: '#ef4444' },
+                         { name: 'Profit', value: Math.max(0, totals.profit), color: '#10b981' }
+                       ]
+                 ).map((entry, index) => (
+                   <Cell key={`cell-${index}`} fill={entry.color} stroke="transparent" />
+                 ))}
+               </Pie>
+               <Tooltip 
+                 formatter={(value) => `₹${value.toLocaleString()}`}
+                 contentStyle={{ backgroundColor: '#111', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                 itemStyle={{ color: '#fff' }}
+               />
+               <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '12px', opacity: 0.7 }} />
+             </PieChart>
+           </ResponsiveContainer>
+        </div>
+      </div>
     </div>
   );
 
@@ -379,7 +557,7 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
           <div className="bg-[#111] p-6 rounded-xl border border-white/5">
             <div className="flex justify-between items-center mb-6">
               <h4 className="text-sm uppercase tracking-widest text-white/70">All Expenditures</h4>
-              <button onClick={() => onAddExpense({date: new Date().toISOString().split('T')[0], amount: 0, type: 'Studio', description: ''})} className="px-3 py-1 bg-white text-black text-xs uppercase tracking-widest hover:bg-white/90">Add Expense</button>
+              <button onClick={() => onAddExpense({date: new Date().toISOString().split('T')[0], items: [{description: '', amount: 0}], type: 'Studio'})} className="px-3 py-1 bg-white text-black text-xs uppercase tracking-widest hover:bg-white/90">Add Expense</button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm text-white/70">
@@ -387,8 +565,8 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
                   <tr>
                     <th className="p-4 font-normal">Date</th>
                     <th className="p-4 font-normal">Type</th>
-                    <th className="p-4 font-normal">Description</th>
-                    <th className="p-4 font-normal">Amount</th>
+                    <th className="p-4 font-normal">Expense Name</th>
+                    <th className="p-4 font-normal">Price</th>
                     <th className="p-4 font-normal text-right">Actions</th>
                   </tr>
                 </thead>
@@ -397,8 +575,13 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
                     <tr key={expense._id} className="hover:bg-white/[0.02]">
                       <td className="p-4">{expense.date}</td>
                       <td className="p-4">
-                        <span className={`px-2 py-1 rounded text-[10px] uppercase ${expense.type === 'Studio' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'}`}>{expense.type}</span>
-                        {expense.bookingId && <span className="ml-2 text-[10px] text-white/40">Linked to Shoot</span>}
+                        <span className={`px-2 py-1 rounded text-[11px] uppercase ${
+                          expense.type === 'Studio' ? 'bg-blue-500/20 text-blue-400' : 
+                          expense.type === 'Shoot' ? 'bg-purple-500/20 text-purple-400' :
+                          expense.type === 'Event' ? 'bg-orange-500/20 text-orange-400' :
+                          'bg-emerald-500/20 text-emerald-400'
+                        }`}>{expense.type}</span>
+                        {expense.bookingId && <span className="ml-2 text-[11px] text-white/40">Linked to Shoot</span>}
                       </td>
                       <td className="p-4">{expense.description}</td>
                       <td className="p-4 text-red-400">₹{expense.amount.toLocaleString()}</td>
@@ -450,7 +633,7 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
                     const shootProfit = (shoot.totalAmount || 0) - paidAmt - totalShootExp;
                     
                     return (
-                      <tr key={shoot._id} className="hover:bg-white/[0.02]">
+                      <tr key={shoot._id} id={`business-booking-${shoot._id}`} className={`transition-all duration-500 ${highlightedBookingId === shoot._id ? 'bg-emerald-900/30 border-l-4 border-emerald-500' : 'hover:bg-white/[0.02]'}`}>
                         <td className="p-4">
                           <div>{shoot.date}</div>
                           <div className="text-xs text-white/40">{shoot.name}</div>
@@ -464,9 +647,8 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
                           <button onClick={() => {
                             onAddExpense({
                               date: shoot.date,
-                              amount: 0,
+                              items: [{description: `Expense for ${shoot.name}`, amount: 0}],
                               type: 'Shoot',
-                              description: `Expense for ${shoot.name}`,
                               bookingId: shoot._id
                             })
                           }} className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded">
@@ -495,9 +677,14 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h3 className="text-sm font-bold uppercase tracking-widest text-white/70">Prop Rentals Details</h3>
-              <button onClick={() => setEditingProp({ items: [] })} className="px-4 py-2 bg-white text-black text-xs font-bold uppercase tracking-widest hover:bg-white/90 transition-colors">
-                New Prop Rental
-              </button>
+              <div className="flex gap-4">
+                <button onClick={() => setIsInventoryModalOpen(true)} className="px-4 py-2 bg-black/40 border border-white/10 text-white text-xs font-bold uppercase tracking-widest hover:bg-white/5 transition-colors">
+                  Manage Inventory
+                </button>
+                <button onClick={() => setEditingProp({ items: [] })} className="px-4 py-2 bg-white text-black text-xs font-bold uppercase tracking-widest hover:bg-white/90 transition-colors">
+                  New Prop Rental
+                </button>
+              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -527,21 +714,21 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
                     
                     <div className="grid grid-cols-3 gap-2 py-2 border-y border-white/5">
                       <div>
-                        <p className="text-[10px] text-white/40 uppercase tracking-widest">Paid</p>
+                        <p className="text-[11px] text-white/40 uppercase tracking-widest">Paid</p>
                         <p className="text-sm text-emerald-400">₹{(prop.paidAmount || 0).toLocaleString()}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-white/40 uppercase tracking-widest">Pending</p>
+                        <p className="text-[11px] text-white/40 uppercase tracking-widest">Pending</p>
                         <p className="text-sm text-amber-500">₹{(prop.pendingAmount || 0).toLocaleString()}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-white/40 uppercase tracking-widest">Profit</p>
+                        <p className="text-[11px] text-white/40 uppercase tracking-widest">Profit</p>
                         <p className="text-sm font-bold text-white">₹{(prop.paidAmount || prop.totalAmount || 0).toLocaleString()}</p>
                       </div>
                     </div>
 
                     <div>
-                      <p className="text-[10px] uppercase tracking-widest text-white/40 mb-1">Items Rented</p>
+                      <p className="text-[11px] uppercase tracking-widest text-white/40 mb-1">Items Rented</p>
                       <div className="space-y-1">
                         {prop.items.map((item, idx) => (
                           <div key={idx} className="flex justify-between text-xs text-white/70 bg-white/5 px-2 py-1 rounded">
@@ -615,37 +802,33 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Photo (Optional)</label>
-                <div className="h-40 border border-white/10 rounded overflow-hidden">
-                   <DragDropImageUploader 
-                     currentImage={editingProp.photo || ''} 
-                     aspect={4/3} 
-                     onUploadSuccess={(url) => setEditingProp(prev => ({...prev, photo: url}))} 
-                   />
-                </div>
-              </div>
+              {/* Main Photo removed per request */}
               
               <div className="pt-4 border-t border-white/5">
                 <div className="flex justify-between items-center mb-2">
                   <label className="block text-xs uppercase tracking-widest text-white/50">Rented Items</label>
-                  <button type="button" onClick={() => setEditingProp({...editingProp, items: [...(editingProp.items||[]), {name:'', price:0}]})} className="text-[10px] uppercase text-emerald-400 hover:text-emerald-300 tracking-widest">+ Add Item</button>
+                  <button type="button" onClick={() => setEditingProp({...editingProp, items: [...(editingProp.items||[]), {name:'', price:0}]})} className="text-[11px] uppercase text-emerald-400 hover:text-emerald-300 tracking-widest">+ Add Item</button>
                 </div>
                 <div className="space-y-2">
                   {(editingProp.items||[]).map((item, idx) => (
                     <div key={idx} className="flex gap-2 items-center">
-                      <input 
-                        type="text" 
-                        placeholder="Item Name" 
+                      <select 
                         value={item.name} 
                         onChange={e => {
                           const newItems = [...editingProp.items];
+                          const selectedItem = rentalItems.find(r => r.name === e.target.value);
                           newItems[idx].name = e.target.value;
+                          if (selectedItem) newItems[idx].price = selectedItem.price;
                           setEditingProp({...editingProp, items: newItems});
                         }}
                         className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-xs text-white" 
                         required
-                      />
+                      >
+                        <option value="">Select Item...</option>
+                        {rentalItems.map(rItem => (
+                          <option key={rItem._id} value={rItem.name}>{rItem.name}</option>
+                        ))}
+                      </select>
                       <input 
                         type="number" 
                         placeholder="Price" 
@@ -714,21 +897,21 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
                     
                     <div className="grid grid-cols-3 gap-2 py-2 border-y border-white/5">
                       <div>
-                        <p className="text-[10px] text-white/40 uppercase tracking-widest">Paid</p>
+                        <p className="text-[11px] text-white/40 uppercase tracking-widest">Paid</p>
                         <p className="text-sm text-emerald-400">₹{(event.paidAmount || 0).toLocaleString()}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-white/40 uppercase tracking-widest">Pending</p>
+                        <p className="text-[11px] text-white/40 uppercase tracking-widest">Pending</p>
                         <p className="text-sm text-amber-500">₹{(event.pendingAmount || 0).toLocaleString()}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-white/40 uppercase tracking-widest">Profit</p>
+                        <p className="text-[11px] text-white/40 uppercase tracking-widest">Profit</p>
                         <p className="text-sm font-bold text-white">₹{(event.paidAmount || event.totalAmount || 0).toLocaleString()}</p>
                       </div>
                     </div>
 
                     <div>
-                      <p className="text-[10px] uppercase tracking-widest text-white/40 mb-1">Services</p>
+                      <p className="text-[11px] uppercase tracking-widest text-white/40 mb-1">Services</p>
                       <div className="space-y-1">
                         {event.services?.map((item, idx) => (
                           <div key={idx} className="flex justify-between text-xs text-white/70 bg-white/5 px-2 py-1 rounded">
@@ -739,22 +922,9 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
                       </div>
                     </div>
                     
-                    <div className="mb-4 grid grid-cols-2 gap-4 mt-4">
+                    <div className="mb-4 mt-4">
                       <div className="bg-black/40 border border-white/5 rounded-xl p-3">
-                        <h4 className="text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Team Assignment</h4>
-                        <select 
-                          value={event.assignedTeamMember?._id || event.assignedTeamMember || ''} 
-                          onChange={(e) => handleUpdateEventField(event._id, 'assignedTeamMember', e.target.value)}
-                          className="w-full bg-black/50 border border-white/10 rounded px-2 py-1.5 text-xs text-white"
-                        >
-                          <option value="" className="bg-[#111] text-white">-- Unassigned --</option>
-                          {teamMembers?.map(tm => (
-                            <option key={tm._id} value={tm._id} className="bg-[#111] text-white">{tm.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="bg-black/40 border border-white/5 rounded-xl p-3">
-                        <h4 className="text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Shoot Status (Manual)</h4>
+                        <h4 className="text-[11px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Shoot Status (Manual)</h4>
                         <input 
                           type="text" 
                           placeholder="e.g. Editing Completed"
@@ -766,6 +936,7 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
                     </div>
                   </div>
                   <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 backdrop-blur p-2 rounded">
+                    <button onClick={() => handleSendEventPdf(event._id)} className="text-emerald-400 hover:text-white text-xs mr-2">Send PDF</button>
                     <button onClick={() => setEditingEvent(event)} className="text-amber-500 hover:text-white text-xs">Edit</button>
                     <button onClick={() => handleDeleteEvent(event._id)} className="text-red-500 hover:text-white text-xs">Delete</button>
                   </div>
@@ -813,17 +984,29 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
                   <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Email (Optional)</label>
                   <input type="email" name="email" defaultValue={editingEvent.email} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm" />
                 </div>
-                <div className="md:col-span-2">
-                  <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Assign Team Member</label>
-                  <select name="assignedTeamMember" defaultValue={editingEvent.assignedTeamMember?._id || editingEvent.assignedTeamMember || ''} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm">
-                    <option value="">-- Unassigned --</option>
-                    {teamMembers?.map(tm => (
-                      <option key={tm._id} value={tm._id}>{tm.name}</option>
-                    ))}
-                  </select>
-                </div>
+                {editingEvent._id && (
+                  <div className="md:col-span-2">
+                    <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Assign Team Member</label>
+                    <select name="assignedTeamMember" defaultValue={editingEvent.assignedTeamMember?._id || editingEvent.assignedTeamMember || ''} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm">
+                      <option value="">-- Unassigned --</option>
+                      {teamMembers?.map(tm => (
+                        <option key={tm._id} value={tm._id}>{tm.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Total Amount</label>
+                  <input 
+                    type="number" 
+                    name="totalAmount" 
+                    value={editingEvent.totalAmount !== undefined ? editingEvent.totalAmount : ((editingEvent.services || []).reduce((sum, item) => sum + item.price, 0))} 
+                    onChange={e => setEditingEvent({...editingEvent, totalAmount: Number(e.target.value)})}
+                    className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm" 
+                  />
+                </div>
                 <div>
                   <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Paid Amount</label>
                   <input 
@@ -839,7 +1022,7 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
                   <input 
                     type="number" 
                     name="pendingAmount" 
-                    value={((editingEvent.services || []).reduce((sum, item) => sum + item.price, 0) - (editingEvent.paidAmount || 0))} 
+                    value={(editingEvent.totalAmount !== undefined ? editingEvent.totalAmount : ((editingEvent.services || []).reduce((sum, item) => sum + item.price, 0))) - (editingEvent.paidAmount || 0)} 
                     readOnly
                     className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-amber-500 text-sm cursor-not-allowed opacity-50" 
                   />
@@ -898,6 +1081,75 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, onAddPartner,
                 <button type="submit" className="px-6 py-2 bg-white text-black hover:bg-white/90 uppercase tracking-widest text-xs font-bold rounded transition-colors">Save Event</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+    {isInventoryModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="w-full max-w-2xl bg-[#111] border border-white/10 p-6 shadow-2xl rounded-xl max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
+              <h3 className="text-xl font-light uppercase tracking-widest text-white">Manage Rental Inventory</h3>
+              <button onClick={() => setIsInventoryModalOpen(false)} className="text-white/50 hover:text-white">✕</button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto pr-2 space-y-8">
+              <div>
+                <h4 className="text-sm uppercase tracking-widest text-emerald-400 mb-6">{editingInventoryItem ? 'Edit Item' : 'Add New Item'}</h4>
+                <form onSubmit={handleSaveInventoryItem} className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-end">
+                  <div className="w-full">
+                    <label className="block text-xs uppercase tracking-widest text-white/50 mb-2">Item Name</label>
+                    <input type="text" name="name" defaultValue={editingInventoryItem?.name} required className="w-full bg-black/20 focus:bg-black/40 border border-white/10 focus:border-white/30 rounded-lg px-4 py-2.5 text-sm text-white transition-colors outline-none" />
+                  </div>
+                  <div className="w-full">
+                    <label className="block text-xs uppercase tracking-widest text-white/50 mb-2">Default Price</label>
+                    <input type="number" name="price" defaultValue={editingInventoryItem?.price} required className="w-full bg-black/20 focus:bg-black/40 border border-white/10 focus:border-white/30 rounded-lg px-4 py-2.5 text-sm text-white transition-colors outline-none" />
+                  </div>
+                  <div className="w-full sm:col-span-2">
+                    <label className="block text-xs uppercase tracking-widest text-white/50 mb-2">Image (Optional)</label>
+                    <div className="h-32 rounded-lg overflow-hidden">
+                      <DragDropImageUploader onUpload={(url) => setInventoryImageUrl(url)} currentImage={inventoryImageUrl || editingInventoryItem?.imageUrl} height="h-32" />
+                    </div>
+                  </div>
+                  <div className="w-full sm:col-span-2 flex justify-end gap-3 mt-4">
+                    {editingInventoryItem && (
+                      <button type="button" onClick={() => { setEditingInventoryItem(null); setInventoryImageUrl(''); }} className="px-6 py-2.5 border border-white/20 text-white rounded-lg text-xs tracking-widest uppercase hover:bg-white/5 transition-colors">Cancel</button>
+                    )}
+                    <button type="submit" className="px-6 py-2.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-lg text-xs font-bold tracking-widest uppercase hover:bg-emerald-500/30 transition-colors whitespace-nowrap">Save Item</button>
+                  </div>
+                </form>
+              </div>
+
+              <div>
+                <h4 className="text-sm uppercase text-white/70 mb-4 border-b border-white/10 pb-2">Current Inventory</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between px-4 py-2 text-xs uppercase text-white/40 border-b border-white/5">
+                    <span>Item Name</span>
+                    <span>Default Price</span>
+                  </div>
+                  {rentalItems.map(item => (
+                    <div key={item._id} className="flex justify-between items-center p-4 bg-white/[0.02] hover:bg-white/[0.05] rounded-lg group">
+                      <div className="flex items-center gap-4">
+                        {item.imageUrl && (
+                          <img src={item.imageUrl} alt={item.name} className="w-10 h-10 object-cover rounded" />
+                        )}
+                        <div className="font-medium text-white">{item.name}</div>
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <div className="text-emerald-400 font-mono">₹{item.price.toLocaleString()}</div>
+                        <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => { setEditingInventoryItem(item); setInventoryImageUrl(item.imageUrl || ''); }} className="text-amber-500 hover:text-amber-400 text-xs uppercase tracking-widest">Edit</button>
+                          <button onClick={() => handleDeleteInventoryItem(item._id)} className="text-red-500 hover:text-red-400 text-xs uppercase tracking-widest">Delete</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {rentalItems.length === 0 && (
+                    <div className="text-center py-8 text-white/30 text-sm">Inventory is empty. Add some items above.</div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

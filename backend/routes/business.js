@@ -3,8 +3,10 @@ import BusinessPartner from '../models/BusinessPartner.js';
 import Expense from '../models/Expense.js';
 import PropRental from '../models/PropRental.js';
 import Event from '../models/Event.js';
+import RentalItem from '../models/RentalItem.js';
 import TeamMember from '../models/TeamMember.js';
 import { sendEmail } from '../mailer.js';
+import { generateEventPdf } from '../pdfGenerator.js';
 
 const router = express.Router();
 
@@ -208,6 +210,82 @@ router.delete('/events/:id', async (req, res) => {
   try {
     await Event.findByIdAndDelete(req.params.id);
     res.json({ message: 'Event deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/events/:id/send-pdf', async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ error: 'Event not found' });
+    
+    const { discount } = req.body;
+    const pdfBuffer = await generateEventPdf(event, discount);
+    const pdfBase64 = pdfBuffer.toString('base64');
+    
+    // Define recipients
+    const toEmails = [];
+    if (event.email) toEmails.push(event.email);
+    toEmails.push('imazenstudios@gmail.com');
+    
+    if (toEmails.length === 0) {
+      return res.status(400).json({ error: 'No email address found for client.' });
+    }
+    
+    await sendEmail({
+      to: toEmails,
+      subject: `Event Summary: ${event.name}`,
+      text: `Hi ${event.clientName || 'Client'},\n\nPlease find attached the summary for the event "${event.name}".\n\nThanks,\nImazen Studios`,
+      attachments: [
+        {
+          filename: `Event_${event.name.replace(/\s+/g, '_')}.pdf`,
+          content: pdfBase64
+        }
+      ]
+    });
+    
+    res.json({ message: 'PDF sent successfully' });
+  } catch (error) {
+    console.error('Send PDF Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- Rental Items Master List Routes ---
+
+router.get('/rental-items', async (req, res) => {
+  try {
+    const items = await RentalItem.find().sort({ createdAt: -1 });
+    res.json(items);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/rental-items', async (req, res) => {
+  try {
+    const item = new RentalItem(req.body);
+    await item.save();
+    res.status(201).json(item);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.put('/rental-items/:id', async (req, res) => {
+  try {
+    const item = await RentalItem.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(item);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.delete('/rental-items/:id', async (req, res) => {
+  try {
+    await RentalItem.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Rental item deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

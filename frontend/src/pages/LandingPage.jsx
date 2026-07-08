@@ -495,12 +495,13 @@ const ReferenceLandingPage = () => {
       </section>
 
       {/* 6. YOUTUBE VIDEOS */}
-      <section className="py-24 border-t border-white/5 overflow-hidden">
-        <div className="px-6 lg:px-12 mb-12 flex flex-col items-center">
-            <h2 className="font-oswald font-light text-3xl md:text-4xl uppercase tracking-[0.2em] text-white">{pageData?.portfolioVideosHeading || "Memorable Client Stories"}</h2>
-        </div>
-        
-        <div className="relative w-full px-6 lg:px-12 pb-8">
+      {pageData?.showVideoGallery !== false && (
+        <section className="py-24 border-t border-white/5 overflow-hidden">
+          <div className="px-6 lg:px-12 mb-12 flex flex-col items-center">
+              <h2 className="font-oswald font-light text-3xl md:text-4xl uppercase tracking-[0.2em] text-white">{pageData?.portfolioVideosHeading || "Memorable Client Stories"}</h2>
+          </div>
+          
+          <div className="relative w-full px-6 lg:px-12 pb-8">
           <Swiper grabCursor={true} simulateTouch={true}
             modules={[Autoplay, FreeMode]}
             slidesPerView="auto"
@@ -533,6 +534,7 @@ const ReferenceLandingPage = () => {
           </Swiper>
         </div>
       </section>
+      )}
 
       {/* 7. PACKAGES (NEW SECTION) */}
       {pageData?.showPackages && (

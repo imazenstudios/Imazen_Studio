@@ -91,7 +91,8 @@ const ServicePortfolio = () => {
         heroImage: serviceData.heroImage,
         mobileHeroImage: serviceData.mobileHeroImage || serviceData.heroImage,
         images: Array.from(imgSet).map(url => ({url})),
-        videos: Array.from(vidSet).map(url => ({url}))
+        videos: Array.from(vidSet).map(url => ({url})),
+        showVideoGallery: serviceData.showVideoGallery !== false
       };
     } else {
       const sub = serviceData.subServices?.find(s => s.slug === activeSub);
@@ -114,7 +115,8 @@ const ServicePortfolio = () => {
         heroImage: sub.heroImage || serviceData.heroImage,
         mobileHeroImage: sub.mobileHeroImage || sub.heroImage || serviceData.mobileHeroImage || serviceData.heroImage,
         images: (sub.portfolioImages || []).map(url => ({url})),
-        videos: (sub.portfolioVideos || []).map(url => ({url}))
+        videos: (sub.portfolioVideos || []).map(url => ({url})),
+        showVideoGallery: sub.showVideoGallery !== false
       };
     }
   }, [serviceData, activeSub]);
@@ -236,12 +238,14 @@ const ServicePortfolio = () => {
           >
             IMAGES ({activeData.images.length})
           </button>
-          <button 
-            onClick={() => setActiveTab('videos')}
-            className={`px-8 py-3 rounded-full font-sans text-xs sm:text-sm uppercase tracking-[0.2em] transition-all duration-500 ${activeTab === 'videos' ? 'bg-white text-black shadow-[0_0_30px_rgba(255,255,255,0.4)] scale-105' : 'bg-transparent border border-white/20 text-gray-400 hover:border-white/50 hover:text-white hover:bg-white/5'}`}
-          >
-            VIDEOS ({activeData.videos.length})
-          </button>
+          {activeData.showVideoGallery && (
+            <button 
+              onClick={() => setActiveTab('videos')}
+              className={`px-8 py-3 rounded-full font-sans text-xs sm:text-sm uppercase tracking-[0.2em] transition-all duration-500 ${activeTab === 'videos' ? 'bg-white text-black shadow-[0_0_30px_rgba(255,255,255,0.4)] scale-105' : 'bg-transparent border border-white/20 text-gray-400 hover:border-white/50 hover:text-white hover:bg-white/5'}`}
+            >
+              VIDEOS ({activeData.videos.length})
+            </button>
+          )}
         </div>
 
         {/* Gallery Grid */}

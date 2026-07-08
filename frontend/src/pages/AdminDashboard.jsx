@@ -11,7 +11,7 @@ const AdminDashboard = () => {
   const storedUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
   const userPermissions = storedUser.permissions || [];
   const isSuperAdmin = storedUser.isSuperAdmin === true || storedUser.email === 'ssaiprasanth333@gmail.com' || localStorage.getItem('adminBypass') === 'true';
-  const allTabs = ['dashboard', 'leads', 'inquiries', 'bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options', 'business'];
+  const allTabs = ['dashboard', 'leads', 'inquiries', 'studio bookings', 'events', 'calendar', 'slots', 'business', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options'];
   const allowedTabs = isSuperAdmin ? allTabs : allTabs.filter(tab => userPermissions.includes(tab));
   const initialTab = allowedTabs.includes('dashboard') ? 'dashboard' : (allowedTabs[0] || 'dashboard');
 
@@ -706,19 +706,24 @@ const AdminDashboard = () => {
 
   const handleAddExpense = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = {
-      date: formData.get('date'),
-      amount: Number(formData.get('amount')),
-      type: formData.get('type'),
-      description: formData.get('description')
-    };
-    if (editingExpense && editingExpense.bookingId) {
-      data.bookingId = editingExpense.bookingId;
-    }
+    if (!editingExpense.items || editingExpense.items.length === 0) return;
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/expenses`, data);
-      setExpenses([res.data, ...expenses]);
+      const newExpenses = [];
+      for (const item of editingExpense.items) {
+        if (!item.description || item.amount <= 0) continue;
+        const data = {
+          date: editingExpense.date,
+          amount: Number(item.amount),
+          type: editingExpense.type,
+          description: item.description
+        };
+        if (editingExpense.bookingId) {
+          data.bookingId = editingExpense.bookingId;
+        }
+        const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/expenses`, data);
+        newExpenses.push(res.data);
+      }
+      setExpenses([...newExpenses, ...expenses]);
       setEditingExpense(null);
     } catch (err) {
       console.error(err);
@@ -1240,7 +1245,7 @@ const AdminDashboard = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex flex-col">
-                    <span className="text-[10px] uppercase text-gray-500 mb-1">Start Date</span>
+                    <span className="text-[11px] uppercase text-gray-500 mb-1">Start Date</span>
                     <input 
                       type="date" 
                       className="bg-black/40 border border-white/20 text-white font-sans text-xs px-3 py-2 outline-none focus:border-white/50 rounded [color-scheme:dark]"
@@ -1249,7 +1254,7 @@ const AdminDashboard = () => {
                     />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] uppercase text-gray-500 mb-1">End Date</span>
+                    <span className="text-[11px] uppercase text-gray-500 mb-1">End Date</span>
                     <input 
                       type="date" 
                       className="bg-black/40 border border-white/20 text-white font-sans text-xs px-3 py-2 outline-none focus:border-white/50 rounded [color-scheme:dark]"
@@ -1260,7 +1265,7 @@ const AdminDashboard = () => {
                   {(dashboardStartDate || dashboardEndDate) && (
                     <button 
                       onClick={() => { setDashboardStartDate(''); setDashboardEndDate(''); }}
-                      className="mt-5 text-[10px] uppercase text-gray-400 hover:text-white underline"
+                      className="mt-5 text-[11px] uppercase text-gray-400 hover:text-white underline"
                     >
                       Clear
                     </button>
@@ -1272,7 +1277,7 @@ const AdminDashboard = () => {
                 {/* Total Bookings */}
                 <div className={glassPanel + " p-6 flex flex-col relative group"}>
                   <div className="flex justify-between items-start mb-2">
-                    <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest">Total Bookings</div>
+                    <div className="text-gray-500 font-sans text-[11px] uppercase tracking-widest">Total Bookings</div>
                     <select className="bg-transparent border border-white/10 text-gray-400 text-[9px] uppercase outline-none focus:border-white/30 rounded py-0.5 px-1" value={filterBookings} onChange={(e) => setFilterBookings(e.target.value)}>
                       <option value="all" className="bg-black">All</option>
                       <option value="today" className="bg-black">Today</option>
@@ -1289,13 +1294,13 @@ const AdminDashboard = () => {
                       }).length;
                     })()}
                   </div>
-                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest mt-auto">All scheduled shoots</div>
+                  <div className="text-emerald-500 font-sans text-[11px] tracking-widest mt-auto">All scheduled shoots</div>
                 </div>
 
                 {/* Total Leads */}
                 <div className={glassPanel + " p-6 flex flex-col relative group"}>
                   <div className="flex justify-between items-start mb-2">
-                    <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest">Total Leads</div>
+                    <div className="text-gray-500 font-sans text-[11px] uppercase tracking-widest">Total Leads</div>
                     <select className="bg-transparent border border-white/10 text-gray-400 text-[9px] uppercase outline-none focus:border-white/30 rounded py-0.5 px-1" value={filterLeads} onChange={(e) => setFilterLeads(e.target.value)}>
                       <option value="all" className="bg-black">All</option>
                       <option value="today" className="bg-black">Today</option>
@@ -1312,13 +1317,13 @@ const AdminDashboard = () => {
                       }).length;
                     })()}
                   </div>
-                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest mt-auto">Landing page inquiries</div>
+                  <div className="text-emerald-500 font-sans text-[11px] tracking-widest mt-auto">Landing page inquiries</div>
                 </div>
 
                 {/* Total Inquiries */}
                 <div className={glassPanel + " p-6 flex flex-col relative group"}>
                   <div className="flex justify-between items-start mb-2">
-                    <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest">Total Inquiries</div>
+                    <div className="text-gray-500 font-sans text-[11px] uppercase tracking-widest">Total Inquiries</div>
                     <select className="bg-transparent border border-white/10 text-gray-400 text-[9px] uppercase outline-none focus:border-white/30 rounded py-0.5 px-1" value={filterInquiries} onChange={(e) => setFilterInquiries(e.target.value)}>
                       <option value="all" className="bg-black">All</option>
                       <option value="today" className="bg-black">Today</option>
@@ -1335,13 +1340,13 @@ const AdminDashboard = () => {
                       }).length;
                     })()}
                   </div>
-                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest mt-auto">General inquiries</div>
+                  <div className="text-emerald-500 font-sans text-[11px] tracking-widest mt-auto">General inquiries</div>
                 </div>
 
                 {/* Pending */}
                 <div className={glassPanel + " p-6 flex flex-col relative group"}>
                   <div className="flex justify-between items-start mb-2">
-                    <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest">Pending</div>
+                    <div className="text-gray-500 font-sans text-[11px] uppercase tracking-widest">Pending</div>
                     <select className="bg-transparent border border-white/10 text-gray-400 text-[9px] uppercase outline-none focus:border-white/30 rounded py-0.5 px-1" value={filterPending} onChange={(e) => setFilterPending(e.target.value)}>
                       <option value="all" className="bg-black">All</option>
                       <option value="today" className="bg-black">Today</option>
@@ -1361,13 +1366,13 @@ const AdminDashboard = () => {
                              dashboardFilteredBookings.filter(b => (b.status === 'PENDING' || b.status === 'Pending') && filterFunc(b)).length;
                     })()}
                   </div>
-                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest mt-auto">Needs review (Combined)</div>
+                  <div className="text-emerald-500 font-sans text-[11px] tracking-widest mt-auto">Needs review (Combined)</div>
                 </div>
 
                 {/* Confirmed */}
                 <div className={glassPanel + " p-6 flex flex-col relative group"}>
                   <div className="flex justify-between items-start mb-2">
-                    <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest">Confirmed</div>
+                    <div className="text-gray-500 font-sans text-[11px] uppercase tracking-widest">Confirmed</div>
                     <select className="bg-transparent border border-white/10 text-gray-400 text-[9px] uppercase outline-none focus:border-white/30 rounded py-0.5 px-1" value={filterConfirmed} onChange={(e) => setFilterConfirmed(e.target.value)}>
                       <option value="all" className="bg-black">All</option>
                       <option value="today" className="bg-black">Today</option>
@@ -1387,7 +1392,7 @@ const AdminDashboard = () => {
                              dashboardFilteredBookings.filter(b => (b.status === 'CONFIRMED' || b.status === 'Confirmed' || b.status === 'COMPLETED') && filterFunc(b)).length;
                     })()}
                   </div>
-                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest mt-auto">Converted (Combined)</div>
+                  <div className="text-emerald-500 font-sans text-[11px] tracking-widest mt-auto">Converted (Combined)</div>
                 </div>
               </div>
               <div className={glassPanel + " p-8 mt-8"}>
@@ -1395,7 +1400,7 @@ const AdminDashboard = () => {
                   <h3 className="text-xl font-oswald uppercase tracking-widest text-white">Recent Inquiries</h3>
                   <div className="flex flex-wrap items-center gap-2 md:gap-4 w-full md:w-auto">
                     <select 
-                      className="bg-[#121212] border border-white/20 text-white font-sans text-[10px] uppercase tracking-widest px-2 md:px-4 py-2 outline-none focus:border-white/50 rounded cursor-pointer flex-1 md:flex-none"
+                      className="bg-[#121212] border border-white/20 text-white font-sans text-[11px] uppercase tracking-widest px-2 md:px-4 py-2 outline-none focus:border-white/50 rounded cursor-pointer flex-1 md:flex-none"
                       value={dashboardDateFilter}
                       onChange={(e) => setDashboardDateFilter(e.target.value)}
                     >
@@ -1404,7 +1409,7 @@ const AdminDashboard = () => {
                       <option value="thisWeek" className="bg-[#121212] text-white">Past 7 Days</option>
                     </select>
                     <select 
-                      className="bg-[#121212] border border-white/20 text-white font-sans text-[10px] uppercase tracking-widest px-2 md:px-4 py-2 outline-none focus:border-white/50 rounded cursor-pointer flex-1 md:flex-none"
+                      className="bg-[#121212] border border-white/20 text-white font-sans text-[11px] uppercase tracking-widest px-2 md:px-4 py-2 outline-none focus:border-white/50 rounded cursor-pointer flex-1 md:flex-none"
                       value={dashboardTypeFilter}
                       onChange={(e) => setDashboardTypeFilter(e.target.value)}
                     >
@@ -1413,13 +1418,13 @@ const AdminDashboard = () => {
                       <option value="leads" className="bg-[#121212] text-white">Leads Only</option>
                       <option value="inquiries" className="bg-[#121212] text-white">Inquiries Only</option>
                     </select>
-                    <button onClick={() => setActiveTab('inquiries')} className="text-[10px] uppercase tracking-widest border border-white/20 px-4 py-2 hover:bg-white hover:text-black transition-colors rounded text-white whitespace-nowrap">View All</button>
+                    <button onClick={() => setActiveTab('inquiries')} className="text-[11px] uppercase tracking-widest border border-white/20 px-4 py-2 hover:bg-white hover:text-black transition-colors rounded text-white whitespace-nowrap">View All</button>
                   </div>
                 </div>
                 <div className="overflow-x-auto custom-scrollbar">
                   <table className="w-full text-left font-sans text-sm min-w-[600px]">
                     <thead>
-                      <tr className="border-b border-white/10 text-gray-500 text-[10px] uppercase tracking-widest">
+                      <tr className="border-b border-white/10 text-gray-500 text-[11px] uppercase tracking-widest">
                         <th className="py-4 px-2 font-normal">Type</th>
                         <th className="py-4 px-2 font-normal">Client Name</th>
                         <th className="py-4 px-2 font-normal">Event Date</th>
@@ -1436,7 +1441,7 @@ const AdminDashboard = () => {
                           <td className="py-4 text-gray-400">{item.eventDate || item.date || 'N/A'}</td>
                           <td className="py-4 text-gray-400">{item.interestedIn || item.package || item.service || 'N/A'}</td>
                           <td className="py-4"><span className="text-[9px] uppercase tracking-widest border border-yellow-500/30 text-yellow-400 px-2 py-1 rounded">{item.status}</span></td>
-                          <td className="py-4"><button onClick={() => setActiveTab(item.isType === 'LEAD' ? 'leads' : item.isType === 'BOOKING' ? 'bookings' : 'inquiries')} className="text-xs uppercase tracking-widest text-gray-400 hover:text-white transition-colors">Review</button></td>
+                          <td className="py-4"><button onClick={() => setActiveTab(item.isType === 'LEAD' ? 'leads' : item.isType === 'BOOKING' ? 'studio bookings' : 'inquiries')} className="text-xs uppercase tracking-widest text-gray-400 hover:text-white transition-colors">Review</button></td>
                         </tr>
                       ))}
                     </tbody>
@@ -1480,7 +1485,7 @@ const AdminDashboard = () => {
                           <label className="block text-xs uppercase text-gray-500 mb-2">Team Notification Emails (comma separated)</label>
                           <textarea className={glassInput} rows="2" placeholder="e.g. member1@imazen.in, member2@imazen.in" value={settings.teamEmails ? settings.teamEmails.join(', ') : ''} onChange={e => setSettings({...settings, teamEmails: e.target.value.split(',').map(em => em.trim()).filter(em => em)})}>
                           </textarea>
-                          <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">These emails will receive new booking notifications.</p>
+                          <p className="text-[11px] text-gray-500 mt-1 uppercase tracking-widest">These emails will receive new booking notifications.</p>
                         </div>
                         <button type="submit" disabled={isGlobalSubmitting} className="px-6 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Saving...' : 'Save Contact Info'}</button>
                       </form>
@@ -1517,7 +1522,7 @@ const AdminDashboard = () => {
                             ))}
                             <button type="button" onClick={() => {
                               setSettings({...settings, footerSocials: [...(settings.footerSocials || []), { platform: '', link: '' }]});
-                            }} className="text-[10px] text-gray-400 hover:text-white uppercase tracking-widest">+ Add Social Link</button>
+                            }} className="text-[11px] text-gray-400 hover:text-white uppercase tracking-widest">+ Add Social Link</button>
                           </div>
                         </div>
 
@@ -1558,7 +1563,7 @@ const AdminDashboard = () => {
                           ))}
                           <button type="button" onClick={() => {
                             setSettings({...settings, whatWeDo: [...(settings.whatWeDo || []), { title: '', description: '' }]});
-                          }} className="text-[10px] text-gray-400 hover:text-white uppercase tracking-widest">+ Add Item</button>
+                          }} className="text-[11px] text-gray-400 hover:text-white uppercase tracking-widest">+ Add Item</button>
                         </div>
                         <button type="submit" disabled={isGlobalSubmitting} className="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Saving...' : 'Save What We Do'}</button>
                       </form>
@@ -1711,8 +1716,8 @@ const AdminDashboard = () => {
                           <img src={page.heroImage || page.landingAbout?.imageUrl || 'https://via.placeholder.com/800x600?text=No+Image'} alt={page.name} className="w-full h-full object-cover opacity-50 group-hover:opacity-30 group-hover:scale-110 transition-all duration-700 cursor-pointer" />
                           <div className="absolute inset-0 p-6 flex flex-col justify-end bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none">
                             <h3 className="text-xl text-white font-oswald uppercase tracking-widest">{page.name}</h3>
-                            <span className="mt-1 text-[10px] text-emerald-400 font-sans tracking-widest uppercase">/{page.slug}</span>
-                            <span className={`mt-1 text-[10px] font-sans tracking-widest uppercase ${page.isActive ? 'text-green-500' : 'text-red-500'}`}>
+                            <span className="mt-1 text-[11px] text-emerald-400 font-sans tracking-widest uppercase">/{page.slug}</span>
+                            <span className={`mt-1 text-[11px] font-sans tracking-widest uppercase ${page.isActive ? 'text-green-500' : 'text-red-500'}`}>
                               {page.isActive ? 'Active' : 'Draft'}
                             </span>
                           </div>
@@ -1778,7 +1783,7 @@ const AdminDashboard = () => {
                             <div className="mt-4 border border-white/10 p-4 rounded-xl">
                               <div className="flex justify-between items-center mb-4">
                                 <h4 className="text-xs uppercase text-gray-400 tracking-widest">Custom Packages</h4>
-                                <button type="button" onClick={() => setEditingLandingPage({...editingLandingPage, customPackages: [...(editingLandingPage.customPackages || []), {name: '', price: '', description: ''}]})} className="text-[10px] bg-white/10 hover:bg-white/20 px-3 py-1 rounded uppercase tracking-widest">+ Add Package</button>
+                                <button type="button" onClick={() => setEditingLandingPage({...editingLandingPage, customPackages: [...(editingLandingPage.customPackages || []), {name: '', price: '', description: ''}]})} className="text-[11px] bg-white/10 hover:bg-white/20 px-3 py-1 rounded uppercase tracking-widest">+ Add Package</button>
                               </div>
                               {(editingLandingPage.customPackages || []).map((pkg, idx) => (
                                 <div key={idx} className="mb-4 bg-black/30 p-3 rounded border border-white/5 relative">
@@ -2010,7 +2015,7 @@ const AdminDashboard = () => {
                                           const newCards = [...editingLandingPage.serviceCards];
                                           newCards[idx].images.splice(i, 1);
                                           setEditingLandingPage({...editingLandingPage, serviceCards: newCards});
-                                        }} className="absolute top-1 right-1 bg-red-500 text-white w-4 h-4 rounded-full text-[10px] flex justify-center items-center opacity-0 group-hover:opacity-100">×</button>
+                                        }} className="absolute top-1 right-1 bg-red-500 text-white w-4 h-4 rounded-full text-[11px] flex justify-center items-center opacity-0 group-hover:opacity-100">×</button>
                                         <div className="absolute top-1 left-1 flex gap-1 opacity-0 group-hover:opacity-100">
                                           <button type="button" onClick={() => {
                                             if(i > 0) {
@@ -2018,14 +2023,14 @@ const AdminDashboard = () => {
                                               [newCards[idx].images[i-1], newCards[idx].images[i]] = [newCards[idx].images[i], newCards[idx].images[i-1]];
                                               setEditingLandingPage({...editingLandingPage, serviceCards: newCards});
                                             }
-                                          }} className="bg-black/50 text-white w-4 h-4 rounded-full text-[10px] flex justify-center items-center">↑</button>
+                                          }} className="bg-black/50 text-white w-4 h-4 rounded-full text-[11px] flex justify-center items-center">↑</button>
                                           <button type="button" onClick={() => {
                                             if(i < card.images.length - 1) {
                                               const newCards = [...editingLandingPage.serviceCards];
                                               [newCards[idx].images[i+1], newCards[idx].images[i]] = [newCards[idx].images[i], newCards[idx].images[i+1]];
                                               setEditingLandingPage({...editingLandingPage, serviceCards: newCards});
                                             }
-                                          }} className="bg-black/50 text-white w-4 h-4 rounded-full text-[10px] flex justify-center items-center">↓</button>
+                                          }} className="bg-black/50 text-white w-4 h-4 rounded-full text-[11px] flex justify-center items-center">↓</button>
                                         </div>
   
                                       </div>
@@ -2043,7 +2048,7 @@ const AdminDashboard = () => {
                              <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase">Display Video</h3>
                              <label className="flex items-center gap-2 cursor-pointer">
                                <input type="checkbox" className="form-checkbox text-blue-500 rounded bg-black border-white/20" checked={editingLandingPage.showDisplayVideo !== false} onChange={e => setEditingLandingPage({...editingLandingPage, showDisplayVideo: e.target.checked})} />
-                               <span className="text-[10px] uppercase text-gray-400 tracking-widest">Show Video</span>
+                               <span className="text-[11px] uppercase text-gray-400 tracking-widest">Show Video</span>
                              </label>
                            </div>
                            <input type="text" className="bg-transparent border border-white/10 text-white font-sans outline-none focus:border-white/50 rounded transition-colors [color-scheme:dark] py-2 text-sm w-full mb-4" placeholder="Paste YouTube Link here (e.g. https://youtu.be/...)" value={editingLandingPage.displayVideoUrl || ""} onChange={e => setEditingLandingPage({...editingLandingPage, displayVideoUrl: e.target.value})} />
@@ -2276,7 +2281,13 @@ const AdminDashboard = () => {
                         
                         {/* PORTFOLIO VIDEOS */}
                         <div className="border-t border-white/5 pt-6 mt-6">
-                           <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase mb-4">Videos Gallery</h3>
+                           <div className="flex justify-between items-center mb-4">
+                             <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase">Videos Gallery</h3>
+                             <label className="flex items-center gap-2 cursor-pointer">
+                               <input type="checkbox" className="form-checkbox text-emerald-500 rounded bg-black border-white/20" checked={editingLandingPage.showVideoGallery !== false} onChange={e => setEditingLandingPage({...editingLandingPage, showVideoGallery: e.target.checked})} />
+                               <span className="text-[11px] uppercase text-gray-400 tracking-widest">Show Gallery</span>
+                             </label>
+                           </div>
                            <div className="mb-4">
                               <label className="block text-xs uppercase text-gray-400 mb-2">Section Heading</label>
                               <input type="text" className={glassInput} value={editingLandingPage.portfolioVideosHeading || ''} onChange={e => setEditingLandingPage({...editingLandingPage, portfolioVideosHeading: e.target.value})} placeholder="e.g. Memorable Client Stories" />
@@ -2294,7 +2305,7 @@ const AdminDashboard = () => {
                              <button type="button" onClick={() => {
                                const newVids = [...(editingLandingPage.portfolioVideos || []), ''];
                                setEditingLandingPage({...editingLandingPage, portfolioVideos: newVids});
-                             }} className="text-[10px] uppercase text-emerald-400">+ Add Link</button>
+                             }} className="text-[11px] uppercase text-emerald-400">+ Add Link</button>
                            </div>
                            <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
                              {(editingLandingPage.portfolioVideos || []).map((vid, idx) => (
@@ -2412,25 +2423,25 @@ const AdminDashboard = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className={glassPanel}>
                           <h3 className="text-sm text-gray-400 uppercase tracking-widest mb-4">Basic Info</h3>
-                          <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Studio Name</label>
+                          <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Studio Name</label>
                           <input type="text" required className={`${glassInput} mb-4`} value={studioData.name} onChange={e => setStudioData({...studioData, name: e.target.value})} />
                           
-                          <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Description</label>
+                          <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Description</label>
                           <textarea rows="3" className={`${glassInput} mb-4`} value={studioData.description} onChange={e => setStudioData({...studioData, description: e.target.value})}></textarea>
                           
-                          <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2 mt-4">360° Image URL</label>
+                          <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2 mt-4">360° Image URL</label>
                           <DragDropImageUploader disableCompression={true} currentImage={studioData.threeSixtyImage} onUploadSuccess={(url) => setStudioData({...studioData, threeSixtyImage: url})} />
 
-                          <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Google Map Embed URL / src</label>
+                          <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Google Map Embed URL / src</label>
                           <input type="text" className={`${glassInput} mb-4`} placeholder="https://www.google.com/maps/embed?pb=..." value={studioData.mapEmbedUrl} onChange={e => setStudioData({...studioData, mapEmbedUrl: e.target.value})} />
                         </div>
 
                         <div className={glassPanel}>
                           <h3 className="text-sm text-gray-400 uppercase tracking-widest mb-4">Hero Images</h3>
-                          <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Desktop Hero URL</label>
+                          <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Desktop Hero URL</label>
                           <DragDropImageUploader currentImage={studioData.heroImageDesktop} aspect={16/9} onUploadSuccess={(url) => setStudioData({...studioData, heroImageDesktop: url})} />
                           
-                          <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2 mt-4">Mobile Hero URL</label>
+                          <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2 mt-4">Mobile Hero URL</label>
                           <DragDropImageUploader currentImage={studioData.heroImageMobile} aspect={9/16} onUploadSuccess={(url) => setStudioData({...studioData, heroImageMobile: url})} />
                         </div>
                       </div>
@@ -2704,14 +2715,14 @@ const AdminDashboard = () => {
                                           const newImgs = [...editingSubService.data.portfolioImages];
                                           [newImgs[idx - 1], newImgs[idx]] = [newImgs[idx], newImgs[idx - 1]];
                                           setEditingSubService({...editingSubService, data: {...editingSubService.data, portfolioImages: newImgs}});
-                                        }} className="bg-black/80 text-white w-5 h-5 rounded flex items-center justify-center text-[10px] hover:bg-white hover:text-black border border-white/20">&lt;</button>
+                                        }} className="bg-black/80 text-white w-5 h-5 rounded flex items-center justify-center text-[11px] hover:bg-white hover:text-black border border-white/20">&lt;</button>
                                       )}
                                       {idx < editingSubService.data.portfolioImages.length - 1 && (
                                         <button type="button" onClick={() => {
                                           const newImgs = [...editingSubService.data.portfolioImages];
                                           [newImgs[idx + 1], newImgs[idx]] = [newImgs[idx], newImgs[idx + 1]];
                                           setEditingSubService({...editingSubService, data: {...editingSubService.data, portfolioImages: newImgs}});
-                                        }} className="bg-black/80 text-white w-5 h-5 rounded flex items-center justify-center text-[10px] hover:bg-white hover:text-black border border-white/20">&gt;</button>
+                                        }} className="bg-black/80 text-white w-5 h-5 rounded flex items-center justify-center text-[11px] hover:bg-white hover:text-black border border-white/20">&gt;</button>
                                       )}
                                     </div>
                                     <button type="button" onClick={async () => {
@@ -2732,10 +2743,14 @@ const AdminDashboard = () => {
                             <div>
                               <div className="flex justify-between items-center mb-2">
                                 <label className="block text-xs uppercase text-gray-400">YouTube Links</label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                  <input type="checkbox" className="form-checkbox text-blue-500 rounded bg-black border-white/20" checked={editingSubService.data.showVideoGallery !== false} onChange={e => setEditingSubService({...editingSubService, data: {...editingSubService.data, showVideoGallery: e.target.checked}})} />
+                                  <span className="text-[11px] uppercase text-gray-400 tracking-widest">Show Gallery</span>
+                                </label>
                                 <button type="button" onClick={() => {
                                   const newVids = [...(editingSubService.data.portfolioVideos || []), ''];
                                   setEditingSubService({...editingSubService, data: {...editingSubService.data, portfolioVideos: newVids}});
-                                }} className="text-[10px] uppercase text-blue-400">+ Add Link</button>
+                                }} className="text-[11px] uppercase text-blue-400">+ Add Link</button>
                               </div>
                               <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
                                 {(editingSubService.data.portfolioVideos || []).map((vid, idx) => (
@@ -2862,7 +2877,7 @@ const AdminDashboard = () => {
                                 <img src={cat.coverImage} alt={cat.name} className="w-full h-full object-cover opacity-50 group-hover:opacity-30 group-hover:scale-110 transition-all duration-700 cursor-pointer" onClick={() => setSelectedThemeCategory(cat.name)} />
                                 <div className="absolute inset-0 p-6 flex flex-col justify-end bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none">
                                   <h3 className="text-xl text-white font-oswald uppercase tracking-widest">{cat.name}</h3>
-                                  <span className="mt-1 text-[10px] text-purple-400 font-sans tracking-widest uppercase">{count} Themes</span>
+                                  <span className="mt-1 text-[11px] text-purple-400 font-sans tracking-widest uppercase">{count} Themes</span>
                                 </div>
                                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-y-[-10px] group-hover:translate-y-0">
                                   <button onClick={() => setEditingThemeCategory(cat)} className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 shadow-lg">✎</button>
@@ -2898,7 +2913,7 @@ const AdminDashboard = () => {
                             <div key={theme._id} className={`${glassPanel} overflow-hidden group relative h-72 cursor-pointer`}>
                               <img src={theme.image} alt={theme.name} className="w-full h-full object-cover opacity-60 group-hover:opacity-40 group-hover:scale-110 transition-all duration-700" />
                               <div className="absolute inset-0 p-6 flex flex-col justify-end bg-gradient-to-t from-black via-black/40 to-transparent border-t border-white/5">
-                                 <span className="text-[10px] text-purple-400 uppercase tracking-widest mb-1">{theme.category}</span>
+                                 <span className="text-[11px] text-purple-400 uppercase tracking-widest mb-1">{theme.category}</span>
                                  <h3 className="text-xl text-white font-oswald uppercase tracking-[0.2em] leading-tight">{theme.name}</h3>
                               </div>
                               <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-y-[-10px] group-hover:translate-y-0">
@@ -2998,7 +3013,7 @@ const AdminDashboard = () => {
                           <p className="text-xs text-gray-400 tracking-wide font-sans">Select a category before dropping an image.</p>
                         </div>
                         <div className="w-full md:w-64">
-                          <label className="flex items-center justify-between text-[10px] uppercase text-gray-500 mb-1">
+                          <label className="flex items-center justify-between text-[11px] uppercase text-gray-500 mb-1">
                             <span>Image Category</span>
                             <button onClick={handleAddGalleryCategory} className="text-blue-400 hover:text-white transition-colors">+ Add New</button>
                           </label>
@@ -3098,7 +3113,7 @@ const AdminDashboard = () => {
                              </button>
                           </div>
                           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <button onClick={() => handleDeleteGalleryImage(img._id)} className="px-4 py-2 rounded-full bg-red-600/90 hover:bg-red-500 text-white uppercase tracking-widest text-[10px] font-bold backdrop-blur-md transition-colors">Delete</button>
+                            <button onClick={() => handleDeleteGalleryImage(img._id)} className="px-4 py-2 rounded-full bg-red-600/90 hover:bg-red-500 text-white uppercase tracking-widest text-[11px] font-bold backdrop-blur-md transition-colors">Delete</button>
                           </div>
                         </motion.div>
                         );
@@ -3108,7 +3123,7 @@ const AdminDashboard = () => {
                 )}
 
                 {/* BOOKINGS TABS */}
-                {activeTab === 'bookings' && !showSubscriptionsView && (
+                {activeTab === 'studio bookings' && !showSubscriptionsView && (
                   <div className="space-y-6">
                     <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-gradient-to-r from-green-900/20 to-transparent p-6 rounded-2xl border border-green-500/20">
                       <div>
@@ -3180,12 +3195,21 @@ const AdminDashboard = () => {
                           return matchesMonth && matchesStatus && matchesSearch;
                         }).map(booking => (
                           <div key={booking._id} id={`booking-${booking._id}`} className={`${glassPanel} p-6 flex flex-col relative transition-all duration-500 ${highlightedBookingId === booking._id ? 'border-2 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)] scale-[1.02] bg-emerald-900/10' : ''}`}>
-                            <button 
-                              onClick={() => setEditingBooking(booking)}
-                              className="absolute top-4 right-4 text-[10px] text-gray-400 hover:text-white uppercase tracking-widest flex items-center gap-1 bg-black/40 px-2 py-1 rounded"
-                            >
-                              Edit ✏️
-                            </button>
+                            <div className="absolute top-4 right-4 flex gap-2 z-10">
+                              <button 
+                                onClick={() => { setActiveTab('business'); setHighlightedBookingId(booking._id); }}
+                                className="text-[11px] text-emerald-400/70 hover:text-emerald-400 uppercase tracking-widest flex items-center gap-1 bg-emerald-900/20 px-2 py-1 rounded border border-emerald-500/20 transition-colors"
+                                title="View in Business Overview"
+                              >
+                                Overview 👁
+                              </button>
+                              <button 
+                                onClick={() => setEditingBooking(booking)}
+                                className="text-[11px] text-gray-400 hover:text-white uppercase tracking-widest flex items-center gap-1 bg-black/40 px-2 py-1 rounded transition-colors"
+                              >
+                                Edit ✏️
+                              </button>
+                            </div>
                             <div className="flex justify-between items-start mb-4 pr-16">
                               <div>
                                 {booking.bookingType === 'Studio' && (
@@ -3232,7 +3256,7 @@ const AdminDashboard = () => {
                                   <span className="block text-xs uppercase text-white mb-2">Slot History</span>
                                   <div className="space-y-1">
                                     {booking.slotHistory.map((history, idx) => (
-                                      <div key={idx} className="text-[10px] text-gray-400 flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                                      <div key={idx} className="text-[11px] text-gray-400 flex flex-col sm:flex-row sm:items-center sm:gap-2">
                                         <div><span className="text-gray-500">{history.oldDate} ({history.oldSlot})</span> ➔ <span className="text-white">{history.newDate} ({history.newSlot})</span></div>
                                         <div className="text-[9px] text-gray-600 sm:ml-auto">{new Date(history.changedAt).toLocaleString()}</div>
                                       </div>
@@ -3259,14 +3283,14 @@ const AdminDashboard = () => {
                                   <input type="number" name="pendingAmount" value={(booking.totalAmount || 0) - (booking.advanceAmount || 0)} readOnly className={`${glassInput} py-1 px-2 text-xs text-red-400 cursor-not-allowed opacity-70`} />
                                 </div>
                                 <div className="col-span-3 mt-1">
-                                  <button type="submit" disabled={isGlobalSubmitting} className="w-full py-1.5 bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white rounded text-[10px] uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Updating...' : 'Update Payment'}</button>
+                                  <button type="submit" disabled={isGlobalSubmitting} className="w-full py-1.5 bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white rounded text-[11px] uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Updating...' : 'Update Payment'}</button>
                                 </div>
                               </form>
                             </div>
 
                             <div className="mb-4 grid grid-cols-2 gap-4">
                               <div className="bg-black/40 border border-white/5 rounded-xl p-3">
-                                <h4 className="text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Team Assignment</h4>
+                                <h4 className="text-[11px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Team Assignment</h4>
                                 <select 
                                   value={booking.assignedTeamMember || ''} 
                                   onChange={(e) => handleUpdateBookingDetails(booking._id, { assignedTeamMember: e.target.value })}
@@ -3279,7 +3303,7 @@ const AdminDashboard = () => {
                                 </select>
                               </div>
                               <div className="bg-black/40 border border-white/5 rounded-xl p-3">
-                                <h4 className="text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Shoot Status (Manual)</h4>
+                                <h4 className="text-[11px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Shoot Status (Manual)</h4>
                                 <input 
                                   type="text" 
                                   placeholder="e.g. Editing Completed"
@@ -3291,34 +3315,34 @@ const AdminDashboard = () => {
                             </div>
 
                             <div className="mb-4">
-                              <button onClick={() => setFollowUpModal({ type: 'booking', id: booking._id })} className="text-[10px] text-green-400 hover:text-white flex items-center gap-1 uppercase tracking-widest transition-colors">
+                              <button onClick={() => setFollowUpModal({ type: 'booking', id: booking._id })} className="text-[11px] text-green-400 hover:text-white flex items-center gap-1 uppercase tracking-widest transition-colors">
                                 <span>📋 Follow-up Notes ({booking.followUps?.length || 0})</span>
                               </button>
                             </div>
 
                             {['Confirmed', 'Finished', 'Shoot Completed', 'Photos Delivered', 'Videos Delivered'].includes(booking.status) && booking.bookingType !== 'Studio' && (
                               <div className="mb-4 bg-black/40 border border-white/5 rounded-xl p-3">
-                                <h4 className="text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Progress Tracking</h4>
+                                <h4 className="text-[11px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Progress Tracking</h4>
                                 <div className="space-y-2">
                                   <label className="flex items-center gap-2 cursor-pointer group">
                                     <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${booking.shootCompleted ? 'bg-purple-500 border-purple-500' : 'border-white/20 group-hover:border-white/50 bg-black/40'}`}>
-                                      {booking.shootCompleted && <span className="text-white text-[10px]">✓</span>}
+                                      {booking.shootCompleted && <span className="text-white text-[11px]">✓</span>}
                                     </div>
-                                    <span className={`text-[10px] uppercase tracking-widest transition-colors ${booking.shootCompleted ? 'text-green-400' : 'text-gray-400'}`}>Shoot Completed</span>
+                                    <span className={`text-[11px] uppercase tracking-widest transition-colors ${booking.shootCompleted ? 'text-green-400' : 'text-gray-400'}`}>Shoot Completed</span>
                                     <input type="checkbox" className="hidden" checked={booking.shootCompleted || false} onChange={(e) => handleUpdateBookingProgress(booking._id, 'shootCompleted', e.target.checked)} />
                                   </label>
                                   <label className="flex items-center gap-2 cursor-pointer group">
                                     <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${booking.photosDelivered ? 'bg-pink-500 border-pink-500' : 'border-white/20 group-hover:border-white/50 bg-black/40'}`}>
-                                      {booking.photosDelivered && <span className="text-white text-[10px]">✓</span>}
+                                      {booking.photosDelivered && <span className="text-white text-[11px]">✓</span>}
                                     </div>
-                                    <span className={`text-[10px] uppercase tracking-widest transition-colors ${booking.photosDelivered ? 'text-pink-400' : 'text-gray-400'}`}>Photos Delivered</span>
+                                    <span className={`text-[11px] uppercase tracking-widest transition-colors ${booking.photosDelivered ? 'text-pink-400' : 'text-gray-400'}`}>Photos Delivered</span>
                                     <input type="checkbox" className="hidden" checked={booking.photosDelivered || false} onChange={(e) => handleUpdateBookingProgress(booking._id, 'photosDelivered', e.target.checked)} />
                                   </label>
                                   <label className="flex items-center gap-2 cursor-pointer group">
                                     <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${booking.videosDelivered ? 'bg-teal-500 border-teal-500' : 'border-white/20 group-hover:border-white/50 bg-black/40'}`}>
-                                      {booking.videosDelivered && <span className="text-white text-[10px]">✓</span>}
+                                      {booking.videosDelivered && <span className="text-white text-[11px]">✓</span>}
                                     </div>
-                                    <span className={`text-[10px] uppercase tracking-widest transition-colors ${booking.videosDelivered ? 'text-teal-400' : 'text-gray-400'}`}>Videos Delivered</span>
+                                    <span className={`text-[11px] uppercase tracking-widest transition-colors ${booking.videosDelivered ? 'text-teal-400' : 'text-gray-400'}`}>Videos Delivered</span>
                                     <input type="checkbox" className="hidden" checked={booking.videosDelivered || false} onChange={(e) => handleUpdateBookingProgress(booking._id, 'videosDelivered', e.target.checked)} />
                                   </label>
                                 </div>
@@ -3374,7 +3398,7 @@ const AdminDashboard = () => {
                     <div className={`${glassPanel} p-8 flex flex-col md:flex-row gap-8 items-start`}>
                       <div className="w-full md:w-1/3 border-r border-white/5 pr-8 space-y-8">
                         <div>
-                          <label className="block text-[10px] uppercase text-gray-500 mb-2">Select Date</label>
+                          <label className="block text-[11px] uppercase text-gray-500 mb-2">Select Date</label>
                           <input 
                             type="date" 
                             className="w-full bg-black/40 border border-white/10 py-4 px-4 font-sans text-white focus:outline-none focus:border-white transition-colors rounded-xl [&::-webkit-calendar-picker-indicator]:invert"
@@ -3384,7 +3408,7 @@ const AdminDashboard = () => {
                         </div>
 
                         <div className="pt-8 border-t border-white/5">
-                          <label className="block text-[10px] uppercase text-gray-500 mb-4">Global Weekly Schedule</label>
+                          <label className="block text-[11px] uppercase text-gray-500 mb-4">Global Weekly Schedule</label>
                           <p className="text-xs text-gray-400 font-sans mb-4">Select days that the studio is ALWAYS closed.</p>
                           <div className="space-y-2">
                             {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((dayName, idx) => {
@@ -3412,7 +3436,7 @@ const AdminDashboard = () => {
                             <div className="mb-6 bg-black/40 p-4 rounded-xl border border-white/5">
                               <div className="mb-4 pb-4 border-b border-white/5">
                                 <label className="block text-sm uppercase text-white font-oswald tracking-widest mb-1">Global Slots Per Session</label>
-                                <p className="text-[10px] text-gray-500 font-sans">Set maximum bookings for Morning/Afternoon/Evening globally for each weekday</p>
+                                <p className="text-[11px] text-gray-500 font-sans">Set maximum bookings for Morning/Afternoon/Evening globally for each weekday</p>
                               </div>
                               <div className="space-y-3">
                                 {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map((day, dayIndex) => {
@@ -3493,7 +3517,7 @@ const AdminDashboard = () => {
                                             <div>
                                               <div className="flex items-center gap-3">
                                                 <span className="text-xs text-gray-500 font-oswald tracking-widest">SLOT {i + 1}</span>
-                                                <span className={`text-[10px] px-2 py-0.5 rounded font-bold tracking-widest uppercase ${slotStatus === 'Available' ? 'bg-green-500/20 text-green-400' : slotStatus === 'Booked' ? 'bg-blue-500/20 text-blue-400' : 'bg-red-500/20 text-red-400'}`}>
+                                                <span className={`text-[11px] px-2 py-0.5 rounded font-bold tracking-widest uppercase ${slotStatus === 'Available' ? 'bg-green-500/20 text-green-400' : slotStatus === 'Booked' ? 'bg-blue-500/20 text-blue-400' : 'bg-red-500/20 text-red-400'}`}>
                                                   {slotStatus}
                                                 </span>
                                               </div>
@@ -3505,7 +3529,7 @@ const AdminDashboard = () => {
                                               {slotStatus === 'Available' && (
                                                 <button 
                                                   onClick={() => handleBlockSlot(slot.slot, 'block_single')}
-                                                  className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white transition-colors rounded text-[10px] uppercase tracking-widest font-bold"
+                                                  className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white transition-colors rounded text-[11px] uppercase tracking-widest font-bold"
                                                 >
                                                   Block
                                                 </button>
@@ -3513,7 +3537,7 @@ const AdminDashboard = () => {
                                               {slotStatus === 'Blocked' && (
                                                 <button 
                                                   onClick={() => handleBlockSlot(slot.slot, 'open_single')}
-                                                  className="px-3 py-1.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white transition-colors rounded text-[10px] uppercase tracking-widest font-bold"
+                                                  className="px-3 py-1.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white transition-colors rounded text-[11px] uppercase tracking-widest font-bold"
                                                 >
                                                   Unblock
                                                 </button>
@@ -3540,7 +3564,7 @@ const AdminDashboard = () => {
                 )}
 
                 {/* SUBSCRIPTIONS VIEW */}
-                {activeTab === 'bookings' && showSubscriptionsView && (
+                {activeTab === 'studio bookings' && showSubscriptionsView && (
                   <div className="space-y-6">
                     <div className="flex justify-between items-center bg-gradient-to-r from-purple-900/20 to-transparent p-6 rounded-2xl border border-purple-500/20">
                       <div>
@@ -3572,27 +3596,27 @@ const AdminDashboard = () => {
                             <div className="absolute top-4 right-4 flex gap-2">
                               <button 
                                 onClick={() => handleEditSubscription(sub)}
-                                className="text-[10px] text-blue-400 hover:text-blue-300 uppercase tracking-widest bg-blue-900/40 px-2 py-1 rounded"
+                                className="text-[11px] text-blue-400 hover:text-blue-300 uppercase tracking-widest bg-blue-900/40 px-2 py-1 rounded"
                               >
                                 Edit
                               </button>
                               <button 
                                 onClick={() => handleDeleteSubscription(sub._id)}
-                                className="text-[10px] text-red-400 hover:text-red-300 uppercase tracking-widest bg-red-900/40 px-2 py-1 rounded"
+                                className="text-[11px] text-red-400 hover:text-red-300 uppercase tracking-widest bg-red-900/40 px-2 py-1 rounded"
                               >
                                 Delete
                               </button>
                             </div>
                             <h3 className="text-xl text-white font-oswald uppercase tracking-widest mb-1">{sub.name}</h3>
                             <p className="text-xs text-gray-400 font-mono mb-1">{sub.phone}</p>
-                            <p className="text-[10px] text-gray-500 mb-4">{sub.email}</p>
+                            <p className="text-[11px] text-gray-500 mb-4">{sub.email}</p>
                             
                             <div className="flex justify-between items-center mb-4">
                               <span className="text-xs font-bold text-white uppercase tracking-widest bg-white/10 px-2 py-1 rounded">
                                 {sub.duration} Months
                               </span>
                               <select 
-                                className="bg-black/60 border border-white/10 rounded px-2 py-1 text-[10px] text-white outline-none uppercase tracking-widest"
+                                className="bg-black/60 border border-white/10 rounded px-2 py-1 text-[11px] text-white outline-none uppercase tracking-widest"
                                 value={sub.status || 'Pending'}
                                 onChange={(e) => handleUpdateSubscriptionStatus(sub._id, e.target.value)}
                               >
@@ -3606,12 +3630,12 @@ const AdminDashboard = () => {
 
                             {/* Linked Bookings summary */}
                             <div className="mt-2 pt-4 border-t border-white/10">
-                              <h4 className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Included Sessions:</h4>
+                              <h4 className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Included Sessions:</h4>
                               <div className="space-y-2 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
                                 {sub.bookings && sub.bookings.map((b, i) => {
                                   const isFinished = b.status === 'Finished';
                                   return (
-                                    <div key={i} className={`flex justify-between items-center text-[10px] p-2 rounded ${isFinished ? 'bg-green-900/20 opacity-70' : 'bg-black/40'}`}>
+                                    <div key={i} className={`flex justify-between items-center text-[11px] p-2 rounded ${isFinished ? 'bg-green-900/20 opacity-70' : 'bg-black/40'}`}>
                                       <div className="flex items-center gap-2">
                                         <button 
                                           onClick={() => handleToggleSessionStatus(b._id, b.status)}
@@ -3667,23 +3691,23 @@ const AdminDashboard = () => {
                     {/* STATS ROW */}
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                       <div className="bg-black/40 border border-white/5 p-4 rounded-xl">
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Total Inquiries</p>
+                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Total Inquiries</p>
                         <p className="text-2xl font-bold font-oswald text-white">{inquiries.length}</p>
                       </div>
                       <div className="bg-black/40 border border-yellow-500/20 p-4 rounded-xl">
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Pending</p>
+                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Pending</p>
                         <p className="text-2xl font-bold font-oswald text-yellow-500">{inquiries.filter(i => i.status === 'Pending').length}</p>
                       </div>
                       <div className="bg-black/40 border border-blue-500/20 p-4 rounded-xl">
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Contacted</p>
+                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Contacted</p>
                         <p className="text-2xl font-bold font-oswald text-blue-500">{inquiries.filter(i => i.status === 'Contacted').length}</p>
                       </div>
                       <div className="bg-black/40 border border-green-500/20 p-4 rounded-xl">
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Converted</p>
+                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Converted</p>
                         <p className="text-2xl font-bold font-oswald text-green-500">{inquiries.filter(i => i.status === 'Converted').length}</p>
                       </div>
                       <div className="bg-black/40 border border-red-500/20 p-4 rounded-xl">
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Lost</p>
+                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Lost</p>
                         <p className="text-2xl font-bold font-oswald text-red-500">{inquiries.filter(i => i.status === 'Lost').length}</p>
                       </div>
                     </div>
@@ -3697,7 +3721,7 @@ const AdminDashboard = () => {
                     ) : (
                       <div className="flex flex-col gap-3">
                         {/* Header Row */}
-                        <div className="hidden md:flex items-center px-6 py-3 border-b border-white/5 text-[10px] text-gray-500 uppercase tracking-widest font-bold">
+                        <div className="hidden md:flex items-center px-6 py-3 border-b border-white/5 text-[11px] text-gray-500 uppercase tracking-widest font-bold">
                           <div className="w-24">Lead ID</div>
                           <div className="flex-1">Client Info</div>
                           <div className="flex-[1.5]">Subject</div>
@@ -3717,8 +3741,8 @@ const AdminDashboard = () => {
                             {/* Client Info */}
                             <div className="flex-1">
                               <h3 className="text-sm text-white font-oswald uppercase tracking-widest truncate">{inq.name}</h3>
-                              <p className="text-[10px] text-gray-400 font-sans tracking-wider truncate">{inq.email}</p>
-                              <p className="text-[10px] text-gray-400 font-sans tracking-wider">{inq.phone}</p>
+                              <p className="text-[11px] text-gray-400 font-sans tracking-wider truncate">{inq.email}</p>
+                              <p className="text-[11px] text-gray-400 font-sans tracking-wider">{inq.phone}</p>
                             </div>
 
                             {/* Subject */}
@@ -3734,7 +3758,7 @@ const AdminDashboard = () => {
                             {/* Status */}
                             <div className="w-32 flex flex-col gap-2">
                               <select 
-                                className="bg-black/40 border border-white/10 rounded-lg px-2 py-2 text-[10px] text-white outline-none tracking-widest uppercase cursor-pointer focus:border-white transition-colors"
+                                className="bg-black/40 border border-white/10 rounded-lg px-2 py-2 text-[11px] text-white outline-none tracking-widest uppercase cursor-pointer focus:border-white transition-colors"
                                 value={inq.status}
                                 onChange={(e) => handleUpdateInquiryStatus(inq._id, e.target.value)}
                               >
@@ -3799,23 +3823,23 @@ const AdminDashboard = () => {
                     {/* STATS ROW */}
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                       <div className="bg-black/40 border border-white/5 p-4 rounded-xl">
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Total Leads</p>
+                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Total Leads</p>
                         <p className="text-2xl font-bold font-oswald text-white">{leads.length}</p>
                       </div>
                       <div className="bg-black/40 border border-emerald-500/20 p-4 rounded-xl">
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">New</p>
+                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">New</p>
                         <p className="text-2xl font-bold font-oswald text-emerald-500">{leads.filter(l => l.status === 'new').length}</p>
                       </div>
                       <div className="bg-black/40 border border-blue-500/20 p-4 rounded-xl">
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Contacted</p>
+                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Contacted</p>
                         <p className="text-2xl font-bold font-oswald text-blue-500">{leads.filter(l => l.status === 'contacted').length}</p>
                       </div>
                       <div className="bg-black/40 border border-yellow-500/20 p-4 rounded-xl">
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Pending</p>
+                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Pending</p>
                         <p className="text-2xl font-bold font-oswald text-yellow-500">{leads.filter(l => l.status === 'pending').length}</p>
                       </div>
                       <div className="bg-black/40 border border-purple-500/20 p-4 rounded-xl">
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Confirmed</p>
+                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Confirmed</p>
                         <p className="text-2xl font-bold font-oswald text-purple-500">{leads.filter(l => l.status === 'confirmed').length}</p>
                       </div>
                     </div>
@@ -4009,11 +4033,11 @@ const AdminDashboard = () => {
                                 onChange={e => setEditingNoteText(e.target.value)}
                               ></textarea>
                               <div className="flex justify-end gap-2">
-                                <button onClick={() => setEditingNoteId(null)} className="px-2 py-1 bg-white/10 text-white text-[10px] rounded hover:bg-white/20">Cancel</button>
+                                <button onClick={() => setEditingNoteId(null)} className="px-2 py-1 bg-white/10 text-white text-[11px] rounded hover:bg-white/20">Cancel</button>
                                 <button onClick={() => {
                                   handleUpdateFollowUp(n._id, editingNoteText);
                                   setEditingNoteId(null);
-                                }} className="px-2 py-1 bg-green-500/20 text-green-400 border border-green-500/50 text-[10px] rounded hover:bg-green-500 hover:text-white">Save</button>
+                                }} className="px-2 py-1 bg-green-500/20 text-green-400 border border-green-500/50 text-[11px] rounded hover:bg-green-500 hover:text-white">Save</button>
                               </div>
                             </div>
                           ) : (
@@ -4022,8 +4046,8 @@ const AdminDashboard = () => {
                                 <button onClick={() => {
                                   setEditingNoteId(n._id);
                                   setEditingNoteText(n.note);
-                                }} className="text-gray-400 hover:text-white text-[10px] uppercase tracking-widest">Edit</button>
-                                <button onClick={() => handleDeleteFollowUp(n._id)} className="text-red-400 hover:text-red-500 text-[10px] uppercase tracking-widest">Delete</button>
+                                }} className="text-gray-400 hover:text-white text-[11px] uppercase tracking-widest">Edit</button>
+                                <button onClick={() => handleDeleteFollowUp(n._id)} className="text-red-400 hover:text-red-500 text-[11px] uppercase tracking-widest">Delete</button>
                               </div>
                               <p className="text-[9px] text-green-400 mb-1">{new Date(n.date).toLocaleString()}</p>
                               <p className="text-xs text-gray-300 pr-16">{n.note}</p>
@@ -4105,7 +4129,7 @@ const AdminDashboard = () => {
                           value={editingTestimonial.googleReviewUrl || ''} 
                           onChange={e => setEditingTestimonial({...editingTestimonial, googleReviewUrl: e.target.value})} 
                         />
-                        <p className="text-[10px] text-gray-600 uppercase tracking-widest mt-1">Paste the specific Google Review link to show a verified review link badge.</p>
+                        <p className="text-[11px] text-gray-600 uppercase tracking-widest mt-1">Paste the specific Google Review link to show a verified review link badge.</p>
                       </div>
                       <div>
                         <label className="block text-xs uppercase text-gray-500 mb-2 tracking-widest">Rating (1 to 5 Stars)</label>
@@ -4153,7 +4177,7 @@ const AdminDashboard = () => {
                       </div>
                       
                       {t.googleReviewUrl && (
-                        <a href={t.googleReviewUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1 rounded-lg border border-amber-500/30 text-amber-400 text-[10px] uppercase tracking-widest hover:bg-amber-500/10 transition-colors mb-6">
+                        <a href={t.googleReviewUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1 rounded-lg border border-amber-500/30 text-amber-400 text-[11px] uppercase tracking-widest hover:bg-amber-500/10 transition-colors mb-6">
                           <span>G</span> GOOGLE REVIEW &#8599;
                         </a>
                       )}
@@ -4276,7 +4300,7 @@ const AdminDashboard = () => {
                           <div>
                             <label className="block text-xs uppercase text-emerald-500/70 mb-3 tracking-widest">Select Permissions</label>
                             <div className="flex flex-wrap gap-4">
-                              {['dashboard', 'leads', 'inquiries', 'bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'developer options', 'business'].map(perm => (
+                              {['dashboard', 'leads', 'inquiries', 'studio bookings', 'calendar', 'business', 'events', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'developer options'].map(perm => (
                                 <label key={perm} className="flex items-center gap-2 cursor-pointer">
                                   <input 
                                     type="checkbox" 
@@ -4326,7 +4350,7 @@ const AdminDashboard = () => {
                     </div>
                     <h4 className="text-white font-oswald uppercase tracking-widest text-lg mb-1">{member.title}</h4>
                     <p className="text-xs font-sans tracking-[0.3em] text-gray-500 uppercase">{member.subtitle}</p>
-                    <p className="text-[10px] text-gray-600 mt-2">Name: {member.name}</p>
+                    <p className="text-[11px] text-gray-600 mt-2">Name: {member.name}</p>
                   </div>
                 ))}
               </div>
@@ -4397,7 +4421,7 @@ const AdminDashboard = () => {
                     <div>
                       <label className="block text-xs uppercase text-gray-500 mb-4 tracking-widest">Assign Permissions</label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-white/5 border border-white/10 rounded">
-                        {['dashboard', 'leads', 'inquiries', 'bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options', 'business']
+                        {['dashboard', 'leads', 'inquiries', 'studio bookings', 'calendar', 'business', 'events', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options']
                           .filter(perm => isSuperAdmin || userPermissions.includes(perm))
                           .map(perm => (
                           <label key={perm} className={`flex items-center gap-3 ${storedUser.email === editingAdminUser.email ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}>
@@ -4573,7 +4597,7 @@ const AdminDashboard = () => {
                           Clear
                         </button>
                       </div>
-                      <p className="text-[10px] text-gray-500 mt-2 italic">If set, a countdown timer will appear on the maintenance screen.</p>
+                      <p className="text-[11px] text-gray-500 mt-2 italic">If set, a countdown timer will appear on the maintenance screen.</p>
                     </div>
                   )}
                 </div>
@@ -4662,14 +4686,16 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {activeTab === 'business' && (
-            <BusinessView 
+          {(activeTab === 'business' || activeTab === 'events') && (
+            <BusinessView
+              defaultViewMode={activeTab === 'events' ? 'events' : (highlightedBookingId ? 'studio_shoots' : 'overview')} 
               bookings={bookings} 
               expenses={expenses} 
               partners={partners} 
               teamMembers={teamMembers}
+              highlightedBookingId={highlightedBookingId}
               onAddPartner={() => setEditingPartner({name: '', sharePercentage: 0})}
-              onAddExpense={() => setEditingExpense({date: new Date().toISOString().split('T')[0], amount: 0, type: 'Studio', description: ''})}
+              onAddExpense={(data) => setEditingExpense(data || {date: new Date().toISOString().split('T')[0], items: [{description: '', amount: 0}], type: 'Studio'})}
               onEditPartner={setEditingPartner}
               onEditExpense={setEditingExpense}
               onDeletePartner={handleDeletePartner}
@@ -4694,35 +4720,35 @@ const AdminDashboard = () => {
                 <form onSubmit={handleSaveBookingDetails} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-[10px] uppercase text-gray-500 mb-2">Client Name</label>
+                      <label className="block text-[11px] uppercase text-gray-500 mb-2">Client Name</label>
                       <input type="text" className={glassInput} required value={editingBooking.name || ''} onChange={e => setEditingBooking({...editingBooking, name: e.target.value})} />
                     </div>
                     <div>
-                      <label className="block text-[10px] uppercase text-gray-500 mb-2">Phone</label>
+                      <label className="block text-[11px] uppercase text-gray-500 mb-2">Phone</label>
                       <input type="tel" className={glassInput} required value={editingBooking.phone || ''} onChange={e => setEditingBooking({...editingBooking, phone: e.target.value})} />
                     </div>
                     <div>
-                      <label className="block text-[10px] uppercase text-gray-500 mb-2">Email</label>
+                      <label className="block text-[11px] uppercase text-gray-500 mb-2">Email</label>
                       <input type="email" className={glassInput} required value={editingBooking.email || ''} onChange={e => setEditingBooking({...editingBooking, email: e.target.value})} />
                     </div>
                     <div>
-                      <label className="block text-[10px] uppercase text-gray-500 mb-2">Baby Age (if applicable)</label>
+                      <label className="block text-[11px] uppercase text-gray-500 mb-2">Baby Age (if applicable)</label>
                       <input type="text" className={glassInput} value={editingBooking.babyAge || ''} onChange={e => setEditingBooking({...editingBooking, babyAge: e.target.value})} />
                     </div>
                     <div>
-                      <label className="block text-[10px] uppercase text-gray-500 mb-2">Shoot Type</label>
+                      <label className="block text-[11px] uppercase text-gray-500 mb-2">Shoot Type</label>
                       <input type="text" className={glassInput} required value={editingBooking.shootType || ''} onChange={e => setEditingBooking({...editingBooking, shootType: e.target.value})} placeholder="e.g. Maternity Shoots" />
                     </div>
                     <div>
-                      <label className="block text-[10px] uppercase text-gray-500 mb-2">Package</label>
+                      <label className="block text-[11px] uppercase text-gray-500 mb-2">Package</label>
                       <input type="text" className={glassInput} required value={editingBooking.package || ''} onChange={e => setEditingBooking({...editingBooking, package: e.target.value})} placeholder="e.g. Gold Package" />
                     </div>
                     <div>
-                      <label className="block text-[10px] uppercase text-gray-500 mb-2">Date</label>
+                      <label className="block text-[11px] uppercase text-gray-500 mb-2">Date</label>
                       <input type="date" className={`${glassInput} [&::-webkit-calendar-picker-indicator]:invert`} required value={editingBooking.date || ''} onChange={e => setEditingBooking({...editingBooking, date: e.target.value})} />
                     </div>
                     <div>
-                      <label className="block text-[10px] uppercase text-gray-500 mb-2">Time Slot</label>
+                      <label className="block text-[11px] uppercase text-gray-500 mb-2">Time Slot</label>
                       <select className={`${glassInput} [&>option]:bg-[#111] [&>option]:text-white`} required value={editingBooking.slot || ''} onChange={e => setEditingBooking({...editingBooking, slot: e.target.value})}>
                         <option value="" disabled className="bg-[#111] text-gray-400">Select Slot</option>
                         <option value="Morning" className="bg-[#111] text-white">Morning</option>
@@ -4731,7 +4757,7 @@ const AdminDashboard = () => {
                       </select>
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-[10px] uppercase text-gray-500 mb-2">Status</label>
+                      <label className="block text-[11px] uppercase text-gray-500 mb-2">Status</label>
                       <select className={`${glassInput} [&>option]:bg-[#111] [&>option]:text-white`} required value={editingBooking.status || 'Pending'} onChange={e => setEditingBooking({...editingBooking, status: e.target.value})}>
                         <option value="Pending" className="bg-[#111] text-yellow-500">Pending</option>
                         <option value="Contacted" className="bg-[#111] text-orange-400">Contacted</option>
@@ -4743,25 +4769,25 @@ const AdminDashboard = () => {
 
                     {['Confirmed', 'Finished'].includes(editingBooking.status) && editingBooking.bookingType !== 'Studio' && (
                       <div className="md:col-span-2 bg-black/40 border border-white/5 rounded-xl p-4 mt-2">
-                        <label className="block text-[10px] uppercase text-gray-500 mb-4">Progress Tracking</label>
+                        <label className="block text-[11px] uppercase text-gray-500 mb-4">Progress Tracking</label>
                         <div className="flex gap-6">
                           <label className="flex items-center gap-2 cursor-pointer group">
                             <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${editingBooking.shootCompleted ? 'bg-purple-500 border-purple-500' : 'border-white/20 bg-black/40'}`}>
-                              {editingBooking.shootCompleted && <span className="text-white text-[10px]">✓</span>}
+                              {editingBooking.shootCompleted && <span className="text-white text-[11px]">✓</span>}
                             </div>
                             <span className="text-xs uppercase tracking-widest text-gray-400">Shoot Completed</span>
                             <input type="checkbox" className="hidden" checked={editingBooking.shootCompleted || false} onChange={e => setEditingBooking({...editingBooking, shootCompleted: e.target.checked})} />
                           </label>
                           <label className="flex items-center gap-2 cursor-pointer group">
                             <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${editingBooking.photosDelivered ? 'bg-pink-500 border-pink-500' : 'border-white/20 bg-black/40'}`}>
-                              {editingBooking.photosDelivered && <span className="text-white text-[10px]">✓</span>}
+                              {editingBooking.photosDelivered && <span className="text-white text-[11px]">✓</span>}
                             </div>
                             <span className="text-xs uppercase tracking-widest text-gray-400">Photos Delivered</span>
                             <input type="checkbox" className="hidden" checked={editingBooking.photosDelivered || false} onChange={e => setEditingBooking({...editingBooking, photosDelivered: e.target.checked})} />
                           </label>
                           <label className="flex items-center gap-2 cursor-pointer group">
                             <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${editingBooking.videosDelivered ? 'bg-teal-500 border-teal-500' : 'border-white/20 bg-black/40'}`}>
-                              {editingBooking.videosDelivered && <span className="text-white text-[10px]">✓</span>}
+                              {editingBooking.videosDelivered && <span className="text-white text-[11px]">✓</span>}
                             </div>
                             <span className="text-xs uppercase tracking-widest text-gray-400">Videos Delivered</span>
                             <input type="checkbox" className="hidden" checked={editingBooking.videosDelivered || false} onChange={e => setEditingBooking({...editingBooking, videosDelivered: e.target.checked})} />
@@ -4771,7 +4797,7 @@ const AdminDashboard = () => {
                     )}
                     {editingBooking.slotHistory && editingBooking.slotHistory.length > 0 && (
                       <div className="md:col-span-2 bg-black/40 border border-white/5 rounded-xl p-4 mt-2">
-                        <label className="block text-[10px] uppercase text-gray-500 mb-4">Slot Change History</label>
+                        <label className="block text-[11px] uppercase text-gray-500 mb-4">Slot Change History</label>
                         <div className="space-y-2">
                           {editingBooking.slotHistory.map((history, idx) => (
                             <div key={idx} className="flex flex-col md:flex-row md:justify-between md:items-center text-xs text-gray-400 border-b border-white/5 pb-2 last:border-0 last:pb-0">
@@ -4780,7 +4806,7 @@ const AdminDashboard = () => {
                                 ➔
                                 <span className="text-green-400 ml-2">{history.newDate} ({history.newSlot})</span>
                               </div>
-                              <div className="text-[10px] text-gray-600 mt-1 md:mt-0">
+                              <div className="text-[11px] text-gray-600 mt-1 md:mt-0">
                                 {new Date(history.changedAt).toLocaleString()}
                               </div>
                             </div>
@@ -4789,7 +4815,7 @@ const AdminDashboard = () => {
                       </div>
                     )}
                     <div className="md:col-span-2">
-                      <label className="block text-[10px] uppercase text-gray-500 mb-2">Additional Notes</label>
+                      <label className="block text-[11px] uppercase text-gray-500 mb-2">Additional Notes</label>
                       <textarea className={`${glassInput} h-24`} value={editingBooking.notes || ''} onChange={e => setEditingBooking({...editingBooking, notes: e.target.value})}></textarea>
                     </div>
                   </div>
@@ -4832,27 +4858,27 @@ const AdminDashboard = () => {
                     }
                   }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Client Name</label>
+                      <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Client Name</label>
                       <input type="text" required className={glassInput} value={studioBookingData.name} onChange={e => setStudioBookingData({...studioBookingData, name: e.target.value})} />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Studio Name</label>
+                      <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Studio Name</label>
                       <input type="text" required className={glassInput} value={studioBookingData.studioName} onChange={e => setStudioBookingData({...studioBookingData, studioName: e.target.value})} />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Phone</label>
+                      <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Phone</label>
                       <input type="text" required className={glassInput} value={studioBookingData.phone} onChange={e => setStudioBookingData({...studioBookingData, phone: e.target.value})} />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Email</label>
+                      <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Email</label>
                       <input type="email" required className={glassInput} value={studioBookingData.email} onChange={e => setStudioBookingData({...studioBookingData, email: e.target.value})} />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Date</label>
+                      <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Date</label>
                       <input type="date" required className={glassInput} value={studioBookingData.date} onChange={e => setStudioBookingData({...studioBookingData, date: e.target.value})} />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Slots (Multiple)</label>
+                      <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Slots (Multiple)</label>
                       <div className="flex flex-col gap-2 mt-2">
                         {['Morning', 'Afternoon', 'Evening'].map(s => {
                           const slotInfo = studioAvailableSlots.find(info => info.slot === s);
@@ -4872,7 +4898,7 @@ const AdminDashboard = () => {
                                 }
                               }}
                             />
-                            {s} {isDisabled && <span className="text-[10px] text-red-400 uppercase tracking-widest">(Fully Booked)</span>}
+                            {s} {isDisabled && <span className="text-[11px] text-red-400 uppercase tracking-widest">(Fully Booked)</span>}
                           </label>
                         )})}
                       </div>
@@ -4898,15 +4924,15 @@ const AdminDashboard = () => {
                     {/* Client Info Section */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                       <div className="md:col-span-2">
-                        <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Client Name</label>
+                        <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Client Name</label>
                         <input type="text" required className={glassInput} value={subscriptionData.name} onChange={e => setSubscriptionData({...subscriptionData, name: e.target.value})} />
                       </div>
                       <div>
-                        <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Email</label>
+                        <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Email</label>
                         <input type="email" required className={glassInput} value={subscriptionData.email} onChange={e => setSubscriptionData({...subscriptionData, email: e.target.value})} />
                       </div>
                       <div>
-                        <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Phone</label>
+                        <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Phone</label>
                         <input type="text" required className={glassInput} value={subscriptionData.phone} onChange={e => setSubscriptionData({...subscriptionData, phone: e.target.value})} />
                       </div>
                     </div>
@@ -4932,7 +4958,7 @@ const AdminDashboard = () => {
                             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Month {index + 1}</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                               <div>
-                                <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Date</label>
+                                <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-1">Date</label>
                                 <input 
                                   type="date" 
                                   required 
@@ -4946,7 +4972,7 @@ const AdminDashboard = () => {
                                 />
                               </div>
                               <div>
-                                <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Slot</label>
+                                <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-1">Slot</label>
                                 <select 
                                   required
                                   className={glassInput}
@@ -4963,7 +4989,7 @@ const AdminDashboard = () => {
                                 </select>
                               </div>
                               <div>
-                                <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Service</label>
+                                <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-1">Service</label>
                                 <select 
                                   required
                                   className={glassInput}
@@ -4983,7 +5009,7 @@ const AdminDashboard = () => {
                                 </select>
                               </div>
                               <div>
-                                <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Sub Service</label>
+                                <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-1">Sub Service</label>
                                 <select 
                                   required
                                   className={glassInput}
@@ -5003,7 +5029,7 @@ const AdminDashboard = () => {
                                 </select>
                               </div>
                               <div>
-                                <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Package</label>
+                                <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-1">Package</label>
                                 <select 
                                   required
                                   className={glassInput}
@@ -5089,23 +5115,62 @@ const AdminDashboard = () => {
                   <form onSubmit={editingExpense._id ? handleUpdateExpense : handleAddExpense} className="space-y-4">
                     <div>
                       <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Date</label>
-                      <input type="date" name="date" defaultValue={editingExpense.date} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white" />
+                      <input type="date" value={editingExpense.date} onChange={e => setEditingExpense({...editingExpense, date: e.target.value})} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white" />
                     </div>
                     <div>
                       <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Type</label>
-                      <select name="type" defaultValue={editingExpense.type} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white">
+                      <select value={editingExpense.type} onChange={e => setEditingExpense({...editingExpense, type: e.target.value})} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white" disabled={!editingExpense._id && editingExpense.type === 'Shoot'}>
                         <option value="Studio">Studio</option>
                         <option value="Shoot">Shoot</option>
+                        <option value="Event">Event</option>
+                        <option value="Prop">Prop</option>
                       </select>
                     </div>
-                    <div>
-                      <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Amount (₹)</label>
-                      <input type="number" name="amount" defaultValue={editingExpense.amount} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white" />
-                    </div>
-                    <div>
-                      <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Description</label>
-                      <input type="text" name="description" defaultValue={editingExpense.description} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white" />
-                    </div>
+
+                    {!editingExpense._id ? (
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <label className="block text-xs uppercase tracking-widest text-white/50">Expenses</label>
+                          <button type="button" onClick={() => {
+                            setEditingExpense({...editingExpense, items: [...(editingExpense.items || []), { description: '', amount: 0 }]})
+                          }} className="text-xs text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 px-2 py-1 rounded">+ Add Row</button>
+                        </div>
+                        <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                          {(editingExpense.items || [{ description: '', amount: 0 }]).map((item, idx) => (
+                            <div key={idx} className="flex gap-2 items-center">
+                              <input type="text" placeholder="Expense Name" value={item.description} onChange={e => {
+                                const newItems = [...editingExpense.items];
+                                newItems[idx].description = e.target.value;
+                                setEditingExpense({...editingExpense, items: newItems});
+                              }} required className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-xs" />
+                              <input type="number" placeholder="Price (₹)" value={item.amount} onChange={e => {
+                                const newItems = [...editingExpense.items];
+                                newItems[idx].amount = Number(e.target.value);
+                                setEditingExpense({...editingExpense, items: newItems});
+                              }} required className="w-24 bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-xs" />
+                              {(editingExpense.items?.length > 1) && (
+                                <button type="button" onClick={() => {
+                                  const newItems = editingExpense.items.filter((_, i) => i !== idx);
+                                  setEditingExpense({...editingExpense, items: newItems});
+                                }} className="text-red-500 hover:text-red-400">✕</button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div>
+                          <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Expense Name</label>
+                          <input type="text" name="description" defaultValue={editingExpense.description} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white" />
+                        </div>
+                        <div>
+                          <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Price (₹)</label>
+                          <input type="number" name="amount" defaultValue={editingExpense.amount} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white" />
+                        </div>
+                      </>
+                    )}
+
                     <div className="pt-4 flex justify-end gap-4">
                       <button type="button" onClick={() => setEditingExpense(null)} className="px-4 py-2 text-white/50 hover:text-white uppercase tracking-widest text-xs">Cancel</button>
                       <button type="submit" className="px-6 py-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 uppercase tracking-widest text-xs font-bold rounded transition-colors">Save Expense</button>
