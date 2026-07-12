@@ -154,22 +154,22 @@ const ReferenceLandingPage = () => {
         
         <div className="relative z-10 text-center px-4 max-w-5xl mx-auto flex flex-col items-center pt-20">
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1, ease: "easeOut" }} className="flex flex-col items-center">
-            <h2 className="text-sm sm:text-base font-oswald uppercase tracking-[0.3em] text-gray-400 mb-4 drop-shadow-md">
+            <h2 className="text-xs sm:text-sm font-oswald uppercase tracking-[0.3em] text-gray-400 mb-2 drop-shadow-md">
               Imazen Studios
             </h2>
-            <h1 className="text-5xl sm:text-7xl md:text-8xl font-oswald uppercase tracking-tight leading-[1.1] mb-6 text-white drop-shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+            <h1 className="text-5xl sm:text-7xl md:text-8xl font-oswald uppercase tracking-tight leading-[1.1] mb-2 text-white drop-shadow-[0_0_30px_rgba(0,0,0,0.5)]">
               Beautiful Baby<br/>Photography
             </h1>
           </motion.div>
           
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.3 }} className="text-lg md:text-2xl font-light text-gray-300 italic max-w-2xl mt-2 mb-10 drop-shadow-md">
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.3 }} className="text-lg md:text-xl font-light text-gray-300 italic max-w-2xl mt-1 mb-5 drop-shadow-md">
             "Your Baby's Smile, Captured Forever as Art."
           </motion.p>
 
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.6 }} className="flex flex-col items-center w-full">
             
-            <div className="w-full max-w-3xl border-y border-gray-500/30 py-5 mb-10">
-              <p className="text-sm md:text-base font-oswald font-light text-gray-400 uppercase tracking-widest leading-relaxed">
+            <div className="w-full max-w-3xl border-y border-gray-500/30 py-3 mb-6">
+              <p className="text-xs md:text-sm font-oswald font-light text-gray-400 uppercase tracking-widest leading-relaxed">
                 Professional baby shoots with stunning themes and complete safety.
               </p>
             </div>
@@ -182,7 +182,7 @@ const ReferenceLandingPage = () => {
               
               <button 
                 onClick={() => setIsModalOpen(true)}
-                className="px-10 py-4 bg-white text-black font-oswald uppercase tracking-widest hover:bg-gray-200 transition-all duration-300 rounded-full text-sm shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+                className="px-10 py-4 bg-white text-black font-oswald uppercase tracking-widest hover:bg-gray-200 transition-all duration-300 rounded-full text-sm shadow-[0_0_20px_rgba(255,255,255,0.2)] animate-bounce"
               >
                 Book Your Shoot Now
               </button>
@@ -190,6 +190,23 @@ const ReferenceLandingPage = () => {
             
           </motion.div>
         </div>
+
+        {/* Scroll Indicator */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1, duration: 1 }}
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-20 pointer-events-none"
+        >
+          <span className="text-white font-sans uppercase tracking-[0.3em] text-[10px] mb-3">Scroll</span>
+          <div className="w-[1px] h-12 bg-white/20 relative overflow-hidden">
+            <motion.div 
+              animate={{ y: ['-100%', '100%'] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+              className="absolute top-0 left-0 w-full h-1/2 bg-white"
+            />
+          </div>
+        </motion.div>
       </section>
 
       
