@@ -53,9 +53,7 @@ const Hero = () => {
     <section id="home" className="relative h-screen w-full bg-black overflow-hidden">
       {/* Loading State or Swiper */}
       {slides.length === 0 ? (
-        <div className="absolute inset-0 flex items-center justify-center bg-black">
-          <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-        </div>
+        <div className="absolute inset-0 bg-black"></div>
       ) : (
         <Swiper
           modules={[EffectFade, Navigation, Pagination, Autoplay, Parallax, Keyboard]}
