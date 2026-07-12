@@ -55,7 +55,7 @@ const ReferenceLandingPage = () => {
   }, [slug, navigate]);
 
   // Use pageData if available, fallback to default hardcoded arrays
-  const heroImages = (pageData?.heroSlides && pageData.heroSlides.length > 0) ? pageData.heroSlides.map(s => s.imageUrl) : ['/images/about_bg.jpeg', '/images/experience_bg.jpeg', '/images/studio.jpeg'];
+  const heroImages = pageData?.heroImage ? [pageData.heroImage] : (pageData?.heroSlides && pageData.heroSlides.length > 0) ? pageData.heroSlides.map(s => s.imageUrl) : ['/images/about_bg.jpeg', '/images/experience_bg.jpeg', '/images/studio.jpeg'];
 
 
   useEffect(() => {

@@ -1806,6 +1806,17 @@ const AdminDashboard = () => {
                             </div>
                           </div>
                           
+                          <div className="grid grid-cols-2 gap-6 mt-4">
+                            <div>
+                              <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Desktop Hero Image</label>
+                              <DragDropImageUploader currentImage={editingLandingPage.heroImage} aspect={16/9} onUploadSuccess={(url) => setEditingLandingPage({...editingLandingPage, heroImage: url})} />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Mobile Hero Image</label>
+                              <DragDropImageUploader currentImage={editingLandingPage.mobileHeroImage} aspect={9/16} onUploadSuccess={(url) => setEditingLandingPage({...editingLandingPage, mobileHeroImage: url})} />
+                            </div>
+                          </div>
+                          
                           <div>
                             <label className="block text-xs uppercase text-gray-400 mb-2 mt-4">Call to Action Link</label>
                             <input type="text" className={glassInput} placeholder="e.g., https://wa.me/..." value={editingLandingPage.callToActionLink || ''} onChange={e => setEditingLandingPage({...editingLandingPage, callToActionLink: e.target.value})} />
