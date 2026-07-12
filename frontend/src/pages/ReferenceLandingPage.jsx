@@ -96,7 +96,7 @@ const ReferenceLandingPage = () => {
     <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-gray-500/30 overflow-x-hidden relative">
       
       {/* FLOATING BUTTONS */}
-      <div className="fixed bottom-6 right-6 z-[60] flex flex-col items-end gap-4">
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
         <div className="bg-white text-black text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.4)]">
           Hurry, Limited Slots Available!
         </div>
@@ -110,7 +110,7 @@ const ReferenceLandingPage = () => {
 
       <button 
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className="fixed bottom-6 left-6 z-[60] bg-[#111] hover:bg-[#222] border border-white/20 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all opacity-80 hover:opacity-100"
+        className="fixed bottom-6 left-6 z-50 bg-[#111] hover:bg-[#222] border border-white/20 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all opacity-80 hover:opacity-100"
       >
         ↑
       </button>
