@@ -66,27 +66,22 @@ export const generateEventPdf = (event, discount = 0) => {
 
           // Header on subsequent pages
           if (hasLogo) {
-            doc.image(logoPath, 50, 40, { width: 100 });
+            doc.image(logoPath, 50, 40, { width: 150 });
           } else {
             doc.font('Helvetica-Bold').fontSize(24).fillColor(whiteColor).text('IMAZEN STUDIOS', 50, 50);
           }
 
-          // Address on the right
-          doc.font('Helvetica').fontSize(10).fillColor(grayColor);
-          let addressY = 40;
-          addressText.forEach(line => {
-            doc.text(line.trim(), 50, addressY, { align: 'right', width: doc.page.width - 100 });
-            addressY += 15;
-          });
-          doc.text(`Phone: ${phoneText} | Email: ${emailText}`, 50, addressY, { align: 'right', width: doc.page.width - 100 });
+          // Quote on the right
+          doc.font('Helvetica-Bold').fontSize(24).fillColor(whiteColor)
+             .text(`${event.name || 'Event'} Quote`.toUpperCase(), 50, 75, { align: 'right', width: doc.page.width - 100 });
 
           // Top line separator
-          doc.moveTo(50, addressY + 20).lineTo(doc.page.width - 50, addressY + 20).strokeColor(grayColor).lineWidth(1).stroke();
+          const separatorY = 110;
+          doc.moveTo(50, separatorY).lineTo(doc.page.width - 50, separatorY).strokeColor(grayColor).lineWidth(1).stroke();
 
           // Title & Date
-          doc.y = addressY + 50;
-          doc.font('Helvetica-Bold').fontSize(20).fillColor(whiteColor).text('EVENT QUOTATION', 50, doc.y);
-          doc.font('Helvetica').fontSize(12).fillColor(lightGrayColor).text(`Date: ${event.date || new Date().toISOString().split('T')[0]}`, 50, doc.y + 25);
+          doc.y = separatorY + 30;
+          doc.font('Helvetica').fontSize(12).fillColor(lightGrayColor).text(`Date: ${event.date || new Date().toISOString().split('T')[0]}`, 50, doc.y);
 
           // Two Columns: Client Details & Event Logistics
           doc.y += 60;
@@ -103,10 +98,11 @@ export const generateEventPdf = (event, discount = 0) => {
           // Logistics Box
           doc.rect(doc.page.width - 50 - 230, startY, 230, 100).fillColor('#1a1a1a').fill();
           doc.font('Helvetica-Bold').fontSize(10).fillColor(whiteColor).text('EVENT DETAILS', doc.page.width - 50 - 215, startY + 15);
+          const subEventNames = event.subEventList && event.subEventList.length > 0 ? event.subEventList.map(s => s.name).join(', ') : (event.subEvents || 'N/A');
           doc.font('Helvetica').fontSize(10).fillColor(grayColor)
              .text(`Event:`, doc.page.width - 50 - 215, startY + 35).fillColor(lightGrayColor).text(event.name || 'N/A', doc.page.width - 50 - 160, startY + 35)
-             .fillColor(grayColor).text(`Sub-Events:`, doc.page.width - 50 - 215, startY + 55).fillColor(lightGrayColor).text(event.subEvents || 'N/A', doc.page.width - 50 - 140, startY + 55)
-             .fillColor(grayColor).text(`Status:`, doc.page.width - 50 - 215, startY + 75).fillColor(lightGrayColor).text(event.status || 'N/A', doc.page.width - 50 - 160, startY + 75);
+             .fillColor(grayColor).text(`Sub-Events:`, doc.page.width - 50 - 215, startY + 55).fillColor(lightGrayColor).text(subEventNames, doc.page.width - 50 - 140, startY + 55);
+
 
           doc.y = startY + 130;
 
@@ -123,20 +119,39 @@ export const generateEventPdf = (event, discount = 0) => {
           doc.y = tableTop + 35;
 
           const services = event.services || [];
+          const subEventList = event.subEventList || [];
           let calculatedTotal = 0;
           
           doc.font('Helvetica').fontSize(10).fillColor(lightGrayColor);
-          if (services.length === 0) {
-            doc.text('- No services listed.', 65, doc.y);
-            calculatedTotal = event.totalAmount || 0;
-            doc.y += 20;
-          } else {
+          if (subEventList.length > 0) {
+            subEventList.forEach(sub => {
+              doc.font('Helvetica-Bold').fillColor(whiteColor).text(`${sub.name}`, 65, doc.y);
+              doc.y += 5;
+              doc.font('Helvetica').fillColor(lightGrayColor);
+              if (sub.services && sub.services.length > 0) {
+                sub.services.forEach(service => {
+                  doc.text(`- ${service.name}`, 75, doc.y);
+                  doc.text(`Rs. ${service.price.toLocaleString()}/-`, doc.page.width - 150, doc.y - 10, { width: 85, align: 'right' });
+                  calculatedTotal += service.price;
+                  doc.y += 10;
+                });
+              } else {
+                doc.text(`- No services`, 75, doc.y);
+                doc.y += 10;
+              }
+              doc.y += 5;
+            });
+          } else if (services.length > 0) {
             services.forEach(service => {
               doc.text(`- ${service.name}`, 65, doc.y);
               doc.text(`Rs. ${service.price.toLocaleString()}/-`, doc.page.width - 150, doc.y - 10, { width: 85, align: 'right' });
               calculatedTotal += service.price;
               doc.y += 10;
             });
+          } else {
+            doc.text('- No services listed.', 65, doc.y);
+            calculatedTotal = event.totalAmount || 0;
+            doc.y += 20;
           }
 
           doc.moveDown(2);

@@ -131,7 +131,8 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
       discount: Number(formData.get('discount') || 0),
       status: formData.get('status'),
       subEvents: formData.get('subEvents'),
-      services: editingEvent?.services || []
+      services: editingEvent?.services || [],
+      subEventList: editingEvent?.subEventList || []
     };
     
     try {
@@ -366,12 +367,12 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
 
   const renderPartnerProfits = () => (
     <div className="bg-[#111] p-6 rounded-xl border border-white/5">
-      <div className="flex justify-between items-center mb-6">
-        <h4 className="text-sm uppercase tracking-widest text-white/70">
-          Partner Profits ({viewMode.replace('_', ' ')})
-        </h4>
-        <button onClick={onAddPartner} className="px-3 py-1 bg-white text-black text-xs uppercase tracking-widest hover:bg-white/90">Add Partner</button>
-      </div>
+        <div className="flex justify-between items-center mb-6">
+          <h4 className="text-sm uppercase tracking-widest text-white/70">
+            Partner Profits ({viewMode.replace('_', ' ')})
+          </h4>
+
+        </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {partners.map(p => {
           const shareAmount = totals.profit * (p.sharePercentage / 100);
@@ -1063,7 +1064,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                   <input 
                     type="number" 
                     name="totalAmount" 
-                    value={editingEvent.totalAmount !== undefined ? editingEvent.totalAmount : ((editingEvent.services || []).reduce((sum, item) => sum + item.price, 0))} 
+                    value={editingEvent.totalAmount !== undefined ? editingEvent.totalAmount : ((editingEvent.subEventList && editingEvent.subEventList.length > 0) ? editingEvent.subEventList.reduce((sum, subEvent) => sum + (subEvent.services || []).reduce((s, item) => s + item.price, 0), 0) : (editingEvent.services || []).reduce((sum, item) => sum + item.price, 0))} 
                     onChange={e => setEditingEvent({...editingEvent, totalAmount: Number(e.target.value)})}
                     className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm" 
                   />
@@ -1083,23 +1084,14 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                   <input 
                     type="number" 
                     name="pendingAmount" 
-                    value={(editingEvent.totalAmount !== undefined ? editingEvent.totalAmount : ((editingEvent.services || []).reduce((sum, item) => sum + item.price, 0))) - (editingEvent.paidAmount || 0)} 
+                    value={(editingEvent.totalAmount !== undefined ? editingEvent.totalAmount : ((editingEvent.subEventList && editingEvent.subEventList.length > 0) ? editingEvent.subEventList.reduce((sum, subEvent) => sum + (subEvent.services || []).reduce((s, item) => s + item.price, 0), 0) : (editingEvent.services || []).reduce((sum, item) => sum + item.price, 0))) - (editingEvent.paidAmount || 0)} 
                     readOnly
                     className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-amber-500 text-sm cursor-not-allowed opacity-50" 
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Sub Events (Manual)</label>
-                <input 
-                  type="text" 
-                  name="subEvents" 
-                  defaultValue={editingEvent.subEvents} 
-                  placeholder="e.g. Haldi, Sangeet, Wedding" 
-                  className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm mb-4" 
-                />
-              </div>
+
 
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
@@ -1109,7 +1101,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                     value={editingEvent.discountPercentage || ''} 
                     onChange={e => {
                       const pct = Number(e.target.value);
-                      const total = editingEvent.totalAmount !== undefined ? editingEvent.totalAmount : ((editingEvent.services || []).reduce((sum, item) => sum + item.price, 0));
+                      const total = editingEvent.totalAmount !== undefined ? editingEvent.totalAmount : ((editingEvent.subEventList && editingEvent.subEventList.length > 0) ? editingEvent.subEventList.reduce((sum, subEvent) => sum + (subEvent.services || []).reduce((s, item) => s + item.price, 0), 0) : (editingEvent.services || []).reduce((sum, item) => sum + item.price, 0));
                       const flatDiscount = Math.round((pct / 100) * total);
                       setEditingEvent({...editingEvent, discountPercentage: pct, discount: flatDiscount});
                     }}
@@ -1125,7 +1117,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                     value={editingEvent.discount || 0} 
                     onChange={e => {
                       const flatDiscount = Number(e.target.value);
-                      const total = editingEvent.totalAmount !== undefined ? editingEvent.totalAmount : ((editingEvent.services || []).reduce((sum, item) => sum + item.price, 0));
+                      const total = editingEvent.totalAmount !== undefined ? editingEvent.totalAmount : ((editingEvent.subEventList && editingEvent.subEventList.length > 0) ? editingEvent.subEventList.reduce((sum, subEvent) => sum + (subEvent.services || []).reduce((s, item) => s + item.price, 0), 0) : (editingEvent.services || []).reduce((sum, item) => sum + item.price, 0));
                       const pct = total > 0 ? Number(((flatDiscount / total) * 100).toFixed(2)) : 0;
                       setEditingEvent({...editingEvent, discount: flatDiscount, discountPercentage: pct});
                     }}
@@ -1137,47 +1129,82 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="block text-xs uppercase tracking-widest text-white/50">Services Included</label>
+                  <label className="block text-xs uppercase tracking-widest text-white/50">Sub Events & Services</label>
                   <button type="button" onClick={() => setEditingEvent({
                     ...editingEvent, 
-                    services: [...(editingEvent.services || []), { name: '', price: 0 }]
-                  })} className="text-xs text-white/50 hover:text-white border border-white/10 px-2 py-1 rounded">+ Add Service</button>
+                    subEventList: [...(editingEvent.subEventList || []), { name: '', services: [] }]
+                  })} className="text-xs text-white/50 hover:text-white border border-white/10 px-2 py-1 rounded">+ Add Sub Event</button>
                 </div>
-                <div className="space-y-2">
-                  {(editingEvent.services || []).map((item, idx) => (
-                    <div key={idx} className="flex gap-2">
-                      <input 
-                        type="text" 
-                        placeholder="Service Name" 
-                        value={item.name} 
-                        onChange={e => {
-                          const newItems = [...editingEvent.services];
-                          newItems[idx].name = e.target.value;
-                          setEditingEvent({...editingEvent, services: newItems});
-                        }}
-                        className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-xs text-white" 
-                        required
-                      />
-                      <input 
-                        type="number" 
-                        placeholder="Price" 
-                        value={item.price} 
-                        onChange={e => {
-                          const newItems = [...editingEvent.services];
-                          newItems[idx].price = Number(e.target.value);
-                          setEditingEvent({...editingEvent, services: newItems});
-                        }}
-                        className="w-24 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-xs text-white" 
-                        required
-                      />
-                      <button type="button" onClick={() => {
-                        const newItems = editingEvent.services.filter((_, i) => i !== idx);
-                        setEditingEvent({...editingEvent, services: newItems});
-                      }} className="text-red-500 hover:text-red-400">✕</button>
+                <div className="space-y-4">
+                  {(editingEvent.subEventList || []).map((sub, sIdx) => (
+                    <div key={sIdx} className="bg-white/5 p-4 rounded border border-white/10">
+                      <div className="flex justify-between items-center mb-3">
+                        <input 
+                          type="text" 
+                          placeholder="Sub Event Name (e.g., Haldi)" 
+                          value={sub.name}
+                          onChange={e => {
+                            const newList = [...(editingEvent.subEventList || [])];
+                            newList[sIdx].name = e.target.value;
+                            setEditingEvent({...editingEvent, subEventList: newList});
+                          }}
+                          className="bg-black/50 border border-white/10 rounded px-3 py-1.5 text-sm text-white w-2/3"
+                          required
+                        />
+                        <div className="flex items-center gap-2">
+                          <button type="button" onClick={() => {
+                            const newList = [...(editingEvent.subEventList || [])];
+                            newList[sIdx].services.push({ name: '', price: 0 });
+                            setEditingEvent({...editingEvent, subEventList: newList});
+                          }} className="text-xs text-emerald-500 hover:text-emerald-400 border border-emerald-500/30 px-2 py-1 rounded">+ Service</button>
+                          <button type="button" onClick={() => {
+                            const newList = editingEvent.subEventList.filter((_, i) => i !== sIdx);
+                            setEditingEvent({...editingEvent, subEventList: newList});
+                          }} className="text-red-500 hover:text-red-400">✕</button>
+                        </div>
+                      </div>
+                      <div className="space-y-2 pl-4 border-l border-white/10">
+                        {(sub.services || []).map((svc, svcIdx) => (
+                          <div key={svcIdx} className="flex gap-2">
+                            <input 
+                              type="text" 
+                              placeholder="Service Name" 
+                              value={svc.name}
+                              onChange={e => {
+                                const newList = [...(editingEvent.subEventList || [])];
+                                newList[sIdx].services[svcIdx].name = e.target.value;
+                                setEditingEvent({...editingEvent, subEventList: newList});
+                              }}
+                              className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-xs text-white"
+                              required
+                            />
+                            <input 
+                              type="number" 
+                              placeholder="Price" 
+                              value={svc.price}
+                              onChange={e => {
+                                const newList = [...(editingEvent.subEventList || [])];
+                                newList[sIdx].services[svcIdx].price = Number(e.target.value);
+                                setEditingEvent({...editingEvent, subEventList: newList});
+                              }}
+                              className="w-24 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-xs text-white"
+                              required
+                            />
+                            <button type="button" onClick={() => {
+                              const newList = [...(editingEvent.subEventList || [])];
+                              newList[sIdx].services = newList[sIdx].services.filter((_, i) => i !== svcIdx);
+                              setEditingEvent({...editingEvent, subEventList: newList});
+                            }} className="text-red-500 hover:text-red-400">✕</button>
+                          </div>
+                        ))}
+                        {(!sub.services || sub.services.length === 0) && (
+                          <p className="text-xs text-white/30 italic">No services added for this sub event.</p>
+                        )}
+                      </div>
                     </div>
                   ))}
-                  {(!editingEvent.services || editingEvent.services.length === 0) && (
-                    <p className="text-xs text-white/30 italic">No services added. Click + Add Service.</p>
+                  {(!editingEvent.subEventList || editingEvent.subEventList.length === 0) && (
+                    <p className="text-xs text-white/30 italic">No sub events added. Click + Add Sub Event.</p>
                   )}
                 </div>
               </div>

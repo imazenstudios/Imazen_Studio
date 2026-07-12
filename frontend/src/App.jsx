@@ -144,7 +144,7 @@ function App() {
             <img src="/images/logo.png" alt="Imazen Studios Logo" className="absolute inset-0 w-full h-full object-contain opacity-20" />
             <div 
               className="absolute top-0 left-0 h-full overflow-hidden" 
-              style={{ animation: 'fillLogo 2.5s ease-in-out forwards' }}
+              style={{ animation: 'fillLogo 1s ease-in-out forwards' }}
               onAnimationEnd={() => {
                 setAnimationFinished(true);
               }}

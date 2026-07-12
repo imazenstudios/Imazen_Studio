@@ -47,7 +47,9 @@ const WhatWeOffer = () => {
   ];
 
   const handleCardClick = (svc) => {
-    if (svc.externalLink) {
+    if (svc.slug === 'wedding') {
+      navigate('/wedding');
+    } else if (svc.externalLink) {
       window.open(svc.externalLink, '_blank');
     } else {
       navigate(`/portfolio?service=${encodeURIComponent(svc.slug)}`);

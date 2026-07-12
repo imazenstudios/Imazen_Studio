@@ -149,7 +149,9 @@ router.get('/events', async (req, res) => {
 router.post('/events', async (req, res) => {
   try {
     const event = new Event(req.body);
-    if (event.services) {
+    if (event.subEventList && event.subEventList.length > 0) {
+      event.totalAmount = event.subEventList.reduce((sum, sub) => sum + (sub.services || []).reduce((s, item) => s + item.price, 0), 0);
+    } else if (event.services) {
        event.totalAmount = event.services.reduce((sum, item) => sum + item.price, 0);
     }
     await event.save();
@@ -162,9 +164,12 @@ router.post('/events', async (req, res) => {
 
 router.put('/events/:id', async (req, res) => {
   try {
-    const event = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const event = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true, returnDocument: 'after' });
     
-    if (event.services) {
+    if (event.subEventList && event.subEventList.length > 0) {
+      event.totalAmount = event.subEventList.reduce((sum, sub) => sum + (sub.services || []).reduce((s, item) => s + item.price, 0), 0);
+      await event.save();
+    } else if (event.services) {
        event.totalAmount = event.services.reduce((sum, item) => sum + item.price, 0);
        await event.save();
     }

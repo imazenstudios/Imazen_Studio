@@ -14,7 +14,14 @@ const eventSchema = new mongoose.Schema({
   pendingAmount: { type: Number, default: 0 },
   discount: { type: Number, default: 0 },
   status: { type: String, default: 'pending' },
-  subEvents: { type: String },
+  subEvents: { type: String }, // Legacy field
+  subEventList: [{
+    name: { type: String, required: true },
+    services: [{
+      name: { type: String, required: true },
+      price: { type: Number, required: true }
+    }]
+  }],
   date: { type: String, default: () => new Date().toISOString().split('T')[0] }
 }, { timestamps: true });
 

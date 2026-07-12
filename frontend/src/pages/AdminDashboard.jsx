@@ -11,7 +11,7 @@ const AdminDashboard = () => {
   const storedUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
   const userPermissions = storedUser.permissions || [];
   const isSuperAdmin = storedUser.isSuperAdmin === true || storedUser.email === 'ssaiprasanth333@gmail.com' || localStorage.getItem('adminBypass') === 'true';
-  const allTabs = ['dashboard', 'leads', 'inquiries', 'studio bookings', 'events', 'calendar', 'slots', 'business', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options'];
+  const allTabs = ['dashboard', 'leads', 'inquiries', 'studio bookings', 'events', 'calendar', 'slots', 'business', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options', 'add partner'];
   const allowedTabs = isSuperAdmin ? allTabs : allTabs.filter(tab => userPermissions.includes(tab));
   const initialTab = allowedTabs.includes('dashboard') ? 'dashboard' : (allowedTabs[0] || 'dashboard');
 
@@ -4520,7 +4520,7 @@ const AdminDashboard = () => {
                           <div>
                             <label className="block text-xs uppercase text-emerald-500/70 mb-3 tracking-widest">Select Permissions</label>
                             <div className="flex flex-wrap gap-4">
-                              {['dashboard', 'leads', 'inquiries', 'studio bookings', 'calendar', 'business', 'events', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'developer options'].map(perm => (
+                              {['dashboard', 'leads', 'inquiries', 'studio bookings', 'calendar', 'business', 'events', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'developer options', 'add partner'].map(perm => (
                                 <label key={perm} className="flex items-center gap-2 cursor-pointer">
                                   <input 
                                     type="checkbox" 
@@ -4583,9 +4583,14 @@ const AdminDashboard = () => {
             <div className="p-10 max-w-5xl">
               <div className="flex justify-between items-center mb-10">
                 <h2 className="text-2xl font-playfair text-white uppercase tracking-widest">Admin Permissions</h2>
-                <button onClick={() => setEditingAdminUser({ email: '', password: '', permissions: [] })} className="px-6 py-2 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-gray-200 transition-colors">
-                  + Add Admin User
-                </button>
+                <div className="flex justify-end gap-4">
+                  <button onClick={() => setEditingPartner({name: '', sharePercentage: 0})} className="px-6 py-2 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-gray-200 transition-colors">
+                    + Add Partner
+                  </button>
+                  <button onClick={() => setEditingAdminUser({ email: '', password: '', permissions: [] })} className="px-6 py-2 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-gray-200 transition-colors">
+                    + Add Admin User
+                  </button>
+                </div>
               </div>
 
               {editingAdminUser && (
@@ -4641,7 +4646,7 @@ const AdminDashboard = () => {
                     <div>
                       <label className="block text-xs uppercase text-gray-500 mb-4 tracking-widest">Assign Permissions</label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-white/5 border border-white/10 rounded">
-                        {['dashboard', 'leads', 'inquiries', 'studio bookings', 'calendar', 'business', 'events', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options']
+                        {['dashboard', 'leads', 'inquiries', 'studio bookings', 'calendar', 'business', 'events', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options', 'add partner']
                           .filter(perm => isSuperAdmin || userPermissions.includes(perm))
                           .map(perm => (
                           <label key={perm} className={`flex items-center gap-3 ${storedUser.email === editingAdminUser.email ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}>
