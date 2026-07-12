@@ -492,7 +492,7 @@ const ReferenceLandingPage = () => {
           </p>
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="px-12 py-5 bg-white text-black font-oswald uppercase tracking-[0.2em] hover:bg-gray-200 transition-colors rounded-full text-lg shadow-xl"
+            className="px-8 py-3 bg-white text-black font-oswald uppercase tracking-[0.2em] hover:bg-gray-200 transition-colors rounded-full text-sm shadow-xl"
           >
             Claim Your Spot Now
           </button>
