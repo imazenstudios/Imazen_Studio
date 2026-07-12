@@ -75,8 +75,8 @@ const Packages = () => {
           transition={{ duration: 0.8 }}
           className="mb-24"
         >
-          <h2 className="font-oswald text-xs text-gray-500 uppercase tracking-[0.5em] mb-4">Pricing</h2>
-          <h1 className="font-oswald font-bold text-5xl md:text-7xl text-white uppercase tracking-widest leading-none">
+          <h2 className="font-playfair text-xs text-gray-500 uppercase tracking-[0.5em] mb-4">Pricing</h2>
+          <h1 className="font-playfair font-bold text-5xl md:text-7xl text-white uppercase tracking-widest leading-none">
             Signature<br/>Experiences
           </h1>
         </motion.div>
@@ -90,7 +90,7 @@ const Packages = () => {
                 {/* Optional category header if it has subservices */}
                 {svc.subServices && svc.subServices.length > 0 && (
                   <div className="border-t border-white/20 pt-16 mt-16 first:mt-0 first:border-0 first:pt-0">
-                    <h2 className="font-oswald text-4xl text-gray-500 tracking-[0.2em] uppercase text-center">{svc.name}</h2>
+                    <h2 className="font-playfair text-4xl text-gray-500 tracking-[0.2em] uppercase text-center">{svc.name}</h2>
                     <p className="font-sans text-gray-400 text-center mt-4 max-w-2xl mx-auto">{svc.description}</p>
                   </div>
                 )}
@@ -119,7 +119,7 @@ const Packages = () => {
 
                     {/* Typography Content Block */}
                     <div className="lg:w-1/2 w-full flex flex-col justify-center">
-                      <h3 className="font-oswald font-bold text-4xl lg:text-5xl text-white uppercase tracking-widest mb-6 leading-none">
+                      <h3 className="font-playfair font-bold text-4xl lg:text-5xl text-white uppercase tracking-widest mb-6 leading-none">
                         {sub.name}
                       </h3>
                       <p className="font-sans text-gray-400 font-light leading-relaxed mb-12 text-sm md:text-base">
@@ -132,7 +132,7 @@ const Packages = () => {
                             {tier.isPopular && (
                               <span className="absolute -left-4 top-0 h-full w-[1px] bg-white"></span>
                             )}
-                            <h4 className="font-oswald text-xl text-white tracking-widest uppercase mb-2">
+                            <h4 className="font-playfair text-xl text-white tracking-widest uppercase mb-2">
                               {tier.name}
                             </h4>
                             <p className="font-sans text-gray-400 text-sm mb-4 font-light leading-relaxed">
@@ -150,7 +150,7 @@ const Packages = () => {
                           to={`/book?service=${encodeURIComponent(svc.slug)}&sub=${encodeURIComponent(sub.slug)}`}
                           className="group flex items-center gap-4"
                         >
-                          <span className="font-oswald text-sm text-white uppercase tracking-[0.3em] group-hover:text-gray-400 transition-colors">
+                          <span className="font-playfair text-sm text-white uppercase tracking-[0.3em] group-hover:text-gray-400 transition-colors">
                             Book Slot
                           </span>
                           <div className="h-[1px] w-12 bg-white group-hover:w-24 transition-all duration-500"></div>

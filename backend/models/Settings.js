@@ -36,7 +36,13 @@ const settingsSchema = new mongoose.Schema({
       { title: 'Cinematic Videography', description: 'At Astiva Creations, we bring the magic of cinema to your special moments with our cinematic videography. Whether it\'s a wedding, pre-wedding, event, or brand film, we craft visually stunning videos that feel like a movie.' },
       { title: 'Impactful Ad Film', description: 'We specialize in high-quality ad film production that brings your brand\'s story to life! Whether it\'s a commercial, corporate video, brand film, or digital ad, we craft visually stunning and engaging content that connects with your audience.' }
     ]
-  }
+  },
+  weddingHeroHeading: { type: String, default: 'Imazen Weddings' },
+  weddingHeroSubheading: { type: String, default: 'Premium Wedding Photography' },
+  weddingHeroDescription: { type: String, default: '"Imazen is the sub-brand of Astitva Creation, dedicated to capturing your most precious moments with unparalleled elegance."' },
+  weddingHeroButtonText: { type: String, default: 'Visit Astitva Creations' },
+  weddingHeroButtonLink: { type: String, default: 'https://astitvacreations.com' },
+  weddingHeroBackground: { type: String, default: '/images/studio.jpeg' }
 }, { timestamps: true });
 
 export default mongoose.model('Settings', settingsSchema);

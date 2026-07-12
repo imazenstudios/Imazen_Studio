@@ -408,9 +408,11 @@ router.put('/:id/details', async (req, res) => {
     const existingBooking = await Booking.findById(req.params.id);
     if (!existingBooking) return res.status(404).json({ error: 'Booking not found' });
 
-    // Handle empty team member assignment
-    if (updateData.assignedTeamMember === '') {
-      updateData.assignedTeamMember = null;
+    // Handle empty team member assignment only if it is being explicitly updated
+    if (updateData.hasOwnProperty('assignedTeamMember')) {
+      if (!updateData.assignedTeamMember || String(updateData.assignedTeamMember).trim() === '') {
+        updateData.assignedTeamMember = null;
+      }
     }
 
     // Handle Slot Capacity changes if date/slot is changed

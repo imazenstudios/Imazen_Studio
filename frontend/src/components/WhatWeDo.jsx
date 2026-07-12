@@ -33,7 +33,7 @@ const WhatWeDo = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="font-oswald text-white text-3xl sm:text-4xl md:text-5xl text-center tracking-[0.3em] mb-20 uppercase font-light"
+          className="font-playfair text-white text-3xl sm:text-4xl md:text-5xl text-center tracking-[0.3em] mb-20 uppercase font-light"
         >
           What We Do
         </motion.h2>
@@ -51,7 +51,7 @@ const WhatWeDo = () => {
                 index < 2 ? 'w-full md:w-[calc(50%-0.75rem)]' : 'w-full md:w-[calc(33.333%-1rem)]'
               }`}
             >
-              <h3 className="font-oswald text-xl md:text-2xl text-center mb-6 tracking-[0.2em] uppercase transition-colors duration-500 text-white">
+              <h3 className="font-playfair text-xl md:text-2xl text-center mb-6 tracking-[0.2em] uppercase transition-colors duration-500 text-white">
                 {item.title}
               </h3>
               <p className="font-sans text-base md:text-lg text-center leading-relaxed font-light opacity-70 group-hover:opacity-100 transition-opacity duration-500 text-white">

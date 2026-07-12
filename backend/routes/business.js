@@ -139,7 +139,7 @@ router.delete('/props/:id', async (req, res) => {
 
 router.get('/events', async (req, res) => {
   try {
-    const events = await Event.find().populate('assignedTeamMember').sort({ createdAt: -1 });
+    const events = await Event.find().sort({ createdAt: -1 });
     res.json(events);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -154,18 +154,6 @@ router.post('/events', async (req, res) => {
     }
     await event.save();
     
-    // Notify team member if assigned
-    if (event.assignedTeamMember) {
-      const teamMember = await TeamMember.findById(event.assignedTeamMember);
-      if (teamMember && teamMember.email) {
-        await sendEmail({
-          to: teamMember.email,
-          subject: `You have been assigned to an Event: ${event.name}`,
-          text: `Hi ${teamMember.name},\n\nYou have been assigned to the event "${event.name}" scheduled for ${event.date}.\n\nClient: ${event.clientName || 'N/A'}\nStatus: ${event.status}\n\nThanks,\nImazen OS`
-        }).catch(err => console.error("Failed to send assignment email:", err));
-      }
-    }
-    
     res.status(201).json(event);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -174,30 +162,11 @@ router.post('/events', async (req, res) => {
 
 router.put('/events/:id', async (req, res) => {
   try {
-    const oldEvent = await Event.findById(req.params.id);
-    
-    // Handle empty team member assignment
-    if (req.body.assignedTeamMember === '') {
-      req.body.assignedTeamMember = null;
-    }
-
     const event = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
     
     if (event.services) {
        event.totalAmount = event.services.reduce((sum, item) => sum + item.price, 0);
        await event.save();
-    }
-    
-    // Notify team member if assigned (and wasn't already assigned to this person)
-    if (event.assignedTeamMember && String(oldEvent?.assignedTeamMember) !== String(event.assignedTeamMember)) {
-      const teamMember = await TeamMember.findById(event.assignedTeamMember);
-      if (teamMember && teamMember.email) {
-        await sendEmail({
-          to: teamMember.email,
-          subject: `You have been assigned to an Event: ${event.name}`,
-          text: `Hi ${teamMember.name},\n\nYou have been assigned to the event "${event.name}" scheduled for ${event.date}.\n\nClient: ${event.clientName || 'N/A'}\nStatus: ${event.status}\n\nThanks,\nImazen OS`
-        }).catch(err => console.error("Failed to send assignment email:", err));
-      }
     }
     
     res.json(event);
@@ -220,7 +189,7 @@ router.post('/events/:id/send-pdf', async (req, res) => {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ error: 'Event not found' });
     
-    const { discount } = req.body;
+    const discount = event.discount || 0;
     const pdfBuffer = await generateEventPdf(event, discount);
     const pdfBase64 = pdfBuffer.toString('base64');
     
@@ -239,7 +208,7 @@ router.post('/events/:id/send-pdf', async (req, res) => {
       text: `Hi ${event.clientName || 'Client'},\n\nPlease find attached the summary for the event "${event.name}".\n\nThanks,\nImazen Studios`,
       attachments: [
         {
-          filename: `Event_${event.name.replace(/\s+/g, '_')}.pdf`,
+          filename: `ImazenStudios_${event.phone || 'Event'}.pdf`,
           content: pdfBase64
         }
       ]
@@ -248,6 +217,23 @@ router.post('/events/:id/send-pdf', async (req, res) => {
     res.json({ message: 'PDF sent successfully' });
   } catch (error) {
     console.error('Send PDF Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/events/:id/download-pdf', async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ error: 'Event not found' });
+    
+    const discount = event.discount || 0;
+    const pdfBuffer = await generateEventPdf(event, discount);
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=ImazenStudios_${event.phone || 'Event'}.pdf`);
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error('Download PDF Error:', error);
     res.status(500).json({ error: error.message });
   }
 });

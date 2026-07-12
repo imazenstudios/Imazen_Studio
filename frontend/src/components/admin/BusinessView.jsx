@@ -3,7 +3,7 @@ import axios from 'axios';
 import DragDropImageUploader from '../DragDropImageUploader';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
-const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBookingId, onAddPartner, onAddExpense, onEditPartner, onEditExpense, onDeletePartner, onDeleteExpense, defaultViewMode = 'overview' }) => {
+const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers = [], highlightedBookingId, onAddPartner, onAddExpense, onEditPartner, onEditExpense, onDeletePartner, onDeleteExpense, defaultViewMode = 'overview', hideTabsAndOverview = false }) => {
   const [filterType, setFilterType] = useState('all');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
@@ -17,12 +17,13 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
   const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
   const [editingInventoryItem, setEditingInventoryItem] = useState(null);
   const [inventoryImageUrl, setInventoryImageUrl] = useState('');
+  const [viewShootExpenses, setViewShootExpenses] = useState(null);
 
   useEffect(() => {
     fetchProps();
     fetchEvents();
     fetchRentalItems();
-  }, []);
+  }, [defaultViewMode]);
 
   useEffect(() => {
     setViewMode(defaultViewMode);
@@ -70,16 +71,17 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
   const handleSaveProp = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
-    
     const calculatedTotal = (editingProp?.items || []).reduce((sum, item) => sum + item.price, 0);
+    const totalAmount = Number(formData.get('totalAmount') || calculatedTotal);
     const paidAmount = Number(formData.get('paidAmount') || 0);
-    const pendingAmount = calculatedTotal - paidAmount;
+    const pendingAmount = totalAmount - paidAmount;
 
     const data = {
       customerName: formData.get('customerName'),
       email: formData.get('email'),
       phone: formData.get('phone'),
       photo: editingProp?.photo || '',
+      totalAmount: totalAmount,
       paidAmount: paidAmount,
       pendingAmount: pendingAmount,
       items: editingProp?.items || []
@@ -122,11 +124,13 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
       clientName: formData.get('clientName'),
       email: formData.get('email'),
       phone: formData.get('phone'),
+      date: formData.get('date'),
       totalAmount: totalAmount,
       paidAmount: paidAmount,
       pendingAmount: pendingAmount,
+      discount: Number(formData.get('discount') || 0),
       status: formData.get('status'),
-      assignedTeamMember: formData.get('assignedTeamMember') || null,
+      subEvents: formData.get('subEvents'),
       services: editingEvent?.services || []
     };
     
@@ -187,7 +191,7 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
       setEditingInventoryItem(null);
       setInventoryImageUrl('');
       e.target.reset();
-      fetchProps(); // this fetches rental items as well
+      fetchRentalItems();
     } catch (error) {
       console.error(error);
       alert('Failed to save item');
@@ -205,16 +209,32 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
   };
 
   const handleSendEventPdf = async (id) => {
-    const rawDiscount = window.prompt("Enter discount amount (if any) or leave blank for 0:");
-    if (rawDiscount === null) return; // User cancelled
-    const discount = Number(rawDiscount) || 0;
-
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${id}/send-pdf`, { discount });
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${id}/send-pdf`);
       alert("PDF Sent successfully!");
     } catch (error) {
       console.error(error);
       alert('Failed to send PDF: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
+  const handleDownloadEventPdf = async (id) => {
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${id}/download-pdf`, {}, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      
+      const event = eventsData.find(e => e._id === id);
+      const phone = event?.phone || 'Event';
+      link.setAttribute('download', `ImazenStudios_${phone}.pdf`);
+      
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    } catch (error) {
+      console.error(error);
+      alert('Failed to download PDF');
     }
   };
 
@@ -295,11 +315,11 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
       } 
       else if (viewMode === 'studio_shoots') {
         // Earnings from studio shoots only
-        confirmedBookings.forEach(b => {
+        allBookings.forEach(b => {
           shootEarnings += (b.totalAmount || 0) - (b.pendingAmount || 0);
           pendingShoots += (b.pendingAmount || 0);
         });
-        shootExpenses = filteredExpenses.filter(e => e.type === 'Shoot' && confirmedBookings.some(cb => cb._id === e.bookingId)).reduce((a, b) => a + b.amount, 0);
+        shootExpenses = filteredExpenses.filter(e => e.type === 'Shoot' && allBookings.some(cb => cb._id === e.bookingId)).reduce((a, b) => a + b.amount, 0);
       }
       else if (viewMode === 'props') {
         // Earnings from props only
@@ -404,10 +424,10 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
         <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Total Expenses</p>
         <p className="text-3xl font-light text-red-400">₹{totals.totalExpenses.toLocaleString()}</p>
         <p className="text-xs text-white mt-2">
-          {viewMode === 'overview' && `Studio: ₹${totals.studioExpenses} | Shoot: ₹${totals.shootExpenses}`}
+          {viewMode === 'overview' && `Studio: ₹${totals.studioExpenses} | Shoot: ₹${totals.shootExpenses} | Events: ₹${totals.eventExpenses}`}
           {viewMode === 'studio_shoots' && `Shoot Expenses: ₹${totals.shootExpenses}`}
           {viewMode === 'props' && `No Expenses tracked`}
-          {viewMode === 'events' && `No Expenses tracked`}
+          {viewMode === 'events' && `Events: ₹${totals.eventExpenses}`}
         </p>
       </div>
       <div className="bg-[#111] p-6 rounded-xl border border-white/5">
@@ -514,14 +534,16 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
   return (
     <div className="space-y-8">
       {/* Top Header Tabs */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/10 pb-4">
-         <div className="flex gap-4">
-           <button onClick={() => setViewMode('overview')} className={`text-sm uppercase tracking-widest ${viewMode === 'overview' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Overview</button>
-           <button onClick={() => setViewMode('studio_shoots')} className={`text-sm uppercase tracking-widest ${viewMode === 'studio_shoots' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Studio Shoots</button>
-           <button onClick={() => setViewMode('props')} className={`text-sm uppercase tracking-widest ${viewMode === 'props' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Props Rentals</button>
-           <button onClick={() => setViewMode('events')} className={`text-sm uppercase tracking-widest ${viewMode === 'events' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Events</button>
-         </div>
-      </div>
+      {!hideTabsAndOverview && (
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/10 pb-4">
+           <div className="flex gap-4">
+             <button onClick={() => setViewMode('overview')} className={`text-sm uppercase tracking-widest ${viewMode === 'overview' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Overview</button>
+             <button onClick={() => setViewMode('studio_shoots')} className={`text-sm uppercase tracking-widest ${viewMode === 'studio_shoots' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Studio Shoots</button>
+             <button onClick={() => setViewMode('props')} className={`text-sm uppercase tracking-widest ${viewMode === 'props' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Props Rentals</button>
+             <button onClick={() => setViewMode('events')} className={`text-sm uppercase tracking-widest ${viewMode === 'events' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Events</button>
+           </div>
+        </div>
+      )}
 
       {/* Shared Filters */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#111] p-6 rounded-xl border border-white/5">
@@ -546,7 +568,7 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
       </div>
 
       {/* Shared Overview Cards */}
-      {renderOverviewCards()}
+      {!hideTabsAndOverview && renderOverviewCards()}
 
       {/* Tab Content */}
       {viewMode === 'overview' && (
@@ -556,7 +578,7 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
           {/* Expenses Table */}
           <div className="bg-[#111] p-6 rounded-xl border border-white/5">
             <div className="flex justify-between items-center mb-6">
-              <h4 className="text-sm uppercase tracking-widest text-white/70">All Expenditures</h4>
+              <h4 className="text-sm uppercase tracking-widest text-white/70">Studio Expenditures</h4>
               <button onClick={() => onAddExpense({date: new Date().toISOString().split('T')[0], items: [{description: '', amount: 0}], type: 'Studio'})} className="px-3 py-1 bg-white text-black text-xs uppercase tracking-widest hover:bg-white/90">Add Expense</button>
             </div>
             <div className="overflow-x-auto">
@@ -571,7 +593,7 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {filteredExpenses.map(expense => (
+                  {filteredExpenses.filter(e => e.type === 'Studio').map(expense => (
                     <tr key={expense._id} className="hover:bg-white/[0.02]">
                       <td className="p-4">{expense.date}</td>
                       <td className="p-4">
@@ -591,9 +613,9 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
                       </td>
                     </tr>
                   ))}
-                  {filteredExpenses.length === 0 && (
+                  {filteredExpenses.filter(e => e.type === 'Studio').length === 0 && (
                     <tr>
-                      <td colSpan="5" className="p-8 text-center text-white/30">No expenses found for this period.</td>
+                      <td colSpan="5" className="p-8 text-center text-white/30">No studio expenses found for this period.</td>
                     </tr>
                   )}
                 </tbody>
@@ -625,7 +647,7 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {confirmedBookings.map(shoot => {
+                  {allBookings.map(shoot => {
                     const shootExpenses = expenses.filter(e => e.bookingId === shoot._id);
                     const totalShootExp = shootExpenses.reduce((acc, curr) => acc + curr.amount, 0);
                     const paidAmt = (shoot.totalAmount || 0) - (shoot.pendingAmount || 0);
@@ -636,12 +658,24 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
                       <tr key={shoot._id} id={`business-booking-${shoot._id}`} className={`transition-all duration-500 ${highlightedBookingId === shoot._id ? 'bg-emerald-900/30 border-l-4 border-emerald-500' : 'hover:bg-white/[0.02]'}`}>
                         <td className="p-4">
                           <div>{shoot.date}</div>
-                          <div className="text-xs text-white/40">{shoot.name}</div>
+                          <div className="text-xs text-white/40">{shoot.name} <span className="text-[9px] uppercase ml-2 px-1 py-0.5 rounded bg-white/5">{shoot.status}</span></div>
                         </td>
                         <td className="p-4">₹{shoot.totalAmount?.toLocaleString()}</td>
                         <td className="p-4 text-emerald-400">₹{paidAmt.toLocaleString()}</td>
                         <td className="p-4 text-amber-500">₹{pendingAmt.toLocaleString()}</td>
-                        <td className="p-4 text-red-400">₹{totalShootExp.toLocaleString()}</td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-red-400">₹{totalShootExp.toLocaleString()}</span>
+                            {shootExpenses.length > 0 && (
+                              <button 
+                                onClick={() => setViewShootExpenses({ shootName: shoot.name, expenses: shootExpenses })} 
+                                className="text-[10px] bg-white/5 hover:bg-white/10 text-white/70 px-1.5 py-0.5 rounded border border-white/10 uppercase tracking-widest"
+                              >
+                                Detail
+                              </button>
+                            )}
+                          </div>
+                        </td>
                         <td className="p-4 font-bold text-white">₹{shootProfit.toLocaleString()}</td>
                         <td className="p-4 text-right">
                           <button onClick={() => {
@@ -658,7 +692,7 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
                       </tr>
                     )
                   })}
-                  {confirmedBookings.length === 0 && (
+                  {allBookings.length === 0 && (
                     <tr>
                       <td colSpan="7" className="p-8 text-center text-white/30">No studio shoots found.</td>
                     </tr>
@@ -690,15 +724,6 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredProps.map(prop => (
                 <div key={prop._id} className="bg-[#111] border border-white/10 rounded-xl overflow-hidden relative group">
-                  {prop.photo ? (
-                     <div className="h-40 w-full overflow-hidden">
-                       <img src={prop.photo} alt="Prop" className="w-full h-full object-cover" />
-                     </div>
-                  ) : (
-                     <div className="h-40 w-full bg-white/5 flex items-center justify-center">
-                       <span className="text-white/20 uppercase text-xs tracking-widest">No Image</span>
-                     </div>
-                  )}
                   <div className="p-4 space-y-3">
                     <div className="flex justify-between items-start">
                       <div>
@@ -780,7 +805,18 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
                   <input type="email" name="email" defaultValue={editingProp.email} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
+
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Total Amount</label>
+                  <input 
+                    type="number" 
+                    name="totalAmount"
+                    value={editingProp.totalAmount !== undefined ? editingProp.totalAmount : (editingProp.items || []).reduce((sum, item) => sum + item.price, 0)} 
+                    onChange={e => setEditingProp({...editingProp, totalAmount: Number(e.target.value)})}
+                    className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm" 
+                  />
+                </div>
                 <div>
                   <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Paid Amount</label>
                   <input 
@@ -796,7 +832,7 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
                   <input 
                     type="number" 
                     name="pendingAmount" 
-                    value={((editingProp.items || []).reduce((sum, item) => sum + item.price, 0) - (editingProp.paidAmount || 0))} 
+                    value={(editingProp.totalAmount !== undefined ? editingProp.totalAmount : (editingProp.items || []).reduce((sum, item) => sum + item.price, 0)) - (editingProp.paidAmount || 0)} 
                     readOnly
                     className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-amber-500 text-sm cursor-not-allowed opacity-50" 
                   />
@@ -810,8 +846,15 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
                   <button type="button" onClick={() => setEditingProp({...editingProp, items: [...(editingProp.items||[]), {name:'', price:0}]})} className="text-[11px] uppercase text-emerald-400 hover:text-emerald-300 tracking-widest">+ Add Item</button>
                 </div>
                 <div className="space-y-2">
-                  {(editingProp.items||[]).map((item, idx) => (
+                  {(editingProp.items||[]).map((item, idx) => {
+                    const selectedInventoryItem = rentalItems.find(r => r.name === item.name);
+                    return (
                     <div key={idx} className="flex gap-2 items-center">
+                      {selectedInventoryItem?.imageUrl ? (
+                        <img src={selectedInventoryItem.imageUrl} alt={item.name} className="w-8 h-8 rounded object-cover border border-white/10 shrink-0" />
+                      ) : (
+                        <div className="w-8 h-8 rounded border border-white/10 bg-white/5 shrink-0 flex items-center justify-center text-[10px] text-white/30 uppercase">Img</div>
+                      )}
                       <select 
                         value={item.name} 
                         onChange={e => {
@@ -838,7 +881,7 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
                           newItems[idx].price = Number(e.target.value);
                           setEditingProp({...editingProp, items: newItems});
                         }}
-                        className="w-24 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-xs text-white" 
+                        className="w-24 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-xs text-emerald-400" 
                         required
                       />
                       <button type="button" onClick={() => {
@@ -846,7 +889,7 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
                         setEditingProp({...editingProp, items: newItems});
                       }} className="text-red-500 hover:text-red-400">✕</button>
                     </div>
-                  ))}
+                  )})}
                   {(!editingProp.items || editingProp.items.length === 0) && (
                     <p className="text-xs text-white/30 italic">No items added. Click + Add Item.</p>
                   )}
@@ -873,13 +916,19 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
 
           <div className="bg-[#111] rounded-xl border border-white/5 p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredEvents.map(event => (
+              {filteredEvents.map(event => {
+                const eventExpenses = expenses?.filter(e => e.bookingId === event._id && e.type === 'Event') || [];
+                const eventTotalExpenses = eventExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+                const eventProfit = (event.paidAmount || event.totalAmount || 0) - eventTotalExpenses;
+
+                return (
                 <div key={event._id} className="bg-black/40 border border-white/5 rounded-xl overflow-hidden group relative">
                   <div className="p-4 space-y-3">
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="font-bold text-white text-lg">{event.name}</h4>
                         <p className="text-xs text-white/50 uppercase tracking-widest mt-1">{event.status}</p>
+                        {event.subEvents && <p className="text-xs text-emerald-400 mt-1">{event.subEvents}</p>}
                       </div>
                       <div className="text-right">
                         <span className="text-xs text-white/40 uppercase tracking-widest block mb-1">Total</span>
@@ -906,7 +955,7 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
                       </div>
                       <div>
                         <p className="text-[11px] text-white/40 uppercase tracking-widest">Profit</p>
-                        <p className="text-sm font-bold text-white">₹{(event.paidAmount || event.totalAmount || 0).toLocaleString()}</p>
+                        <p className="text-sm font-bold text-white">₹{eventProfit.toLocaleString()}</p>
                       </div>
                     </div>
 
@@ -922,26 +971,39 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
                       </div>
                     </div>
                     
-                    <div className="mb-4 mt-4">
-                      <div className="bg-black/40 border border-white/5 rounded-xl p-3">
-                        <h4 className="text-[11px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Shoot Status (Manual)</h4>
-                        <input 
-                          type="text" 
-                          placeholder="e.g. Editing Completed"
-                          value={event.status || ''} 
-                          onChange={(e) => handleUpdateEventField(event._id, 'status', e.target.value)}
-                          className="w-full bg-black/50 border border-white/10 rounded px-2 py-1.5 text-xs text-white"
-                        />
+                    {eventExpenses.length > 0 && (
+                      <div>
+                        <p className="text-[11px] uppercase tracking-widest text-red-400/80 mb-1 flex justify-between">
+                          <span>Expenses</span>
+                          <span>₹{eventTotalExpenses.toLocaleString()}</span>
+                        </p>
+                        <div className="space-y-1">
+                          {eventExpenses.map((exp, idx) => (
+                            <div key={idx} className="flex justify-between text-xs text-white/70 bg-red-500/5 px-2 py-1 rounded">
+                              <span className="truncate pr-2">{exp.description}</span>
+                              <span>₹{exp.amount}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                   <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 backdrop-blur p-2 rounded">
+                    <button onClick={() => onAddExpense({
+                      date: event.date || new Date().toISOString().split('T')[0],
+                      items: [{description: `Expense for ${event.name}`, amount: 0}],
+                      type: 'Event',
+                      bookingId: event._id
+                    })} className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded">
+                      + Expense
+                    </button>
+                    <button onClick={() => handleDownloadEventPdf(event._id)} className="text-blue-400 hover:text-white text-xs mr-2">Download PDF</button>
                     <button onClick={() => handleSendEventPdf(event._id)} className="text-emerald-400 hover:text-white text-xs mr-2">Send PDF</button>
                     <button onClick={() => setEditingEvent(event)} className="text-amber-500 hover:text-white text-xs">Edit</button>
                     <button onClick={() => handleDeleteEvent(event._id)} className="text-red-500 hover:text-white text-xs">Delete</button>
                   </div>
                 </div>
-              ))}
+              )})}
               {filteredEvents.length === 0 && (
                 <div className="col-span-full py-12 text-center text-white/30 border border-white/5 rounded-xl border-dashed">
                   No events found.
@@ -970,7 +1032,13 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
                 </div>
                 <div>
                   <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Status</label>
-                  <input type="text" name="status" defaultValue={editingEvent.status} placeholder="e.g. Scheduled, Completed" className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm" />
+                  <select name="status" defaultValue={editingEvent.status || 'pending'} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm">
+                    <option value="pending">pending</option>
+                    <option value="contacted">contacted</option>
+                    <option value="confirmed">confirmed</option>
+                    <option value="finished">finished</option>
+                    <option value="cancelled">cancelled</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Client Name (Optional)</label>
@@ -980,21 +1048,14 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
                   <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Phone (Optional)</label>
                   <input type="text" name="phone" defaultValue={editingEvent.phone} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm" />
                 </div>
-                <div className="md:col-span-2">
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Event Date</label>
+                  <input type="date" name="date" defaultValue={editingEvent.date || new Date().toISOString().split('T')[0]} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm" />
+                </div>
+                <div>
                   <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Email (Optional)</label>
                   <input type="email" name="email" defaultValue={editingEvent.email} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm" />
                 </div>
-                {editingEvent._id && (
-                  <div className="md:col-span-2">
-                    <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Assign Team Member</label>
-                    <select name="assignedTeamMember" defaultValue={editingEvent.assignedTeamMember?._id || editingEvent.assignedTeamMember || ''} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm">
-                      <option value="">-- Unassigned --</option>
-                      {teamMembers?.map(tm => (
-                        <option key={tm._id} value={tm._id}>{tm.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
@@ -1025,6 +1086,51 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
                     value={(editingEvent.totalAmount !== undefined ? editingEvent.totalAmount : ((editingEvent.services || []).reduce((sum, item) => sum + item.price, 0))) - (editingEvent.paidAmount || 0)} 
                     readOnly
                     className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-amber-500 text-sm cursor-not-allowed opacity-50" 
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Sub Events (Manual)</label>
+                <input 
+                  type="text" 
+                  name="subEvents" 
+                  defaultValue={editingEvent.subEvents} 
+                  placeholder="e.g. Haldi, Sangeet, Wedding" 
+                  className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm mb-4" 
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Discount (%)</label>
+                  <input 
+                    type="number" 
+                    value={editingEvent.discountPercentage || ''} 
+                    onChange={e => {
+                      const pct = Number(e.target.value);
+                      const total = editingEvent.totalAmount !== undefined ? editingEvent.totalAmount : ((editingEvent.services || []).reduce((sum, item) => sum + item.price, 0));
+                      const flatDiscount = Math.round((pct / 100) * total);
+                      setEditingEvent({...editingEvent, discountPercentage: pct, discount: flatDiscount});
+                    }}
+                    placeholder="e.g. 10" 
+                    className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Discount (₹)</label>
+                  <input 
+                    type="number" 
+                    name="discount" 
+                    value={editingEvent.discount || 0} 
+                    onChange={e => {
+                      const flatDiscount = Number(e.target.value);
+                      const total = editingEvent.totalAmount !== undefined ? editingEvent.totalAmount : ((editingEvent.services || []).reduce((sum, item) => sum + item.price, 0));
+                      const pct = total > 0 ? Number(((flatDiscount / total) * 100).toFixed(2)) : 0;
+                      setEditingEvent({...editingEvent, discount: flatDiscount, discountPercentage: pct});
+                    }}
+                    placeholder="0" 
+                    className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm" 
                   />
                 </div>
               </div>
@@ -1085,6 +1191,32 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
         </div>
       )}
 
+      {viewShootExpenses && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="w-full max-w-lg bg-[#111] border border-white/10 p-6 shadow-2xl rounded-xl max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
+              <h3 className="text-xl font-light uppercase tracking-widest text-white">
+                Expenses for {viewShootExpenses.shootName}
+              </h3>
+              <button onClick={() => setViewShootExpenses(null)} className="text-white/50 hover:text-white">✕</button>
+            </div>
+            <div className="flex-1 overflow-y-auto pr-2 space-y-4">
+              {viewShootExpenses.expenses.map((expense, idx) => (
+                <div key={idx} className="flex justify-between items-center bg-black/40 border border-white/5 p-4 rounded-lg">
+                  <div>
+                    <div className="text-xs text-white/50 mb-1">{expense.date}</div>
+                    <div className="text-sm text-white">{expense.description}</div>
+                  </div>
+                  <div className="text-red-400 font-bold">
+                    ₹{expense.amount.toLocaleString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
     {isInventoryModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="w-full max-w-2xl bg-[#111] border border-white/10 p-6 shadow-2xl rounded-xl max-h-[90vh] flex flex-col">
@@ -1108,7 +1240,7 @@ const BusinessView = ({ bookings, expenses, partners, teamMembers, highlightedBo
                   <div className="w-full sm:col-span-2">
                     <label className="block text-xs uppercase tracking-widest text-white/50 mb-2">Image (Optional)</label>
                     <div className="h-32 rounded-lg overflow-hidden">
-                      <DragDropImageUploader onUpload={(url) => setInventoryImageUrl(url)} currentImage={inventoryImageUrl || editingInventoryItem?.imageUrl} height="h-32" />
+                      <DragDropImageUploader onUploadSuccess={(url) => setInventoryImageUrl(url)} currentImage={inventoryImageUrl || editingInventoryItem?.imageUrl} />
                     </div>
                   </div>
                   <div className="w-full sm:col-span-2 flex justify-end gap-3 mt-4">

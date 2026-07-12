@@ -48,6 +48,7 @@ const AdminDashboard = () => {
   const [editingAdminUser, setEditingAdminUser] = useState(null);
   const [partners, setPartners] = useState([]);
   const [expenses, setExpenses] = useState([]);
+  const [viewingExpensesBookingId, setViewingExpensesBookingId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isGlobalSubmitting, setIsGlobalSubmitting] = useState(false);
@@ -128,6 +129,7 @@ const AdminDashboard = () => {
   const [editingContent, setEditingContent] = useState(null);
   const [editingService, setEditingService] = useState(null);
   const [editingSubService, setEditingSubService] = useState(null); // For nested subservices
+  const [selectedImageIndices, setSelectedImageIndices] = useState([]);
   const [editingThemeCategory, setEditingThemeCategory] = useState(null);
   const [editingTheme, setEditingTheme] = useState(null);
   const [editingHero, setEditingHero] = useState(null);
@@ -621,12 +623,12 @@ const AdminDashboard = () => {
       await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${id}/details`, data);
       
       // Update local state without full refetch for snappy UI
-      setBookingsData(prev => prev.map(booking => 
+      setBookings(prev => prev.map(booking => 
         booking._id === id ? { ...booking, ...data } : booking
       ));
     } catch (error) {
       console.error('Error updating booking details:', error);
-      alert('Failed to update booking details');
+      alert('Failed to update booking details: ' + (error.response?.data?.error || error.message));
     }
   };
 
@@ -836,6 +838,24 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error(error);
       alert('Error saving Contact/Footer Settings');
+    }
+  };
+
+  const handleSaveWeddingSettings = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings/wedding`, {
+        weddingHeroHeading: settings.weddingHeroHeading,
+        weddingHeroSubheading: settings.weddingHeroSubheading,
+        weddingHeroDescription: settings.weddingHeroDescription,
+        weddingHeroButtonText: settings.weddingHeroButtonText,
+        weddingHeroButtonLink: settings.weddingHeroButtonLink,
+        weddingHeroBackground: settings.weddingHeroBackground
+      });
+      alert('Wedding page settings saved!');
+    } catch (error) {
+      console.error(error);
+      alert('Error saving Wedding Page Settings');
     }
   };
 
@@ -1151,7 +1171,7 @@ const AdminDashboard = () => {
       {/* Sidebar with Glassmorphism */}
       <div className={`fixed inset-y-0 left-0 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 transition duration-300 ease-in-out z-40 w-72 bg-black/80 md:bg-black/40 backdrop-blur-2xl border-r border-white/5 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.5)]`}>
         <div className="p-8 border-b border-white/5 flex justify-between items-center">
-          <h2 className="text-2xl font-oswald font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500 tracking-widest uppercase">
+          <h2 className="text-2xl font-playfair font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500 tracking-widest uppercase">
             Imazen OS
           </h2>
         </div>
@@ -1181,7 +1201,7 @@ const AdminDashboard = () => {
       <div className="flex-1 flex flex-col relative overflow-hidden w-full">
         {/* Mobile Header Toggle */}
         <div className="md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-black/40 backdrop-blur-md z-20">
-          <h2 className="text-lg font-oswald font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500 tracking-widest uppercase">
+          <h2 className="text-lg font-playfair font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500 tracking-widest uppercase">
             Imazen OS
           </h2>
           <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white p-2 focus:outline-none">
@@ -1201,7 +1221,7 @@ const AdminDashboard = () => {
 
 
         <header className="h-20 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-4 md:px-10 relative z-10">
-          <h1 className="text-xl font-oswald text-white uppercase tracking-[0.3em] bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+          <h1 className="text-xl font-playfair text-white uppercase tracking-[0.3em] bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
             {activeTab.replace('-', ' ')}
           </h1>
           <div className="flex items-center gap-2 md:gap-6">
@@ -1240,7 +1260,7 @@ const AdminDashboard = () => {
             <div className="space-y-8 animate-fade-in">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
-                  <h2 className="text-3xl font-oswald uppercase tracking-widest text-white">Performance Overview</h2>
+                  <h2 className="text-3xl font-playfair uppercase tracking-widest text-white">Performance Overview</h2>
                   <p className="text-gray-400 font-sans font-light text-sm mt-1">Track your inquiries and conversion metrics.</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1284,7 +1304,7 @@ const AdminDashboard = () => {
                       <option value="past7" className="bg-black">Past 7 Days</option>
                     </select>
                   </div>
-                  <div className="text-5xl font-oswald text-white mb-4">
+                  <div className="text-5xl font-playfair text-white mb-4">
                     {(() => {
                       const now = new Date();
                       return dashboardFilteredBookings.filter(b => {
@@ -1307,7 +1327,7 @@ const AdminDashboard = () => {
                       <option value="past7" className="bg-black">Past 7 Days</option>
                     </select>
                   </div>
-                  <div className="text-5xl font-oswald text-white mb-4">
+                  <div className="text-5xl font-playfair text-white mb-4">
                     {(() => {
                       const now = new Date();
                       return dashboardFilteredLeads.filter(l => {
@@ -1330,7 +1350,7 @@ const AdminDashboard = () => {
                       <option value="past7" className="bg-black">Past 7 Days</option>
                     </select>
                   </div>
-                  <div className="text-5xl font-oswald text-white mb-4">
+                  <div className="text-5xl font-playfair text-white mb-4">
                     {(() => {
                       const now = new Date();
                       return dashboardFilteredInquiries.filter(i => {
@@ -1353,7 +1373,7 @@ const AdminDashboard = () => {
                       <option value="past7" className="bg-black">Past 7 Days</option>
                     </select>
                   </div>
-                  <div className="text-5xl font-oswald text-white mb-4">
+                  <div className="text-5xl font-playfair text-white mb-4">
                     {(() => {
                       const now = new Date();
                       const filterFunc = (item) => {
@@ -1379,7 +1399,7 @@ const AdminDashboard = () => {
                       <option value="past7" className="bg-black">Past 7 Days</option>
                     </select>
                   </div>
-                  <div className="text-5xl font-oswald text-white mb-4">
+                  <div className="text-5xl font-playfair text-white mb-4">
                     {(() => {
                       const now = new Date();
                       const filterFunc = (item) => {
@@ -1397,7 +1417,7 @@ const AdminDashboard = () => {
               </div>
               <div className={glassPanel + " p-8 mt-8"}>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                  <h3 className="text-xl font-oswald uppercase tracking-widest text-white">Recent Inquiries</h3>
+                  <h3 className="text-xl font-playfair uppercase tracking-widest text-white">Recent Inquiries</h3>
                   <div className="flex flex-wrap items-center gap-2 md:gap-4 w-full md:w-auto">
                     <select 
                       className="bg-[#121212] border border-white/20 text-white font-sans text-[11px] uppercase tracking-widest px-2 md:px-4 py-2 outline-none focus:border-white/50 rounded cursor-pointer flex-1 md:flex-none"
@@ -1455,7 +1475,7 @@ const AdminDashboard = () => {
                   <div className="space-y-6">
                     {/* Settings / Analytics */}
                     <div className={`${glassPanel} p-8 hover:border-white/20 transition-all duration-300 border border-blue-500/20 bg-gradient-to-br from-blue-900/10 to-transparent`}>
-                      <h3 className="text-xl text-white font-oswald tracking-[0.2em] uppercase mb-4">Tracking & Analytics Settings</h3>
+                      <h3 className="text-xl text-white font-playfair tracking-[0.2em] uppercase mb-4">Tracking & Analytics Settings</h3>
                       <form onSubmit={handleSaveAnalytics} className="space-y-4 max-w-2xl">
                         <div>
                           <label className="block text-xs uppercase text-gray-500 mb-2">Meta Pixel ID (Facebook)</label>
@@ -1471,7 +1491,7 @@ const AdminDashboard = () => {
 
                     {/* Contact Settings */}
                     <div className={`${glassPanel} p-8 hover:border-white/20 transition-all duration-300 border border-green-500/20 bg-gradient-to-br from-green-900/10 to-transparent`}>
-                      <h3 className="text-xl text-white font-oswald tracking-[0.2em] uppercase mb-4">Contact Settings</h3>
+                      <h3 className="text-xl text-white font-playfair tracking-[0.2em] uppercase mb-4">Contact Settings</h3>
                       <form onSubmit={handleSaveContactSettings} className="space-y-4 max-w-2xl">
                         <div>
                           <label className="block text-xs uppercase text-gray-500 mb-2">WhatsApp Number</label>
@@ -1490,9 +1510,42 @@ const AdminDashboard = () => {
                         <button type="submit" disabled={isGlobalSubmitting} className="px-6 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Saving...' : 'Save Contact Info'}</button>
                       </form>
                     </div>
+                    {/* Wedding Page Settings */}
+                    <div className={`${glassPanel} p-8 hover:border-white/20 transition-all duration-300 border border-pink-500/20 bg-gradient-to-br from-pink-900/10 to-transparent`}>
+                      <h3 className="text-xl text-white font-playfair tracking-[0.2em] uppercase mb-4">Wedding Page Settings</h3>
+                      <form onSubmit={handleSaveWeddingSettings} className="space-y-4 max-w-2xl">
+                        <div>
+                          <label className="block text-xs uppercase text-gray-500 mb-2">Heading</label>
+                          <input type="text" className={glassInput} placeholder="e.g. Imazen Weddings" value={settings.weddingHeroHeading || ''} onChange={e => setSettings({...settings, weddingHeroHeading: e.target.value})} />
+                        </div>
+                        <div>
+                          <label className="block text-xs uppercase text-gray-500 mb-2">Subheading</label>
+                          <input type="text" className={glassInput} placeholder="e.g. Premium Wedding Photography" value={settings.weddingHeroSubheading || ''} onChange={e => setSettings({...settings, weddingHeroSubheading: e.target.value})} />
+                        </div>
+                        <div>
+                          <label className="block text-xs uppercase text-gray-500 mb-2">Description</label>
+                          <textarea className={glassInput} rows="3" placeholder="Description..." value={settings.weddingHeroDescription || ''} onChange={e => setSettings({...settings, weddingHeroDescription: e.target.value})}></textarea>
+                        </div>
+                        <div>
+                          <label className="block text-xs uppercase text-gray-500 mb-2">Background Image</label>
+                          <DragDropImageUploader currentImage={settings.weddingHeroBackground || ''} aspect={16/9} onUploadSuccess={(url) => setSettings({...settings, weddingHeroBackground: url})} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs uppercase text-gray-500 mb-2">Button Text</label>
+                            <input type="text" className={glassInput} placeholder="e.g. Visit Astitva Creations" value={settings.weddingHeroButtonText || ''} onChange={e => setSettings({...settings, weddingHeroButtonText: e.target.value})} />
+                          </div>
+                          <div>
+                            <label className="block text-xs uppercase text-gray-500 mb-2">Button Link</label>
+                            <input type="text" className={glassInput} placeholder="e.g. https://astitvacreations.com" value={settings.weddingHeroButtonLink || ''} onChange={e => setSettings({...settings, weddingHeroButtonLink: e.target.value})} />
+                          </div>
+                        </div>
+                        <button type="submit" disabled={isGlobalSubmitting} className="px-6 py-3 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Saving...' : 'Save Wedding Settings'}</button>
+                      </form>
+                    </div>
                     {/* Footer Settings */}
                     <div className={`${glassPanel} p-8 hover:border-white/20 transition-all duration-300 border border-purple-500/20 bg-gradient-to-br from-purple-900/10 to-transparent`}>
-                      <h3 className="text-xl text-white font-oswald tracking-[0.2em] uppercase mb-4">Footer Settings</h3>
+                      <h3 className="text-xl text-white font-playfair tracking-[0.2em] uppercase mb-4">Footer Settings</h3>
                       <form onSubmit={handleSaveContactSettings} className="space-y-4 max-w-2xl">
                         <div>
                           <label className="block text-xs uppercase text-gray-500 mb-2">Studio Address</label>
@@ -1537,7 +1590,7 @@ const AdminDashboard = () => {
 
                     {/* What We Do (Home Page) Settings */}
                     <div className={`${glassPanel} p-8 hover:border-white/20 transition-all duration-300`}>
-                      <h3 className="text-xl text-white font-oswald tracking-[0.2em] uppercase mb-4">What We Do (Home Page)</h3>
+                      <h3 className="text-xl text-white font-playfair tracking-[0.2em] uppercase mb-4">What We Do (Home Page)</h3>
                       <form onSubmit={handleSaveWhatWeDo} className="space-y-4 max-w-4xl">
                         <div className="space-y-4">
                           {(settings.whatWeDo || []).map((item, idx) => (
@@ -1573,7 +1626,7 @@ const AdminDashboard = () => {
                     {content.map(c => (
                       <div key={c._id} className={`${glassPanel} p-8 hover:border-white/20 transition-all duration-300`}>
                         <div className="flex justify-between items-center mb-6">
-                           <h3 className="text-xl text-white font-oswald tracking-[0.2em] uppercase">{c.section}</h3>
+                           <h3 className="text-xl text-white font-playfair tracking-[0.2em] uppercase">{c.section}</h3>
                            <button onClick={() => setEditingContent(c)} className="px-5 py-2 rounded-lg bg-white/5 hover:bg-white text-gray-300 hover:text-black text-xs uppercase tracking-widest transition-all">Edit</button>
                         </div>
                         {editingContent && editingContent._id === c._id ? (
@@ -1627,7 +1680,7 @@ const AdminDashboard = () => {
                   <div className="space-y-8">
                     <div className="flex justify-between items-center bg-gradient-to-r from-blue-900/20 to-transparent p-6 rounded-2xl border border-blue-500/20">
                       <div>
-                        <h2 className="text-lg font-oswald text-white uppercase tracking-widest mb-1">Hero Slider Config</h2>
+                        <h2 className="text-lg font-playfair text-white uppercase tracking-widest mb-1">Hero Slider Config</h2>
                         <p className="text-xs text-blue-300/70 tracking-wide">Manage the massive full-screen images on the homepage.</p>
                       </div>
                       <button onClick={() => setEditingHero({ img: '', mobileImg: '', title: '', titleOutline: '', text: '', order: 0 })} className="px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)]">
@@ -1642,7 +1695,7 @@ const AdminDashboard = () => {
                             <img src={slide.img} alt="Hero" className="w-full h-full object-cover opacity-60 group-hover:opacity-40 group-hover:scale-110 transition-all duration-700" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
                             <div className="absolute bottom-4 left-4 right-4 text-center">
-                              <h3 className="text-xs text-white font-oswald uppercase tracking-[0.3em]">{slide.text}</h3>
+                              <h3 className="text-xs text-white font-playfair uppercase tracking-[0.3em]">{slide.text}</h3>
                             </div>
                             <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button onClick={() => handleMoveHeroSlide(i, 'up')} className="w-8 h-8 rounded-full bg-gray-700 text-white flex items-center justify-center hover:scale-110 transition-transform">↑</button>
@@ -1662,7 +1715,7 @@ const AdminDashboard = () => {
                   <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`${glassPanel} p-8 w-full max-w-xl max-h-[90vh] overflow-y-auto custom-scrollbar`}>
                        <div className="flex justify-between items-center mb-6">
-                         <h2 className="text-xl font-oswald text-white uppercase tracking-widest">{editingHero._id ? 'Edit Slide' : 'New Slide'}</h2>
+                         <h2 className="text-xl font-playfair text-white uppercase tracking-widest">{editingHero._id ? 'Edit Slide' : 'New Slide'}</h2>
                          <button onClick={() => setEditingHero(null)} className="text-gray-400 hover:text-white text-2xl">&times;</button>
                        </div>
                        <form onSubmit={(e) => handleSaveHero(e, editingHero)} className="space-y-6">
@@ -1702,7 +1755,7 @@ const AdminDashboard = () => {
                   <div className="space-y-8">
                     <div className="flex justify-between items-center bg-gradient-to-r from-emerald-900/20 to-transparent p-6 rounded-2xl border border-emerald-500/20">
                       <div>
-                        <h2 className="text-lg font-oswald text-white uppercase tracking-widest mb-1">Landing Pages</h2>
+                        <h2 className="text-lg font-playfair text-white uppercase tracking-widest mb-1">Landing Pages</h2>
                         <p className="text-xs text-emerald-300/70 tracking-wide">Manage standalone landing pages for campaigns and promotions.</p>
                       </div>
                       <button onClick={() => setEditingLandingPage({ name: '', slug: '', heroImage: '', mobileHeroImage: '', landingAbout: { title: '', description: '', imageUrl: '' }, features: [], faqs: [], portfolioImages: [], portfolioVideos: [], callToActionLink: '', isActive: true })} className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)]">
@@ -1715,7 +1768,7 @@ const AdminDashboard = () => {
                         <div key={page._id} className={`${glassPanel} overflow-hidden group relative h-[250px]`}>
                           <img src={page.heroImage || page.landingAbout?.imageUrl || 'https://via.placeholder.com/800x600?text=No+Image'} alt={page.name} className="w-full h-full object-cover opacity-50 group-hover:opacity-30 group-hover:scale-110 transition-all duration-700 cursor-pointer" />
                           <div className="absolute inset-0 p-6 flex flex-col justify-end bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none">
-                            <h3 className="text-xl text-white font-oswald uppercase tracking-widest">{page.name}</h3>
+                            <h3 className="text-xl text-white font-playfair uppercase tracking-widest">{page.name}</h3>
                             <span className="mt-1 text-[11px] text-emerald-400 font-sans tracking-widest uppercase">/{page.slug}</span>
                             <span className={`mt-1 text-[11px] font-sans tracking-widest uppercase ${page.isActive ? 'text-green-500' : 'text-red-500'}`}>
                               {page.isActive ? 'Active' : 'Draft'}
@@ -1737,7 +1790,7 @@ const AdminDashboard = () => {
                   <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
                     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`${glassPanel} p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar`}>
                       <div className="flex justify-between items-start mb-6">
-                        <h2 className="text-xl font-oswald text-white uppercase tracking-[0.2em]">{editingLandingPage._id ? 'Edit Landing Page' : 'New Landing Page'}</h2>
+                        <h2 className="text-xl font-playfair text-white uppercase tracking-[0.2em]">{editingLandingPage._id ? 'Edit Landing Page' : 'New Landing Page'}</h2>
                         <button type="button" onClick={() => setEditingLandingPage(null)} className="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
                       </div>
                       <form onSubmit={(e) => handleSaveLandingPage(e, editingLandingPage)} className="space-y-8">
@@ -2414,7 +2467,7 @@ const AdminDashboard = () => {
                   <div className="space-y-8">
                     <div className="flex justify-between items-center bg-gradient-to-r from-amber-900/20 to-transparent p-6 rounded-2xl border border-amber-500/20">
                       <div>
-                        <h2 className="text-lg font-oswald text-white uppercase tracking-widest mb-1">Studio Page Settings</h2>
+                        <h2 className="text-lg font-playfair text-white uppercase tracking-widest mb-1">Studio Page Settings</h2>
                         <p className="text-xs text-amber-300/70 tracking-wide">Manage the dedicated Studio page content, images, videos, maps and 360 view.</p>
                       </div>
                     </div>
@@ -2501,7 +2554,7 @@ const AdminDashboard = () => {
                   <div className="space-y-8">
                     <div className="flex justify-between items-center bg-gradient-to-r from-blue-900/20 to-transparent p-6 rounded-2xl border border-blue-500/20">
                       <div>
-                        <h2 className="text-lg font-oswald text-white uppercase tracking-widest mb-1">Service Catalog</h2>
+                        <h2 className="text-lg font-playfair text-white uppercase tracking-widest mb-1">Service Catalog</h2>
                         <p className="text-xs text-blue-300/70 tracking-wide">Manage your main photography experiences and sub-services.</p>
                       </div>
                       <button onClick={() => setEditingService({ name: '', slug: '', tagline: '', description: '', imageUrl: '', heroImage: '', mobileHeroImage: '', portfolioImages: [], portfolioVideos: [], packages: [], subServices: [] })} className="px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)]">
@@ -2513,7 +2566,7 @@ const AdminDashboard = () => {
                       <div key={svc._id} className={`${glassPanel} p-8 hover:border-white/20 transition-all duration-300`}>
                         <div className="flex justify-between items-start mb-4">
                            <div>
-                             <h3 className="text-2xl text-white font-oswald tracking-[0.2em] uppercase">{svc.name}</h3>
+                             <h3 className="text-2xl text-white font-playfair tracking-[0.2em] uppercase">{svc.name}</h3>
                              <p className="text-gray-400 text-sm leading-relaxed mt-2 max-w-2xl">{svc.description}</p>
                            </div>
                            <div className="flex gap-2">
@@ -2542,7 +2595,7 @@ const AdminDashboard = () => {
                   <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 py-10">
                      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`${glassPanel} p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar`}>
                        <div className="flex justify-between items-start mb-6">
-                         <h2 className="text-xl font-oswald text-white uppercase tracking-[0.2em]">Edit Service: {editingService.name}</h2>
+                         <h2 className="text-xl font-playfair text-white uppercase tracking-[0.2em]">Edit Service: {editingService.name}</h2>
                          <button type="button" onClick={() => setEditingService(null)} className="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
                        </div>
                        <form onSubmit={(e) => handleSaveService(e, editingService)} className="space-y-8">
@@ -2597,6 +2650,86 @@ const AdminDashboard = () => {
                            </div>
                            </div>
 
+                           <div className="border-t border-white/5 pt-8 mt-8">
+                            <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase mb-4">Main Service Portfolio Images</h3>
+                            <label className="block text-xs uppercase text-gray-400 mb-2">Add Image</label>
+                            <DragDropImageUploader currentImage={''} multiple={true} onUploadSuccess={(urls) => {
+                              const newImgs = [...(editingService.portfolioImages || []), ...urls];
+                              setEditingService({...editingService, portfolioImages: newImgs});
+                              urls.forEach(url => {
+                                axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/gallery`, { url, category: editingService.name, type: 'image' }).catch(console.error);
+                              });
+                            }} />
+                            <div className="mt-4 grid grid-cols-4 gap-2">
+                              {(editingService.portfolioImages || []).map((img, idx) => (
+                                <div 
+                                  key={`${img}-${idx}`} 
+                                  onClick={(e) => {
+                                    if (selectedImageIndices.includes(idx)) {
+                                      setSelectedImageIndices(selectedImageIndices.filter(i => i !== idx));
+                                    } else {
+                                      setSelectedImageIndices([...selectedImageIndices, idx].sort((a,b)=>a-b));
+                                    }
+                                  }}
+                                  draggable 
+                                  onDragStart={(e) => {
+                                    let indicesToDrag = selectedImageIndices.includes(idx) ? selectedImageIndices : [idx];
+                                    e.dataTransfer.setData('application/json', JSON.stringify(indicesToDrag));
+                                  }}
+                                  onDragOver={(e) => e.preventDefault()}
+                                  onDrop={(e) => {
+                                    e.preventDefault();
+                                    try {
+                                      const data = e.dataTransfer.getData('application/json');
+                                      if (!data) return;
+                                      const fromIndices = JSON.parse(data);
+                                      if (!fromIndices || fromIndices.length === 0) return;
+                                      
+                                      const newImgs = [...editingService.portfolioImages];
+                                      const itemsToMove = fromIndices.map(i => newImgs[i]);
+                                      
+                                      for (let i = fromIndices.length - 1; i >= 0; i--) {
+                                        newImgs.splice(fromIndices[i], 1);
+                                      }
+                                      
+                                      let adjustedToIdx = idx;
+                                      let numRemovedBeforeTarget = fromIndices.filter(i => i < idx).length;
+                                      adjustedToIdx -= numRemovedBeforeTarget;
+                                      
+                                      newImgs.splice(adjustedToIdx, 0, ...itemsToMove);
+                                      
+                                      setEditingService({...editingService, portfolioImages: newImgs});
+                                      setSelectedImageIndices([]);
+                                    } catch (err) {
+                                      const fromIdx = Number(e.dataTransfer.getData('text/plain'));
+                                      if (!isNaN(fromIdx) && fromIdx !== idx) {
+                                        const newImgs = [...editingService.portfolioImages];
+                                        const [movedImg] = newImgs.splice(fromIdx, 1);
+                                        newImgs.splice(idx, 0, movedImg);
+                                        setEditingService({...editingService, portfolioImages: newImgs});
+                                      }
+                                    }
+                                  }}
+                                  className={`relative group cursor-move ${selectedImageIndices.includes(idx) ? 'ring-2 ring-blue-500 rounded' : ''}`}
+                                >
+                                  <img src={img} className="w-full h-32 object-contain bg-black/40 rounded border border-white/10 pointer-events-none" />
+                                  <button type="button" onClick={async (e) => {
+                                    e.stopPropagation();
+                                    const newImgs = [...editingService.portfolioImages];
+                                    const removedUrl = newImgs[idx];
+                                    newImgs.splice(idx, 1);
+                                    setEditingService({...editingService, portfolioImages: newImgs});
+                                    try {
+                                      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/gallery`);
+                                      const found = res.data.find(i => i.url === removedUrl);
+                                      if (found) await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/gallery/${found._id}`);
+                                    } catch (err) { console.error(err); }
+                                  }} className="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-pointer">×</button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
                          <div className="border-t border-white/5 pt-8 mt-8">
                            <div className="flex justify-between items-center mb-6">
                              <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase">Sub-Experiences</h3>
@@ -2641,7 +2774,7 @@ const AdminDashboard = () => {
                   <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] flex items-center justify-center p-4 py-10">
                     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`${glassPanel} p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar border-blue-500/30`}>
                       <div className="flex justify-between items-start mb-6">
-                        <h2 className="text-xl font-oswald text-white uppercase tracking-[0.2em]">Edit Sub-Experience</h2>
+                        <h2 className="text-xl font-playfair text-white uppercase tracking-[0.2em]">Edit Sub-Experience</h2>
                         <button type="button" onClick={() => setEditingSubService(null)} className="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
                       </div>
                       <div className="space-y-6">
@@ -2707,25 +2840,59 @@ const AdminDashboard = () => {
                               }} />
                               <div className="mt-4 grid grid-cols-4 gap-2">
                                 {(editingSubService.data.portfolioImages || []).map((img, idx) => (
-                                  <div key={idx} className="relative group">
-                                    <img src={img} className="w-full h-32 object-contain bg-black/40 rounded border border-white/10" />
-                                    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                      {idx > 0 && (
-                                        <button type="button" onClick={() => {
+                                  <div 
+                                    key={`${img}-${idx}`} 
+                                    onClick={(e) => {
+                                      if (selectedImageIndices.includes(idx)) {
+                                        setSelectedImageIndices(selectedImageIndices.filter(i => i !== idx));
+                                      } else {
+                                        setSelectedImageIndices([...selectedImageIndices, idx].sort((a,b)=>a-b));
+                                      }
+                                    }}
+                                    draggable 
+                                    onDragStart={(e) => {
+                                      let indicesToDrag = selectedImageIndices.includes(idx) ? selectedImageIndices : [idx];
+                                      e.dataTransfer.setData('application/json', JSON.stringify(indicesToDrag));
+                                    }}
+                                    onDragOver={(e) => e.preventDefault()}
+                                    onDrop={(e) => {
+                                      e.preventDefault();
+                                      try {
+                                        const data = e.dataTransfer.getData('application/json');
+                                        if (!data) return;
+                                        const fromIndices = JSON.parse(data);
+                                        if (!fromIndices || fromIndices.length === 0) return;
+                                        
+                                        const newImgs = [...editingSubService.data.portfolioImages];
+                                        const itemsToMove = fromIndices.map(i => newImgs[i]);
+                                        
+                                        for (let i = fromIndices.length - 1; i >= 0; i--) {
+                                          newImgs.splice(fromIndices[i], 1);
+                                        }
+                                        
+                                        let adjustedToIdx = idx;
+                                        let numRemovedBeforeTarget = fromIndices.filter(i => i < idx).length;
+                                        adjustedToIdx -= numRemovedBeforeTarget;
+                                        
+                                        newImgs.splice(adjustedToIdx, 0, ...itemsToMove);
+                                        
+                                        setEditingSubService({...editingSubService, data: {...editingSubService.data, portfolioImages: newImgs}});
+                                        setSelectedImageIndices([]);
+                                      } catch (err) {
+                                        const fromIdx = Number(e.dataTransfer.getData('text/plain'));
+                                        if (!isNaN(fromIdx) && fromIdx !== idx) {
                                           const newImgs = [...editingSubService.data.portfolioImages];
-                                          [newImgs[idx - 1], newImgs[idx]] = [newImgs[idx], newImgs[idx - 1]];
+                                          const [movedImg] = newImgs.splice(fromIdx, 1);
+                                          newImgs.splice(idx, 0, movedImg);
                                           setEditingSubService({...editingSubService, data: {...editingSubService.data, portfolioImages: newImgs}});
-                                        }} className="bg-black/80 text-white w-5 h-5 rounded flex items-center justify-center text-[11px] hover:bg-white hover:text-black border border-white/20">&lt;</button>
-                                      )}
-                                      {idx < editingSubService.data.portfolioImages.length - 1 && (
-                                        <button type="button" onClick={() => {
-                                          const newImgs = [...editingSubService.data.portfolioImages];
-                                          [newImgs[idx + 1], newImgs[idx]] = [newImgs[idx], newImgs[idx + 1]];
-                                          setEditingSubService({...editingSubService, data: {...editingSubService.data, portfolioImages: newImgs}});
-                                        }} className="bg-black/80 text-white w-5 h-5 rounded flex items-center justify-center text-[11px] hover:bg-white hover:text-black border border-white/20">&gt;</button>
-                                      )}
-                                    </div>
-                                    <button type="button" onClick={async () => {
+                                        }
+                                      }
+                                    }}
+                                    className={`relative group cursor-move ${selectedImageIndices.includes(idx) ? 'ring-2 ring-blue-500 rounded' : ''}`}
+                                  >
+                                    <img src={img} className="w-full h-32 object-contain bg-black/40 rounded border border-white/10 pointer-events-none" />
+                                    <button type="button" onClick={async (e) => {
+                                      e.stopPropagation();
                                       const newImgs = [...editingSubService.data.portfolioImages];
                                       const removedUrl = newImgs[idx];
                                       newImgs.splice(idx, 1);
@@ -2735,7 +2902,7 @@ const AdminDashboard = () => {
                                         const found = res.data.find(img => img.url === removedUrl);
                                         if (found) await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/gallery/${found._id}`);
                                       } catch (err) { console.error(err); }
-                                    }} className="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                                    }} className="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-pointer">×</button>
                                   </div>
                                 ))}
                               </div>
@@ -2861,7 +3028,7 @@ const AdminDashboard = () => {
                       <>
                         <div className="flex justify-between items-center bg-gradient-to-r from-purple-900/20 to-transparent p-6 rounded-2xl border border-purple-500/20">
                           <div>
-                            <h2 className="text-lg font-oswald text-white uppercase tracking-widest mb-1">Theme Catalog</h2>
+                            <h2 className="text-lg font-playfair text-white uppercase tracking-widest mb-1">Theme Catalog</h2>
                             <p className="text-xs text-purple-300/70 tracking-wide">Manage your category folders and their cover images.</p>
                           </div>
                           <button onClick={() => setEditingThemeCategory({ name: '', coverImage: '' })} className="px-6 py-3 rounded-xl bg-purple-500 hover:bg-purple-400 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)]">
@@ -2876,7 +3043,7 @@ const AdminDashboard = () => {
                               <div key={cat._id} className={`${glassPanel} overflow-hidden group relative h-[200px]`}>
                                 <img src={cat.coverImage} alt={cat.name} className="w-full h-full object-cover opacity-50 group-hover:opacity-30 group-hover:scale-110 transition-all duration-700 cursor-pointer" onClick={() => setSelectedThemeCategory(cat.name)} />
                                 <div className="absolute inset-0 p-6 flex flex-col justify-end bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none">
-                                  <h3 className="text-xl text-white font-oswald uppercase tracking-widest">{cat.name}</h3>
+                                  <h3 className="text-xl text-white font-playfair uppercase tracking-widest">{cat.name}</h3>
                                   <span className="mt-1 text-[11px] text-purple-400 font-sans tracking-widest uppercase">{count} Themes</span>
                                 </div>
                                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-y-[-10px] group-hover:translate-y-0">
@@ -2900,7 +3067,7 @@ const AdminDashboard = () => {
                         </button>
                         <div className="flex justify-between items-center bg-gradient-to-r from-purple-900/20 to-transparent p-6 rounded-2xl border border-purple-500/20 mt-4">
                           <div>
-                            <h2 className="text-lg font-oswald text-white uppercase tracking-widest mb-1">{selectedThemeCategory} Themes</h2>
+                            <h2 className="text-lg font-playfair text-white uppercase tracking-widest mb-1">{selectedThemeCategory} Themes</h2>
                             <p className="text-xs text-purple-300/70 tracking-wide">Manage themes inside this folder.</p>
                           </div>
                           <button onClick={() => setEditingTheme({ name: '', category: selectedThemeCategory, age: '', costume: '', image: '' })} className="px-6 py-3 rounded-xl bg-purple-500 hover:bg-purple-400 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(168,85,247,0.3)]">
@@ -2914,7 +3081,7 @@ const AdminDashboard = () => {
                               <img src={theme.image} alt={theme.name} className="w-full h-full object-cover opacity-60 group-hover:opacity-40 group-hover:scale-110 transition-all duration-700" />
                               <div className="absolute inset-0 p-6 flex flex-col justify-end bg-gradient-to-t from-black via-black/40 to-transparent border-t border-white/5">
                                  <span className="text-[11px] text-purple-400 uppercase tracking-widest mb-1">{theme.category}</span>
-                                 <h3 className="text-xl text-white font-oswald uppercase tracking-[0.2em] leading-tight">{theme.name}</h3>
+                                 <h3 className="text-xl text-white font-playfair uppercase tracking-[0.2em] leading-tight">{theme.name}</h3>
                               </div>
                               <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-y-[-10px] group-hover:translate-y-0">
                                 <button onClick={() => setEditingTheme(theme)} className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 shadow-lg">✎</button>
@@ -2937,7 +3104,7 @@ const AdminDashboard = () => {
                 {editingThemeCategory && (
                   <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`${glassPanel} p-8 w-full max-w-xl max-h-[90vh] overflow-y-auto custom-scrollbar`}>
-                       <h2 className="text-xl font-oswald text-white mb-6 uppercase tracking-widest">{editingThemeCategory._id ? 'Edit Category' : 'Create Category'}</h2>
+                       <h2 className="text-xl font-playfair text-white mb-6 uppercase tracking-widest">{editingThemeCategory._id ? 'Edit Category' : 'Create Category'}</h2>
                        <form onSubmit={(e) => handleSaveThemeCategory(e, editingThemeCategory)} className="space-y-6">
                          
                          <div>
@@ -2963,7 +3130,7 @@ const AdminDashboard = () => {
                 {editingTheme && (
                   <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`${glassPanel} p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar`}>
-                       <h2 className="text-xl font-oswald text-white mb-6 uppercase tracking-widest">{editingTheme._id ? 'Edit Theme' : 'Create Theme'}</h2>
+                       <h2 className="text-xl font-playfair text-white mb-6 uppercase tracking-widest">{editingTheme._id ? 'Edit Theme' : 'Create Theme'}</h2>
                        <form onSubmit={(e) => handleSaveTheme(e, editingTheme)} className="space-y-6">
                          
                          <div>
@@ -3009,7 +3176,7 @@ const AdminDashboard = () => {
                     <div className={`${glassPanel} p-8 border border-white/10`}>
                       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
                         <div>
-                          <h3 className="text-xl font-oswald text-white uppercase tracking-widest mb-2">Upload to Portfolio</h3>
+                          <h3 className="text-xl font-playfair text-white uppercase tracking-widest mb-2">Upload to Portfolio</h3>
                           <p className="text-xs text-gray-400 tracking-wide font-sans">Select a category before dropping an image.</p>
                         </div>
                         <div className="w-full md:w-64">
@@ -3127,7 +3294,7 @@ const AdminDashboard = () => {
                   <div className="space-y-6">
                     <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-gradient-to-r from-green-900/20 to-transparent p-6 rounded-2xl border border-green-500/20">
                       <div>
-                        <h2 className="text-lg font-oswald text-white uppercase tracking-widest mb-1">Bookings Management</h2>
+                        <h2 className="text-lg font-playfair text-white uppercase tracking-widest mb-1">Bookings Management</h2>
                         <p className="text-xs text-green-300/70 tracking-wide">Review and update client bookings.</p>
                       </div>
                       <div className="flex flex-wrap items-center gap-2 xl:gap-4 w-full xl:w-auto">
@@ -3218,7 +3385,7 @@ const AdminDashboard = () => {
                                 {booking.isSubscription && (
                                   <span className="inline-block bg-purple-600/20 text-purple-400 text-[9px] px-2 py-0.5 rounded uppercase tracking-widest mb-1 border border-purple-500/20">Subscription</span>
                                 )}
-                                <h3 className="text-xl text-white font-oswald uppercase tracking-widest">{booking.name}</h3>
+                                <h3 className="text-xl text-white font-playfair uppercase tracking-widest">{booking.name}</h3>
                                 <p className="text-xs text-gray-400 font-sans">{booking.phone}</p>
                                 <p className="text-xs text-gray-400 font-sans">{booking.email}</p>
                               </div>
@@ -3268,7 +3435,7 @@ const AdminDashboard = () => {
 
                             {/* Payment Tracking */}
                             <div className="mb-4 bg-black/40 border border-white/5 rounded-xl p-3">
-                              <h4 className="font-oswald text-sm md:text-base text-white uppercase tracking-widest mb-2">Payment Tracking</h4>
+                              <h4 className="font-playfair text-sm md:text-base text-white uppercase tracking-widest mb-2">Payment Tracking</h4>
                               <form onSubmit={(e) => handleUpdatePayment(booking._id, e)} className="grid grid-cols-3 gap-2">
                                 <div>
                                   <label className="block text-xs uppercase text-white mb-1">Total</label>
@@ -3292,7 +3459,7 @@ const AdminDashboard = () => {
                               <div className="bg-black/40 border border-white/5 rounded-xl p-3">
                                 <h4 className="text-[11px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Team Assignment</h4>
                                 <select 
-                                  value={booking.assignedTeamMember || ''} 
+                                  value={(booking.assignedTeamMember?._id || booking.assignedTeamMember) || ''} 
                                   onChange={(e) => handleUpdateBookingDetails(booking._id, { assignedTeamMember: e.target.value })}
                                   className={`${glassInput} w-full py-1.5 px-2 text-xs`}
                                 >
@@ -3367,10 +3534,63 @@ const AdminDashboard = () => {
                                 <option value="Cancelled" className="text-red-500 bg-[#111]">Cancelled</option>
                               </select>
                               <button 
-                                onClick={() => handleDeleteBooking(booking._id)}
-                                className="px-3 py-2 bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white rounded-lg text-xs uppercase tracking-widest transition-colors"
+                                onClick={() => handleUpdateBookingDetails(booking._id, { status: booking.status })}
+                                className="px-4 py-2 bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white rounded text-[11px] uppercase tracking-widest transition-colors"
                               >
-                                Delete
+                                Save Details
+                              </button>
+                            </div>
+
+                            {/* Booking Expenses Section */}
+                            <div className="mt-4 pt-4 border-t border-white/5">
+                              <div className="flex justify-between items-center mb-3">
+                                <h4 className="text-[11px] text-gray-500 uppercase tracking-widest font-bold">Shoot Expenses</h4>
+                                <span className="text-[10px] text-white/50 uppercase tracking-wider">
+                                  Total: Rs. {expenses.filter(ex => ex.bookingId === booking._id).reduce((sum, ex) => sum + ex.amount, 0)}
+                                </span>
+                              </div>
+                              
+                              <div className="mb-3">
+                                <button 
+                                  onClick={() => setViewingExpensesBookingId(booking._id)}
+                                  className="w-full py-2 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded border border-white/10 text-[10px] uppercase tracking-widest transition-colors"
+                                >
+                                  View Details ({expenses.filter(ex => ex.bookingId === booking._id).length})
+                                </button>
+                              </div>
+
+                              <form onSubmit={async (e) => {
+                                e.preventDefault();
+                                const formData = new FormData(e.target);
+                                const amount = formData.get('amount');
+                                const description = formData.get('description');
+                                try {
+                                  const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/expenses`, {
+                                    date: new Date().toISOString().split('T')[0],
+                                    amount: Number(amount),
+                                    type: 'Shoot',
+                                    description,
+                                    bookingId: booking._id
+                                  });
+                                  setExpenses([res.data, ...expenses]);
+                                  e.target.reset();
+                                } catch (err) {
+                                  console.error(err);
+                                  alert('Failed to add expense');
+                                }
+                              }} className="flex gap-2">
+                                <input required type="text" name="description" placeholder="Expense detail..." className="bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white outline-none flex-1" />
+                                <input required type="number" name="amount" placeholder="Rs. 0" className="bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white outline-none w-20" />
+                                <button type="submit" disabled={isGlobalSubmitting} className="px-3 py-1.5 bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white rounded text-[10px] uppercase tracking-widest transition-colors whitespace-nowrap disabled:opacity-50">+ Add</button>
+                              </form>
+                            </div>
+
+                            <div className="mt-4 pt-4 border-t border-white/5">
+                              <button 
+                                onClick={() => handleDeleteBooking(booking._id)}
+                                className="w-full px-3 py-2 bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white rounded-lg text-xs uppercase tracking-widest transition-colors"
+                              >
+                                Delete Booking
                               </button>
                             </div>
                           </div>
@@ -3390,7 +3610,7 @@ const AdminDashboard = () => {
                   <div className="space-y-6">
                     <div className="flex justify-between items-center bg-gradient-to-r from-red-900/20 to-transparent p-6 rounded-2xl border border-red-500/20">
                       <div>
-                        <h2 className="text-lg font-oswald text-white uppercase tracking-widest mb-1">Slot Management</h2>
+                        <h2 className="text-lg font-playfair text-white uppercase tracking-widest mb-1">Slot Management</h2>
                         <p className="text-xs text-red-300/70 tracking-wide">Block out dates or specific slots to prevent client bookings.</p>
                       </div>
                     </div>
@@ -3418,7 +3638,7 @@ const AdminDashboard = () => {
                                   <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isBlocked ? 'bg-red-500 border-red-500' : 'border-white/20 group-hover:border-white/50 bg-black/40'}`}>
                                     {isBlocked && <span className="text-white text-xs">✓</span>}
                                   </div>
-                                  <span className={`text-sm font-oswald tracking-widest uppercase transition-colors ${isBlocked ? 'text-red-400' : 'text-gray-300'}`}>{dayName}</span>
+                                  <span className={`text-sm font-playfair tracking-widest uppercase transition-colors ${isBlocked ? 'text-red-400' : 'text-gray-300'}`}>{dayName}</span>
                                 </label>
                               );
                             })}
@@ -3427,7 +3647,7 @@ const AdminDashboard = () => {
                       </div>
                       
                       <div className="w-full md:w-2/3">
-                        <h3 className="text-sm font-oswald text-white uppercase tracking-widest mb-6">Slot Availability for {slotDate}</h3>
+                        <h3 className="text-sm font-playfair text-white uppercase tracking-widest mb-6">Slot Availability for {slotDate}</h3>
                         
                         {isLoadingSlots ? (
                            <div className="text-xs text-gray-500 tracking-widest uppercase">Loading slots...</div>
@@ -3435,7 +3655,7 @@ const AdminDashboard = () => {
                           <div className="space-y-4">
                             <div className="mb-6 bg-black/40 p-4 rounded-xl border border-white/5">
                               <div className="mb-4 pb-4 border-b border-white/5">
-                                <label className="block text-sm uppercase text-white font-oswald tracking-widest mb-1">Global Slots Per Session</label>
+                                <label className="block text-sm uppercase text-white font-playfair tracking-widest mb-1">Global Slots Per Session</label>
                                 <p className="text-[11px] text-gray-500 font-sans">Set maximum bookings for Morning/Afternoon/Evening globally for each weekday</p>
                               </div>
                               <div className="space-y-3">
@@ -3443,7 +3663,7 @@ const AdminDashboard = () => {
                                   const currentCapacity = settings.weekdayCapacities ? (settings.weekdayCapacities[dayIndex] ?? 3) : 3;
                                   return (
                                     <div key={dayIndex} className="flex justify-between items-center bg-black/20 p-2 px-4 rounded border border-white/5">
-                                      <span className="text-xs uppercase font-oswald text-gray-300 tracking-widest">{day}</span>
+                                      <span className="text-xs uppercase font-playfair text-gray-300 tracking-widest">{day}</span>
                                           <div className="flex gap-2">
                                         {[1, 2, 3].map(num => {
                                           const isSelected = currentCapacity === num;
@@ -3454,7 +3674,7 @@ const AdminDashboard = () => {
                                                 const newCapacities = { ...(settings.weekdayCapacities || { '0':3,'1':3,'2':3,'3':3,'4':3,'5':3,'6':3 }), [dayIndex]: num };
                                                 setSettings({ ...settings, weekdayCapacities: newCapacities });
                                               }}
-                                              className={`w-8 h-8 rounded flex items-center justify-center text-xs font-oswald transition-colors border ${isSelected ? 'bg-white text-black border-white' : 'bg-black text-gray-400 border-white/10 hover:border-white/50'}`}
+                                              className={`w-8 h-8 rounded flex items-center justify-center text-xs font-playfair transition-colors border ${isSelected ? 'bg-white text-black border-white' : 'bg-black text-gray-400 border-white/10 hover:border-white/50'}`}
                                             >
                                               {num}
                                             </button>
@@ -3480,7 +3700,7 @@ const AdminDashboard = () => {
                                       console.error(e);
                                     }
                                   }}
-                                  className="px-6 py-2 bg-white text-black font-oswald uppercase tracking-widest text-sm hover:bg-gray-200 transition-colors"
+                                  className="px-6 py-2 bg-white text-black font-playfair uppercase tracking-widest text-sm hover:bg-gray-200 transition-colors"
                                 >
                                   Save Global Slots
                                 </button>
@@ -3489,7 +3709,7 @@ const AdminDashboard = () => {
                             
                             {(settings.blockedWeekdays || []).includes(new Date(slotDate).getUTCDay()) ? (
                               <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-12 text-center">
-                                <h3 className="text-2xl font-oswald text-red-500 uppercase tracking-widest mb-2">Studio Holiday</h3>
+                                <h3 className="text-2xl font-playfair text-red-500 uppercase tracking-widest mb-2">Studio Holiday</h3>
                                 <p className="text-sm font-sans text-red-400/80">The studio is closed on {['Sundays','Mondays','Tuesdays','Wednesdays','Thursdays','Fridays','Saturdays'][new Date(slotDate).getUTCDay()]}. All sessions are blocked.</p>
                               </div>
                             ) : (
@@ -3497,7 +3717,7 @@ const AdminDashboard = () => {
                                 {slotData.map((slot, idx) => (
                                   <div key={idx} className="mb-6 bg-black/20 border border-white/5 rounded-xl overflow-hidden">
                                     <div className="p-4 bg-white/5 border-b border-white/5 flex justify-between items-center">
-                                      <h4 className="text-lg font-oswald uppercase tracking-widest text-white">{slot.slot}</h4>
+                                      <h4 className="text-lg font-playfair uppercase tracking-widest text-white">{slot.slot}</h4>
                                       <span className="text-xs text-gray-400 font-sans tracking-widest uppercase">{slot.maxCapacity} Total Slots</span>
                                     </div>
                                     <div className="divide-y divide-white/5">
@@ -3516,7 +3736,7 @@ const AdminDashboard = () => {
                                           <div key={i} className="p-4 flex justify-between items-center">
                                             <div>
                                               <div className="flex items-center gap-3">
-                                                <span className="text-xs text-gray-500 font-oswald tracking-widest">SLOT {i + 1}</span>
+                                                <span className="text-xs text-gray-500 font-playfair tracking-widest">SLOT {i + 1}</span>
                                                 <span className={`text-[11px] px-2 py-0.5 rounded font-bold tracking-widest uppercase ${slotStatus === 'Available' ? 'bg-green-500/20 text-green-400' : slotStatus === 'Booked' ? 'bg-blue-500/20 text-blue-400' : 'bg-red-500/20 text-red-400'}`}>
                                                   {slotStatus}
                                                 </span>
@@ -3575,7 +3795,7 @@ const AdminDashboard = () => {
                           >
                             ← Back
                           </button>
-                          <h2 className="text-lg font-oswald text-white uppercase tracking-widest">Subscriptions</h2>
+                          <h2 className="text-lg font-playfair text-white uppercase tracking-widest">Subscriptions</h2>
                         </div>
                         <p className="text-xs text-purple-300/70 tracking-wide">Manage recurring client bookings.</p>
                       </div>
@@ -3607,7 +3827,7 @@ const AdminDashboard = () => {
                                 Delete
                               </button>
                             </div>
-                            <h3 className="text-xl text-white font-oswald uppercase tracking-widest mb-1">{sub.name}</h3>
+                            <h3 className="text-xl text-white font-playfair uppercase tracking-widest mb-1">{sub.name}</h3>
                             <p className="text-xs text-gray-400 font-mono mb-1">{sub.phone}</p>
                             <p className="text-[11px] text-gray-500 mb-4">{sub.email}</p>
                             
@@ -3663,7 +3883,7 @@ const AdminDashboard = () => {
                   <div className="space-y-6">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-orange-900/20 to-transparent p-6 rounded-2xl border border-orange-500/20">
                       <div>
-                        <h2 className="text-lg font-oswald text-white uppercase tracking-widest mb-1">Contact Inquiries</h2>
+                        <h2 className="text-lg font-playfair text-white uppercase tracking-widest mb-1">Contact Inquiries</h2>
                         <p className="text-xs text-orange-300/70 tracking-wide">Manage leads and messages from the contact page.</p>
                       </div>
                       <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
@@ -3692,23 +3912,23 @@ const AdminDashboard = () => {
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                       <div className="bg-black/40 border border-white/5 p-4 rounded-xl">
                         <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Total Inquiries</p>
-                        <p className="text-2xl font-bold font-oswald text-white">{inquiries.length}</p>
+                        <p className="text-2xl font-bold font-playfair text-white">{inquiries.length}</p>
                       </div>
                       <div className="bg-black/40 border border-yellow-500/20 p-4 rounded-xl">
                         <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Pending</p>
-                        <p className="text-2xl font-bold font-oswald text-yellow-500">{inquiries.filter(i => i.status === 'Pending').length}</p>
+                        <p className="text-2xl font-bold font-playfair text-yellow-500">{inquiries.filter(i => i.status === 'Pending').length}</p>
                       </div>
                       <div className="bg-black/40 border border-blue-500/20 p-4 rounded-xl">
                         <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Contacted</p>
-                        <p className="text-2xl font-bold font-oswald text-blue-500">{inquiries.filter(i => i.status === 'Contacted').length}</p>
+                        <p className="text-2xl font-bold font-playfair text-blue-500">{inquiries.filter(i => i.status === 'Contacted').length}</p>
                       </div>
                       <div className="bg-black/40 border border-green-500/20 p-4 rounded-xl">
                         <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Converted</p>
-                        <p className="text-2xl font-bold font-oswald text-green-500">{inquiries.filter(i => i.status === 'Converted').length}</p>
+                        <p className="text-2xl font-bold font-playfair text-green-500">{inquiries.filter(i => i.status === 'Converted').length}</p>
                       </div>
                       <div className="bg-black/40 border border-red-500/20 p-4 rounded-xl">
                         <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Lost</p>
-                        <p className="text-2xl font-bold font-oswald text-red-500">{inquiries.filter(i => i.status === 'Lost').length}</p>
+                        <p className="text-2xl font-bold font-playfair text-red-500">{inquiries.filter(i => i.status === 'Lost').length}</p>
                       </div>
                     </div>
 
@@ -3740,7 +3960,7 @@ const AdminDashboard = () => {
 
                             {/* Client Info */}
                             <div className="flex-1">
-                              <h3 className="text-sm text-white font-oswald uppercase tracking-widest truncate">{inq.name}</h3>
+                              <h3 className="text-sm text-white font-playfair uppercase tracking-widest truncate">{inq.name}</h3>
                               <p className="text-[11px] text-gray-400 font-sans tracking-wider truncate">{inq.email}</p>
                               <p className="text-[11px] text-gray-400 font-sans tracking-wider">{inq.phone}</p>
                             </div>
@@ -3795,7 +4015,7 @@ const AdminDashboard = () => {
                 {activeTab === 'leads' && (
                   <div className="space-y-8">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-black/40 p-6 rounded-2xl border border-white/5 shadow-2xl backdrop-blur-md gap-4">
-                      <h2 className="text-xl font-oswald text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500 uppercase tracking-widest">Landing Page Leads</h2>
+                      <h2 className="text-xl font-playfair text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500 uppercase tracking-widest">Landing Page Leads</h2>
                       <div className="flex flex-wrap items-center gap-2 md:gap-4 w-full md:w-auto">
                         <input 
                           type="text" 
@@ -3824,29 +4044,29 @@ const AdminDashboard = () => {
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                       <div className="bg-black/40 border border-white/5 p-4 rounded-xl">
                         <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Total Leads</p>
-                        <p className="text-2xl font-bold font-oswald text-white">{leads.length}</p>
+                        <p className="text-2xl font-bold font-playfair text-white">{leads.length}</p>
                       </div>
                       <div className="bg-black/40 border border-emerald-500/20 p-4 rounded-xl">
                         <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">New</p>
-                        <p className="text-2xl font-bold font-oswald text-emerald-500">{leads.filter(l => l.status === 'new').length}</p>
+                        <p className="text-2xl font-bold font-playfair text-emerald-500">{leads.filter(l => l.status === 'new').length}</p>
                       </div>
                       <div className="bg-black/40 border border-blue-500/20 p-4 rounded-xl">
                         <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Contacted</p>
-                        <p className="text-2xl font-bold font-oswald text-blue-500">{leads.filter(l => l.status === 'contacted').length}</p>
+                        <p className="text-2xl font-bold font-playfair text-blue-500">{leads.filter(l => l.status === 'contacted').length}</p>
                       </div>
                       <div className="bg-black/40 border border-yellow-500/20 p-4 rounded-xl">
                         <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Pending</p>
-                        <p className="text-2xl font-bold font-oswald text-yellow-500">{leads.filter(l => l.status === 'pending').length}</p>
+                        <p className="text-2xl font-bold font-playfair text-yellow-500">{leads.filter(l => l.status === 'pending').length}</p>
                       </div>
                       <div className="bg-black/40 border border-purple-500/20 p-4 rounded-xl">
                         <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Confirmed</p>
-                        <p className="text-2xl font-bold font-oswald text-purple-500">{leads.filter(l => l.status === 'confirmed').length}</p>
+                        <p className="text-2xl font-bold font-playfair text-purple-500">{leads.filter(l => l.status === 'confirmed').length}</p>
                       </div>
                     </div>
                     <div className="bg-black/40 rounded-2xl border border-white/5 overflow-hidden shadow-2xl">
                       <div className="overflow-x-auto custom-scrollbar">
                         <table className="w-full text-left text-sm text-gray-300">
-                          <thead className="bg-white/5 text-xs uppercase font-oswald tracking-[0.1em] text-gray-400">
+                          <thead className="bg-white/5 text-xs uppercase font-playfair tracking-[0.1em] text-gray-400">
                             <tr>
                               <th className="px-6 py-4">Date</th>
                               <th className="px-6 py-4">Source</th>
@@ -3923,7 +4143,7 @@ const AdminDashboard = () => {
                   <div className="space-y-6">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-teal-900/20 to-transparent p-6 rounded-2xl border border-teal-500/20">
                       <div>
-                        <h2 className="text-lg font-oswald text-white uppercase tracking-widest mb-1">Customer Database</h2>
+                        <h2 className="text-lg font-playfair text-white uppercase tracking-widest mb-1">Customer Database</h2>
                         <p className="text-xs text-teal-300/70 tracking-wide">Aggregated view of all clients from bookings and inquiries.</p>
                       </div>
                       <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
@@ -3979,18 +4199,18 @@ const AdminDashboard = () => {
                             customersList.map((c, i) => (
                               <div key={i} className={`${glassPanel} p-6`}>
                                 <div className="mb-4 pb-4 border-b border-white/5">
-                                  <h3 className="text-xl text-white font-oswald uppercase tracking-widest">{c.name}</h3>
+                                  <h3 className="text-xl text-white font-playfair uppercase tracking-widest">{c.name}</h3>
                                   <p className="text-xs text-gray-400 font-sans mt-1">📞 {c.phone || 'No phone'}</p>
                                   <p className="text-xs text-gray-400 font-sans mt-1">✉️ {c.email}</p>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                   <div className="bg-black/20 p-3 rounded-xl border border-white/5">
                                     <p className="text-[9px] uppercase text-gray-500 mb-1">Bookings</p>
-                                    <p className="text-lg font-bold font-oswald text-white">{c.bookings.length}</p>
+                                    <p className="text-lg font-bold font-playfair text-white">{c.bookings.length}</p>
                                   </div>
                                   <div className="bg-black/20 p-3 rounded-xl border border-white/5">
                                     <p className="text-[9px] uppercase text-gray-500 mb-1">Inquiries</p>
-                                    <p className="text-lg font-bold font-oswald text-white">{c.inquiries.length}</p>
+                                    <p className="text-lg font-bold font-playfair text-white">{c.inquiries.length}</p>
                                   </div>
                                 </div>
                               </div>
@@ -4009,7 +4229,7 @@ const AdminDashboard = () => {
               <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
                 <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`${glassPanel} p-8 w-full max-w-lg`}>
                   <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-lg font-oswald text-white uppercase tracking-widest">Follow-Up Notes</h2>
+                    <h2 className="text-lg font-playfair text-white uppercase tracking-widest">Follow-Up Notes</h2>
                     <button onClick={() => setFollowUpModal(null)} className="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
                   </div>
                   
@@ -4079,7 +4299,7 @@ const AdminDashboard = () => {
             <div className="space-y-6">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-amber-900/20 to-transparent p-6 rounded-2xl border border-amber-500/20">
                 <div>
-                  <h2 className="text-lg font-oswald text-white uppercase tracking-widest mb-1">Testimonials Manager</h2>
+                  <h2 className="text-lg font-playfair text-white uppercase tracking-widest mb-1">Testimonials Manager</h2>
                   <p className="text-xs text-amber-300/70 tracking-wide">Manage client reviews shown on the Home Page.</p>
                 </div>
                 <button 
@@ -4094,7 +4314,7 @@ const AdminDashboard = () => {
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                   <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`${glassPanel} p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar border-amber-500/30`}>
                     <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
-                      <h3 className="text-xl font-oswald text-white uppercase tracking-[0.2em]">{editingTestimonial._id ? 'Edit Testimonial' : 'Add New Testimonial'}</h3>
+                      <h3 className="text-xl font-playfair text-white uppercase tracking-[0.2em]">{editingTestimonial._id ? 'Edit Testimonial' : 'Add New Testimonial'}</h3>
                       <button onClick={() => setEditingTestimonial(null)} className="text-gray-400 hover:text-white text-2xl">&times;</button>
                     </div>
                   
@@ -4199,7 +4419,7 @@ const AdminDashboard = () => {
           {activeTab === 'team' && (
             <div className="p-10">
               <div className="flex justify-between items-center mb-10">
-                <h2 className="text-2xl font-oswald text-white uppercase tracking-widest">Manage Team</h2>
+                <h2 className="text-2xl font-playfair text-white uppercase tracking-widest">Manage Team</h2>
                 <button onClick={() => setEditingTeamMember({ name: '', title: '', subtitle: '', imageUrl: '', order: 0 })} className="px-6 py-2 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-gray-200 transition-colors">
                   + Add Member
                 </button>
@@ -4208,7 +4428,7 @@ const AdminDashboard = () => {
               {editingTeamMember && (
                 <div className="bg-[#111] border border-white/10 p-8 mb-10">
                   <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
-                    <h3 className="text-lg font-oswald text-white uppercase tracking-widest">{editingTeamMember._id ? 'Edit Team Member' : 'New Team Member'}</h3>
+                    <h3 className="text-lg font-playfair text-white uppercase tracking-widest">{editingTeamMember._id ? 'Edit Team Member' : 'New Team Member'}</h3>
                     <button onClick={() => setEditingTeamMember(null)} className="text-white hover:text-red-500 text-xl leading-none">&times;</button>
                   </div>
                   
@@ -4348,7 +4568,7 @@ const AdminDashboard = () => {
                         </button>
                       </div>
                     </div>
-                    <h4 className="text-white font-oswald uppercase tracking-widest text-lg mb-1">{member.title}</h4>
+                    <h4 className="text-white font-playfair uppercase tracking-widest text-lg mb-1">{member.title}</h4>
                     <p className="text-xs font-sans tracking-[0.3em] text-gray-500 uppercase">{member.subtitle}</p>
                     <p className="text-[11px] text-gray-600 mt-2">Name: {member.name}</p>
                   </div>
@@ -4362,7 +4582,7 @@ const AdminDashboard = () => {
           {activeTab === 'permissions' && (
             <div className="p-10 max-w-5xl">
               <div className="flex justify-between items-center mb-10">
-                <h2 className="text-2xl font-oswald text-white uppercase tracking-widest">Admin Permissions</h2>
+                <h2 className="text-2xl font-playfair text-white uppercase tracking-widest">Admin Permissions</h2>
                 <button onClick={() => setEditingAdminUser({ email: '', password: '', permissions: [] })} className="px-6 py-2 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-gray-200 transition-colors">
                   + Add Admin User
                 </button>
@@ -4371,7 +4591,7 @@ const AdminDashboard = () => {
               {editingAdminUser && (
                 <div className="bg-[#111] border border-white/10 p-8 mb-10">
                   <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
-                    <h3 className="text-lg font-oswald text-white uppercase tracking-widest">{editingAdminUser._id ? 'Edit Admin User' : 'New Admin User'}</h3>
+                    <h3 className="text-lg font-playfair text-white uppercase tracking-widest">{editingAdminUser._id ? 'Edit Admin User' : 'New Admin User'}</h3>
                     <button onClick={() => setEditingAdminUser(null)} className="text-white hover:text-red-500 text-xl leading-none">&times;</button>
                   </div>
                   
@@ -4455,7 +4675,7 @@ const AdminDashboard = () => {
 
               <div className="bg-[#111] border border-white/10 overflow-hidden">
                 <table className="w-full text-left font-sans text-sm">
-                  <thead className="bg-white/5 text-xs uppercase font-oswald tracking-[0.1em] text-gray-400">
+                  <thead className="bg-white/5 text-xs uppercase font-playfair tracking-[0.1em] text-gray-400">
                     <tr>
                       <th className="px-6 py-4">Admin Email</th>
                       <th className="px-6 py-4">Permissions</th>
@@ -4517,12 +4737,12 @@ const AdminDashboard = () => {
           {/* DEVELOPER OPTIONS TAB */}
           {activeTab === 'developer options' && (
             <div className="p-10 max-w-4xl">
-              <h2 className="text-2xl font-oswald text-white uppercase tracking-widest mb-10 border-b border-white/10 pb-4">
+              <h2 className="text-2xl font-playfair text-white uppercase tracking-widest mb-10 border-b border-white/10 pb-4">
                 Developer Options
               </h2>
               
               <div className={`${glassPanel} p-8 mb-8`}>
-                <h3 className="text-xl font-oswald text-white uppercase tracking-widest mb-2 flex items-center gap-3">
+                <h3 className="text-xl font-playfair text-white uppercase tracking-widest mb-2 flex items-center gap-3">
                   <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                   Maintenance Mode
                 </h3>
@@ -4605,7 +4825,7 @@ const AdminDashboard = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className={`${glassPanel} p-8 flex flex-col items-start`}>
-                  <h3 className="text-lg font-oswald text-white uppercase tracking-widest mb-2">Admin Bypass</h3>
+                  <h3 className="text-lg font-playfair text-white uppercase tracking-widest mb-2">Admin Bypass</h3>
                   <p className="text-xs text-gray-400 mb-6 font-sans">
                     Enable bypass to view the public website while Maintenance Mode is active.
                   </p>
@@ -4621,7 +4841,7 @@ const AdminDashboard = () => {
                 </div>
 
                 <div className={`${glassPanel} p-8 flex flex-col items-start`}>
-                  <h3 className="text-lg font-oswald text-white uppercase tracking-widest mb-2">System Cache</h3>
+                  <h3 className="text-lg font-playfair text-white uppercase tracking-widest mb-2">System Cache</h3>
                   <p className="text-xs text-gray-400 mb-6 font-sans">
                     Clear local browser cache, saved preferences, and admin bypass flags.
                   </p>
@@ -4637,7 +4857,7 @@ const AdminDashboard = () => {
                   </button>
                 </div>
                 <div className={`${glassPanel} p-8 flex flex-col items-start col-span-1 md:col-span-2 mt-4`}>
-                  <h3 className="text-lg font-oswald text-white uppercase tracking-widest mb-2 flex items-center gap-2">
+                  <h3 className="text-lg font-playfair text-white uppercase tracking-widest mb-2 flex items-center gap-2">
                     ✉️ Email Delivery Tester
                   </h3>
                   <p className="text-xs text-gray-400 mb-6 font-sans">
@@ -4688,6 +4908,7 @@ const AdminDashboard = () => {
 
           {(activeTab === 'business' || activeTab === 'events') && (
             <BusinessView
+              hideTabsAndOverview={activeTab === 'events'}
               defaultViewMode={activeTab === 'events' ? 'events' : (highlightedBookingId ? 'studio_shoots' : 'overview')} 
               bookings={bookings} 
               expenses={expenses} 
@@ -4713,7 +4934,7 @@ const AdminDashboard = () => {
                   className="bg-[#111] border border-white/10 rounded-2xl p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"
                 >
                 <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
-                  <h3 className="text-xl font-oswald text-white uppercase tracking-widest">{editingBooking._id ? 'Edit Booking' : 'Create New Booking'}</h3>
+                  <h3 className="text-xl font-playfair text-white uppercase tracking-widest">{editingBooking._id ? 'Edit Booking' : 'Create New Booking'}</h3>
                   <button onClick={() => setEditingBooking(null)} className="text-white hover:text-red-500 text-2xl transition-colors">&times;</button>
                 </div>
                 
@@ -4840,7 +5061,7 @@ const AdminDashboard = () => {
                   exit={{ opacity: 0, scale: 0.95, y: 20 }}
                   className="bg-[#111] border border-blue-500/30 rounded-2xl p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"
                 >
-                  <h3 className="text-xl font-oswald text-white uppercase tracking-widest mb-6">Book Studio</h3>
+                  <h3 className="text-xl font-playfair text-white uppercase tracking-widest mb-6">Book Studio</h3>
                   <form onSubmit={async (e) => {
                     e.preventDefault();
                     if(studioBookingData.slots.length === 0) {
@@ -4916,7 +5137,7 @@ const AdminDashboard = () => {
               <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
                 <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 md:p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl my-auto">
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-oswald text-white tracking-widest uppercase">Create Subscription</h3>
+                    <h3 className="text-xl font-playfair text-white tracking-widest uppercase">Create Subscription</h3>
                     <button onClick={() => setIsSubscriptionModalOpen(false)} className="text-gray-500 hover:text-white transition-colors">✕</button>
                   </div>
                   
@@ -4939,7 +5160,7 @@ const AdminDashboard = () => {
 
                     <div className="border-t border-white/10 pt-6">
                       <div className="flex items-center gap-4 mb-6">
-                        <label className="text-sm font-oswald text-white tracking-widest uppercase whitespace-nowrap">Subscription Duration:</label>
+                        <label className="text-sm font-playfair text-white tracking-widest uppercase whitespace-nowrap">Subscription Duration:</label>
                         <select 
                           className={`${glassInput} w-32`}
                           value={subscriptionData.duration}
@@ -5119,11 +5340,8 @@ const AdminDashboard = () => {
                     </div>
                     <div>
                       <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Type</label>
-                      <select value={editingExpense.type} onChange={e => setEditingExpense({...editingExpense, type: e.target.value})} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white" disabled={!editingExpense._id && editingExpense.type === 'Shoot'}>
-                        <option value="Studio">Studio</option>
-                        <option value="Shoot">Shoot</option>
-                        <option value="Event">Event</option>
-                        <option value="Prop">Prop</option>
+                      <select value={editingExpense.type} onChange={e => setEditingExpense({...editingExpense, type: e.target.value})} required className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm" disabled>
+                        <option value={editingExpense.type}>{editingExpense.type}</option>
                       </select>
                     </div>
 
@@ -5176,6 +5394,41 @@ const AdminDashboard = () => {
                       <button type="submit" className="px-6 py-2 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 uppercase tracking-widest text-xs font-bold rounded transition-colors">Save Expense</button>
                     </div>
                   </form>
+                </motion.div>
+              </div>
+            )}
+
+            {/* EXPENSES DETAILS MODAL */}
+            {viewingExpensesBookingId && (
+              <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+                <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`${glassPanel} p-8 w-full max-w-lg`}>
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-lg font-playfair text-white uppercase tracking-widest">Expense Details</h2>
+                    <button onClick={() => setViewingExpensesBookingId(null)} className="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+                  </div>
+                  
+                  <div className="max-h-60 overflow-y-auto custom-scrollbar mb-6 space-y-3">
+                    {(() => {
+                      const bookingExpenses = expenses.filter(ex => ex.bookingId === viewingExpensesBookingId);
+                      if (bookingExpenses.length === 0) return <p className="text-xs text-gray-500 italic uppercase">No expenses recorded yet.</p>;
+                      
+                      return bookingExpenses.map((ex, idx) => (
+                        <div key={idx} className="flex justify-between items-center bg-white/5 border border-white/5 rounded px-3 py-2 group">
+                          <div className="flex flex-col">
+                            <span className="text-[11px] text-white uppercase">{ex.description}</span>
+                            <span className="text-[9px] text-gray-500">{new Date(ex.date).toLocaleDateString()}</span>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span className="text-[11px] text-red-400 font-bold uppercase tracking-widest">Rs. {ex.amount}</span>
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                              <button onClick={() => setEditingExpense(ex)} className="text-[10px] px-2 py-1 bg-amber-500/20 text-amber-500 hover:bg-amber-500/40 rounded uppercase tracking-widest transition-colors">Edit</button>
+                              <button onClick={() => handleDeleteExpense(ex._id)} className="text-[10px] px-2 py-1 bg-red-500/20 text-red-500 hover:bg-red-500/40 rounded uppercase tracking-widest transition-colors">Delete</button>
+                            </div>
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                  </div>
                 </motion.div>
               </div>
             )}

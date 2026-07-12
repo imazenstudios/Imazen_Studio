@@ -36,6 +36,7 @@ export const getMailer = (user, pass) => {
       if (options.text) resendOptions.text = options.text;
       if (options.html) resendOptions.html = options.html;
       if (options.replyTo) resendOptions.reply_to = options.replyTo;
+      if (options.attachments) resendOptions.attachments = options.attachments;
 
       if (!resendApiKey) {
         console.warn('RESEND_API_KEY is not set. Simulating success for:', options.subject);

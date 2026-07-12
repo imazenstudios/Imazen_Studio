@@ -94,6 +94,30 @@ router.put('/contact', async (req, res) => {
     res.status(500).json({ error: 'Server error updating contact settings' });
   }
 });
+
+// Update wedding page settings
+router.put('/wedding', async (req, res) => {
+  try {
+    const { weddingHeroHeading, weddingHeroSubheading, weddingHeroDescription, weddingHeroButtonText, weddingHeroButtonLink, weddingHeroBackground } = req.body;
+    let settings = await Settings.findOne();
+    
+    if (!settings) {
+      settings = new Settings({ weddingHeroHeading, weddingHeroSubheading, weddingHeroDescription, weddingHeroButtonText, weddingHeroButtonLink, weddingHeroBackground });
+    } else {
+      if (weddingHeroHeading !== undefined) settings.weddingHeroHeading = weddingHeroHeading;
+      if (weddingHeroSubheading !== undefined) settings.weddingHeroSubheading = weddingHeroSubheading;
+      if (weddingHeroDescription !== undefined) settings.weddingHeroDescription = weddingHeroDescription;
+      if (weddingHeroButtonText !== undefined) settings.weddingHeroButtonText = weddingHeroButtonText;
+      if (weddingHeroButtonLink !== undefined) settings.weddingHeroButtonLink = weddingHeroButtonLink;
+      if (weddingHeroBackground !== undefined) settings.weddingHeroBackground = weddingHeroBackground;
+    }
+    
+    await settings.save();
+    res.json(settings);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error updating wedding settings' });
+  }
+});
 // Update maintenance mode
 router.put('/maintenance', async (req, res) => {
   try {

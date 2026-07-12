@@ -69,7 +69,7 @@ const WhatWeOffer = () => {
             <h4 className="font-sans text-[10px] text-gray-500 uppercase tracking-[0.4em] mb-4">
               Curated Offerings
             </h4>
-            <h2 className="font-oswald font-bold text-5xl md:text-7xl lg:text-8xl text-white uppercase tracking-widest leading-none mb-8">
+            <h2 className="font-playfair font-bold text-5xl md:text-7xl lg:text-8xl text-white uppercase tracking-widest leading-none mb-8">
               Signature<br className="hidden md:block" /> Experiences
             </h2>
           </div>
@@ -96,7 +96,7 @@ const WhatWeOffer = () => {
 
               {/* Default Content */}
               <div className="absolute inset-0 p-10 flex flex-col justify-end transition-transform duration-700 md:group-hover:-translate-y-8">
-                <h3 className="font-oswald text-4xl md:text-5xl text-white uppercase tracking-widest leading-none mb-6">
+                <h3 className="font-playfair text-4xl md:text-5xl text-white uppercase tracking-widest leading-none mb-6">
                   {svc.name}
                 </h3>
                 <div className="h-[1px] w-12 bg-white/20 mb-6 md:group-hover:w-full transition-all duration-700 ease-in-out"></div>

@@ -5,6 +5,7 @@ import axios from 'axios';
 
 const AboutUs = () => {
   const [teamMembers, setTeamMembers] = useState([]);
+  const [aboutContent, setAboutContent] = useState(null);
 
   useEffect(() => {
     const fetchTeam = async () => {
@@ -15,7 +16,19 @@ const AboutUs = () => {
         console.error('Error fetching team members:', error);
       }
     };
+    
+    const fetchContent = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/content`);
+        const aboutData = response.data.find(c => c.section === 'About');
+        if (aboutData) setAboutContent(aboutData);
+      } catch (error) {
+        console.error('Error fetching content:', error);
+      }
+    };
+
     fetchTeam();
+    fetchContent();
   }, []);
 
   return (
@@ -24,7 +37,7 @@ const AboutUs = () => {
       {/* Wox-style Hero section for About Us */}
       <div 
         className="relative min-h-screen flex flex-col items-center justify-center text-center border-b border-white/10 bg-cover bg-center"
-        style={{ backgroundImage: `url('/images/about_bg.jpeg')` }}
+        style={{ backgroundImage: `url('${aboutContent?.backgroundImageUrl || '/images/about_bg.jpeg'}')` }}
       >
         <div className="absolute inset-0 bg-black/60"></div>
         <motion.div 
@@ -33,13 +46,13 @@ const AboutUs = () => {
           transition={{ duration: 0.8 }}
           className="relative z-10 w-full px-6 pt-20"
         >
-          <h2 className="font-oswald text-xs text-gray-500 uppercase tracking-[0.5em] mb-4">Behind the Lens</h2>
-          <h1 className="font-oswald font-bold text-5xl md:text-7xl text-white uppercase tracking-widest leading-none mb-8">
-            Our Story
+          <h2 className="font-playfair text-xs text-gray-500 uppercase tracking-[0.5em] mb-4">Behind the Lens</h2>
+          <h1 className="font-playfair font-bold text-5xl md:text-7xl text-white uppercase tracking-widest leading-none mb-8">
+            {aboutContent?.title || 'Our Story'}
           </h1>
           <div className="w-16 h-[1px] bg-white mx-auto mb-8"></div>
           <p className="text-gray-300 font-sans font-light text-sm md:text-base leading-relaxed max-w-2xl mx-auto tracking-wide">
-            Imazen Studios was founded with a single mission: to capture life's most precious and fleeting moments with cinematic elegance and unparalleled luxury.
+            {aboutContent?.description || "Imazen Studios was founded with a single mission: to capture life's most precious and fleeting moments with cinematic elegance and unparalleled luxury."}
           </p>
         </motion.div>
       </div>
@@ -50,7 +63,7 @@ const AboutUs = () => {
       {/* Additional Studio Info */}
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-32">
         <div className="text-center mb-20">
-          <h2 className="font-oswald font-bold text-4xl text-white uppercase tracking-widest">
+          <h2 className="font-playfair font-bold text-4xl text-white uppercase tracking-widest">
             The Team
           </h2>
         </div>
@@ -76,9 +89,9 @@ const AboutUs = () => {
                   )}
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-700"></div>
                 </div>
-                <h3 className="text-2xl font-oswald text-white uppercase tracking-widest mb-2">{member.title}</h3>
+                <h3 className="text-3xl font-playfair text-white uppercase tracking-widest mb-2">{member.name}</h3>
+                <p className="text-lg font-sans text-gray-300 capitalize mb-1">{member.title}</p>
                 <p className="text-xs font-sans tracking-[0.3em] text-gray-500 uppercase mb-2">{member.subtitle}</p>
-                <p className="text-sm font-sans text-gray-400 capitalize">{member.name}</p>
               </motion.div>
             ))}
           </div>

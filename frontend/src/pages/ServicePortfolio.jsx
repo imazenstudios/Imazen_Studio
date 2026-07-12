@@ -6,12 +6,26 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 const ServicePortfolio = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const serviceSlug = searchParams.get('service');
   const subSlug = searchParams.get('sub');
 
   const [activeSub, setActiveSub] = useState(subSlug || 'ALL');
+
+  useEffect(() => {
+    if (subSlug) setActiveSub(subSlug);
+    else setActiveSub('ALL');
+  }, [subSlug]);
+
+  const handleSubChange = (newSub) => {
+    setActiveSub(newSub);
+    if (newSub === 'ALL') {
+      setSearchParams({ service: serviceSlug }, { replace: true });
+    } else {
+      setSearchParams({ service: serviceSlug, sub: newSub }, { replace: true });
+    }
+  };
   const [activeTab, setActiveTab] = useState('images');
   const [serviceData, setServiceData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -176,7 +190,7 @@ const ServicePortfolio = () => {
             >
               <span>←</span> BACK TO HOME
             </button>
-            <h1 className="font-oswald font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl uppercase tracking-widest leading-none mb-4 md:mb-6 drop-shadow-2xl">
+            <h1 className="font-playfair font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl uppercase tracking-widest leading-none mb-4 md:mb-6 drop-shadow-2xl">
               {activeData.name}
             </h1>
             {activeData.tagline && (
@@ -213,7 +227,7 @@ const ServicePortfolio = () => {
         {serviceData.subServices && serviceData.subServices.length > 0 && (
           <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-16">
             <button 
-              onClick={() => setActiveSub('ALL')}
+              onClick={() => handleSubChange('ALL')}
               className={`px-8 py-3 rounded-full font-sans text-xs sm:text-sm uppercase tracking-[0.2em] transition-all duration-500 ${activeSub === 'ALL' ? 'bg-white text-black shadow-[0_0_30px_rgba(255,255,255,0.4)] scale-105' : 'bg-transparent border border-white/20 text-gray-400 hover:border-white/50 hover:text-white hover:bg-white/5'}`}
             >
               ALL
@@ -221,7 +235,7 @@ const ServicePortfolio = () => {
             {serviceData.subServices.map(sub => (
               <button 
                 key={sub.slug}
-                onClick={() => setActiveSub(sub.slug)}
+                onClick={() => handleSubChange(sub.slug)}
                 className={`px-8 py-3 rounded-full font-sans text-xs sm:text-sm uppercase tracking-[0.2em] transition-all duration-500 ${activeSub === sub.slug ? 'bg-white text-black shadow-[0_0_30px_rgba(255,255,255,0.4)] scale-105' : 'bg-transparent border border-white/20 text-gray-400 hover:border-white/50 hover:text-white hover:bg-white/5'}`}
               >
                 {sub.name}

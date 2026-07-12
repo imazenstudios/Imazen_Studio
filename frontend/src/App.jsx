@@ -27,6 +27,7 @@ import NotFound from './pages/NotFound';
 import Maintenance from './pages/Maintenance';
 import ThankYou from './pages/ThankYou';
 import ReferenceLandingPage from './pages/ReferenceLandingPage';
+import Wedding from './pages/Wedding';
 
 import ScrollToTopButton from './components/ScrollToTopButton';
 
@@ -70,8 +71,7 @@ function App() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [maintenanceEndTime, setMaintenanceEndTime] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showInitialLoader, setShowInitialLoader] = useState(true);
-  const [isFadingOut, setIsFadingOut] = useState(false);
+  const [animationFinished, setAnimationFinished] = useState(false);
   const [adminBypass, setAdminBypass] = useState(false);
 
   useEffect(() => {
@@ -133,13 +133,12 @@ function App() {
     initAnalytics();
   }, []);
 
-  if (isLoading) {
-    return <div className="min-h-screen bg-[#050505]"></div>;
-  }
+  const showLoader = isLoading || !animationFinished;
+  const isFadingOut = !isLoading && animationFinished;
 
   return (
     <>
-      {showInitialLoader && (
+      {showLoader && (
         <div className={`fixed inset-0 z-[9999] bg-[#050505] flex flex-col items-center justify-center transition-opacity duration-500 ${isFadingOut ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
           <div className="relative w-40 sm:w-64 h-20 sm:h-24">
             <img src="/images/logo.png" alt="Imazen Studios Logo" className="absolute inset-0 w-full h-full object-contain opacity-20" />
@@ -147,8 +146,7 @@ function App() {
               className="absolute top-0 left-0 h-full overflow-hidden" 
               style={{ animation: 'fillLogo 2.5s ease-in-out forwards' }}
               onAnimationEnd={() => {
-                setIsFadingOut(true);
-                setTimeout(() => setShowInitialLoader(false), 500);
+                setAnimationFinished(true);
               }}
             >
               <img src="/images/logo.png" alt="Imazen Studios Logo" className="w-40 sm:w-64 h-20 sm:h-24 object-contain max-w-none origin-left" />
@@ -162,6 +160,8 @@ function App() {
           `}</style>
         </div>
       )}
+
+      {!isLoading && (
       <HelmetProvider>
       <Router>
         <NoInternetOverlay />
@@ -196,6 +196,7 @@ function App() {
               <Route path="/studio" element={<Layout><Studio /></Layout>} />
               <Route path="/testimonials" element={<Layout><TestimonialsPage /></Layout>} />
               <Route path="/reference" element={<ReferenceLandingPage />} />
+              <Route path="/wedding" element={<Layout><Wedding /></Layout>} />
               <Route path="/:slug" element={<LandingPage />} />
 
               {/* Catch-all for 404 Not Found */}
@@ -205,6 +206,7 @@ function App() {
         </Routes>
       </Router>
     </HelmetProvider>
+    )}
     </>
   );
 }
