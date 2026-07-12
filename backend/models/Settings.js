@@ -16,6 +16,7 @@ const settingsSchema = new mongoose.Schema({
   contactEmail: { type: String, default: 'hello@imazenstudios.in' },
   whatsappNumber: { type: String, default: '+919999999999' },
   teamEmails: { type: [String], default: [] },
+  portfolioReferrers: { type: [String], default: [] },
   maintenanceMode: { type: Boolean, default: false },
   maintenanceEndTime: { type: Date, default: null },
   footerStudioAddress: { type: String, default: '123 Cinematic Way\nAesthetic District\nNew York, NY 10012' },

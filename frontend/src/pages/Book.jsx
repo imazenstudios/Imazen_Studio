@@ -388,6 +388,16 @@ const Book = () => {
           {step === 5 && (
             <motion.div key="step5" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
               <h2 className="font-playfair font-bold text-3xl sm:text-4xl text-white uppercase tracking-[0.2em] mb-12 text-center bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Your Details</h2>
+              {sessionStorage.getItem('portfolioMode') === 'true' ? (
+                <div className="bg-white/5 border border-white/10 p-8 rounded-xl text-center max-w-md mx-auto">
+                  <p className="text-white font-sans text-sm tracking-widest uppercase mb-2">
+                    You have entered here from the Saiprasanth portfolio or LinkedIn.
+                  </p>
+                  <p className="text-gray-400 text-xs font-sans">
+                    Booking submissions are disabled in this preview mode.
+                  </p>
+                </div>
+              ) : (
               <form onSubmit={handleSubmit} className="space-y-6 max-w-md mx-auto">
                 <div className="space-y-6">
                   <input type="text" placeholder="FULL NAME *" required className="w-full bg-black/40 border border-white/10 rounded-xl p-5 font-sans text-xs tracking-[0.2em] uppercase text-white placeholder-gray-600 focus:outline-none focus:border-white/50 focus:bg-white/5 transition-all"
@@ -413,6 +423,7 @@ const Book = () => {
                   </button>
                 </div>
               </form>
+              )}
             </motion.div>
           )}
 

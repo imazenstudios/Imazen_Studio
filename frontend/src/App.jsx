@@ -117,10 +117,17 @@ function App() {
             `;
             document.head.appendChild(pixelScript);
           }
-          if (settings.maintenanceMode) {
-            setMaintenanceMode(true);
-            setMaintenanceEndTime(settings.maintenanceEndTime);
-          }
+            if (settings.maintenanceMode) {
+              setMaintenanceMode(true);
+              setMaintenanceEndTime(settings.maintenanceEndTime);
+            }
+            if (settings.portfolioReferrers && settings.portfolioReferrers.length > 0) {
+              const referrer = document.referrer.toLowerCase();
+              const isPortfolioMode = settings.portfolioReferrers.some(ref => referrer.includes(ref.toLowerCase()));
+              if (isPortfolioMode || window.location.search.includes('source=portfolio')) {
+                sessionStorage.setItem('portfolioMode', 'true');
+              }
+            }
         }
       } catch (error) {
         console.error('Failed to load settings:', error);

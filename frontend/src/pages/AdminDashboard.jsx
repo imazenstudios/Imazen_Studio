@@ -11,7 +11,7 @@ const AdminDashboard = () => {
   const storedUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
   const userPermissions = storedUser.permissions || [];
   const isSuperAdmin = storedUser.isSuperAdmin === true || storedUser.email === 'ssaiprasanth333@gmail.com' || localStorage.getItem('adminBypass') === 'true';
-  const allTabs = ['dashboard', 'leads', 'inquiries', 'studio bookings', 'events', 'calendar', 'slots', 'business', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options', 'add partner'];
+  const allTabs = ['dashboard', 'leads', 'inquiries', 'studio bookings', 'events', 'calendar', 'slots', 'business', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options'];
   const allowedTabs = isSuperAdmin ? allTabs : allTabs.filter(tab => userPermissions.includes(tab));
   const initialTab = allowedTabs.includes('dashboard') ? 'dashboard' : (allowedTabs[0] || 'dashboard');
 
@@ -4747,6 +4747,46 @@ const AdminDashboard = () => {
               </h2>
               
               <div className={`${glassPanel} p-8 mb-8`}>
+                  <h3 className="text-xl font-playfair text-white uppercase tracking-widest mb-2">
+                    Portfolio Mode Settings
+                  </h3>
+                  <p className="text-sm font-sans text-gray-400 tracking-wider leading-relaxed mb-6">
+                    Add website domains (e.g., your portfolio, linkedin.com) that will trigger read-only mode for visitors. When active, forms and booking submissions will be disabled, and a disclaimer will be shown.
+                  </p>
+                  <div>
+                    <label className="block text-xs uppercase text-gray-500 mb-2">Allowed Referrers (comma separated)</label>
+                    <textarea 
+                      className={glassInput} 
+                      rows="2" 
+                      placeholder="e.g. saiprasanth.com, linkedin.com" 
+                      value={settings.portfolioReferrers ? settings.portfolioReferrers.join(', ') : ''} 
+                      onChange={e => setSettings({...settings, portfolioReferrers: e.target.value.split(',').map(r => r.trim()).filter(r => r)})}
+                    />
+                    <button 
+                      type="button" 
+                      onClick={async () => {
+                        try {
+                          await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings/contact`, {
+                            contactEmail: settings.contactEmail,
+                            whatsappNumber: settings.whatsappNumber,
+                            teamEmails: settings.teamEmails,
+                            portfolioReferrers: settings.portfolioReferrers,
+                            footerStudioAddress: settings.footerStudioAddress,
+                            footerSocials: settings.footerSocials
+                          });
+                          alert('Portfolio Referrers saved!');
+                        } catch(err) {
+                          alert('Failed to save referrers');
+                        }
+                      }}
+                      className="mt-4 px-6 py-2 rounded bg-white text-black font-bold text-xs uppercase tracking-widest hover:bg-gray-200 transition-all"
+                    >
+                      Save Referrers
+                    </button>
+                  </div>
+                </div>
+
+                <div className={`${glassPanel} p-8 mb-8`}>
                 <h3 className="text-xl font-playfair text-white uppercase tracking-widest mb-2 flex items-center gap-3">
                   <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                   Maintenance Mode

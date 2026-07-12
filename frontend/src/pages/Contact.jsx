@@ -65,6 +65,16 @@ const Contact = () => {
           transition={{ delay: 0.2 }}
           className="bg-white/5 backdrop-blur-md border border-white/10 p-8 md:p-12 rounded-2xl"
         >
+          {sessionStorage.getItem('portfolioMode') === 'true' ? (
+            <div className="bg-white/5 border border-white/10 p-8 rounded-xl text-center max-w-md mx-auto my-12">
+              <p className="text-white font-sans text-sm tracking-widest uppercase mb-2">
+                You have entered here from the Saiprasanth portfolio or LinkedIn.
+              </p>
+              <p className="text-gray-400 text-xs font-sans">
+                Contact submissions are disabled in this preview mode.
+              </p>
+            </div>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -126,6 +136,7 @@ const Contact = () => {
               </button>
             </div>
           </form>
+          )}
         </motion.div>
       </div>
     </div>
