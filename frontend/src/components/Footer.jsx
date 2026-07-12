@@ -38,7 +38,7 @@ const Footer = ({ isLandingPage = false, hideInquiries = false }) => {
     <footer className="bg-[#050505] text-white relative overflow-hidden pt-32 pb-12 border-t border-white/5 bg-cover bg-center" style={{ backgroundImage: "url('/images/logo2.png')" }}>
       
       {/* Massive Background Typography */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[18vw] font-playfair font-bold text-white/5 whitespace-nowrap select-none pointer-events-none z-0 tracking-widest">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[18vw] font-oswald font-bold text-white/5 whitespace-nowrap select-none pointer-events-none z-0 tracking-widest">
         TWILIGHT
       </div>
       <div className="absolute inset-0 bg-black/80 pointer-events-none"></div>
@@ -49,14 +49,14 @@ const Footer = ({ isLandingPage = false, hideInquiries = false }) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-16 w-full mb-24 text-center md:text-left">
           
           <div className="flex flex-col items-center md:items-start">
-            <h3 className="font-playfair text-2xl uppercase tracking-[0.3em] mb-6">Studio</h3>
+            <h3 className="font-oswald text-2xl uppercase tracking-[0.3em] mb-6">Studio</h3>
             <p className="text-xs font-sans text-gray-400 tracking-widest leading-relaxed whitespace-pre-line">
               {contact.footerStudioAddress || "123 Cinematic Way\nAesthetic District\nNew York, NY 10012"}
             </p>
           </div>
 
           <div className="flex flex-col items-center">
-            <h3 className="font-playfair text-2xl uppercase tracking-[0.3em] mb-6">Locations</h3>
+            <h3 className="font-oswald text-2xl uppercase tracking-[0.3em] mb-6">Locations</h3>
             <div className="flex flex-col gap-3">
               {(contact.footerLocations || ['Srikakulam', 'Vizag', 'Vizianagaram']).map(city => (
                 <Link key={city} to={`/location/${city.toLowerCase()}`} className="text-xs font-sans text-gray-400 tracking-[0.2em] uppercase hover:text-white transition-colors">
@@ -67,7 +67,7 @@ const Footer = ({ isLandingPage = false, hideInquiries = false }) => {
           </div>
 
           <div className="flex flex-col items-center md:items-end">
-            <h3 className="font-playfair text-2xl uppercase tracking-[0.3em] mb-6">Socials</h3>
+            <h3 className="font-oswald text-2xl uppercase tracking-[0.3em] mb-6">Socials</h3>
             <div className="flex flex-col gap-3">
               {(contact.footerSocials || [
                 { platform: 'Instagram', link: '#' },

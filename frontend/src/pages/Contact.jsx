@@ -55,7 +55,7 @@ const Contact = () => {
 
       <div className="max-w-4xl mx-auto px-6 relative z-10">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-16">
-          <h1 className="font-playfair font-bold text-5xl md:text-6xl text-white uppercase tracking-widest mb-4">Contact Us</h1>
+          <h1 className="font-oswald font-bold text-5xl md:text-6xl text-white uppercase tracking-widest mb-4">Contact Us</h1>
           <p className="font-sans text-gray-400 text-sm tracking-[0.2em] uppercase">Get in touch with Imazen Studios</p>
         </motion.div>
 
@@ -130,7 +130,7 @@ const Contact = () => {
               <button 
                 type="submit"
                 disabled={isSubmitting}
-                className="px-12 py-4 bg-white text-black font-playfair text-sm font-bold uppercase tracking-[0.3em] hover:bg-transparent hover:text-white border border-white transition-colors shadow-[0_0_20px_rgba(255,255,255,0.3)] disabled:opacity-50"
+                className="px-12 py-4 bg-white text-black font-oswald text-sm font-bold uppercase tracking-[0.3em] hover:bg-transparent hover:text-white border border-white transition-colors shadow-[0_0_20px_rgba(255,255,255,0.3)] disabled:opacity-50"
               >
                 {isSubmitting ? 'Sending...' : 'Send Message'}
               </button>

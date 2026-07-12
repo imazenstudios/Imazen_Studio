@@ -42,7 +42,7 @@ const ServiceDetails = () => {
   if (!service) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center text-white">
-        <h2 className="text-4xl font-playfair mb-4">Service Not Found</h2>
+        <h2 className="text-4xl font-oswald mb-4">Service Not Found</h2>
         <button onClick={() => navigate('/')} className="px-6 py-2 border border-white/20 hover:bg-white hover:text-black transition">
           Return Home
         </button>
@@ -71,7 +71,7 @@ const ServiceDetails = () => {
           >
             <span>←</span> Back to Experiences
           </button>
-          <h1 className="text-5xl md:text-7xl font-playfair uppercase tracking-widest text-white mb-4">
+          <h1 className="text-5xl md:text-7xl font-oswald uppercase tracking-widest text-white mb-4">
             {service.name}
           </h1>
           {service.description && (
@@ -102,7 +102,7 @@ const ServiceDetails = () => {
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-600 font-playfair text-xl">
+                    <div className="w-full h-full flex items-center justify-center text-gray-600 font-oswald text-xl">
                       {sub.name.charAt(0)}
                     </div>
                   )}
@@ -128,7 +128,7 @@ const ServiceDetails = () => {
             animate={{ opacity: 1 }}
             className="text-center py-20 bg-[#111] rounded-2xl border border-white/5"
           >
-            <h3 className="text-2xl font-playfair text-gray-400 mb-6">No sub-services available</h3>
+            <h3 className="text-2xl font-oswald text-gray-400 mb-6">No sub-services available</h3>
             <button 
               onClick={() => navigate(`/portfolio?service=${service.slug}`)}
               className="px-8 py-3 bg-white text-black text-xs font-sans uppercase tracking-widest hover:bg-gray-200 transition"

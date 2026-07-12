@@ -21,7 +21,7 @@ const Testimonials = () => {
 
   return (
     <section id="testimonials" className="relative w-full py-24 bg-[#0a0a0a] text-white flex flex-col items-center">
-      <h2 className="font-playfair uppercase text-white text-5xl md:text-6xl mb-16 md:mb-24 text-center tracking-wide">
+      <h2 className="font-oswald uppercase text-white text-5xl md:text-6xl mb-16 md:mb-24 text-center tracking-wide">
         Testimonials
       </h2>
 

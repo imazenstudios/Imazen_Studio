@@ -201,14 +201,14 @@ const Navbar = () => {
             className="fixed inset-0 bg-black z-40 flex flex-col items-center justify-center pt-20"
           >
             <div className="flex flex-col items-center gap-8 w-full px-6">
-              <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-playfair text-white uppercase tracking-[0.2em]">Home</Link>
-              <Link to="/gallery" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-playfair text-white uppercase tracking-[0.2em]">Portfolio</Link>
-              <Link to="/packages" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-playfair text-white uppercase tracking-[0.2em]">Packages</Link>
-              <Link to="/themes" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-playfair text-white uppercase tracking-[0.2em]">Themes</Link>
-              <Link to="/studio" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-playfair text-white uppercase tracking-[0.2em]">Studio</Link>
-              <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-playfair text-white uppercase tracking-[0.2em]">About</Link>
-              <Link to="/testimonials" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-playfair text-white uppercase tracking-[0.2em]">Testimonials</Link>
-              <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-playfair text-white uppercase tracking-[0.2em]">Contact</Link>
+              <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">Home</Link>
+              <Link to="/gallery" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">Portfolio</Link>
+              <Link to="/packages" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">Packages</Link>
+              <Link to="/themes" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">Themes</Link>
+              <Link to="/studio" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">Studio</Link>
+              <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">About</Link>
+              <Link to="/testimonials" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">Testimonials</Link>
+              <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">Contact</Link>
               <Link 
                 to="/book"
                 onClick={() => setIsMobileMenuOpen(false)}

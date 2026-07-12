@@ -46,8 +46,8 @@ const AboutUs = () => {
           transition={{ duration: 0.8 }}
           className="relative z-10 w-full px-6 pt-20"
         >
-          <h2 className="font-playfair text-xs text-gray-500 uppercase tracking-[0.5em] mb-4">Behind the Lens</h2>
-          <h1 className="font-playfair font-bold text-5xl md:text-7xl text-white uppercase tracking-widest leading-none mb-8">
+          <h2 className="font-oswald text-xs text-gray-500 uppercase tracking-[0.5em] mb-4">Behind the Lens</h2>
+          <h1 className="font-oswald font-bold text-5xl md:text-7xl text-white uppercase tracking-widest leading-none mb-8">
             {aboutContent?.title || 'Our Story'}
           </h1>
           <div className="w-16 h-[1px] bg-white mx-auto mb-8"></div>
@@ -63,7 +63,7 @@ const AboutUs = () => {
       {/* Additional Studio Info */}
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-32">
         <div className="text-center mb-20">
-          <h2 className="font-playfair font-bold text-4xl text-white uppercase tracking-widest">
+          <h2 className="font-oswald font-bold text-4xl text-white uppercase tracking-widest">
             The Team
           </h2>
         </div>
@@ -89,7 +89,7 @@ const AboutUs = () => {
                   )}
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-700"></div>
                 </div>
-                <h3 className="text-3xl font-playfair text-white uppercase tracking-widest mb-2">{member.name}</h3>
+                <h3 className="text-3xl font-oswald text-white uppercase tracking-widest mb-2">{member.name}</h3>
                 <p className="text-lg font-sans text-gray-300 capitalize mb-1">{member.title}</p>
                 <p className="text-xs font-sans tracking-[0.3em] text-gray-500 uppercase mb-2">{member.subtitle}</p>
               </motion.div>

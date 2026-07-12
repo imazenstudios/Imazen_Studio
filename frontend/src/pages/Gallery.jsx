@@ -79,8 +79,8 @@ const Gallery = () => {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <h2 className="font-playfair text-xs text-gray-500 uppercase tracking-[0.5em] mb-4">Portfolio</h2>
-          <h1 className="font-playfair font-bold text-5xl md:text-7xl text-white uppercase tracking-widest leading-none">
+          <h2 className="font-oswald text-xs text-gray-500 uppercase tracking-[0.5em] mb-4">Portfolio</h2>
+          <h1 className="font-oswald font-bold text-5xl md:text-7xl text-white uppercase tracking-widest leading-none">
             Cinematic Gallery
           </h1>
           <div className="w-12 h-[1px] bg-white mx-auto mt-8 mb-12"></div>
@@ -106,7 +106,7 @@ const Gallery = () => {
           <div className="flex justify-center gap-2 mt-8">
             <button 
               onClick={() => { setActiveMediaType('image'); setLightboxIndex(null); }}
-              className={`px-6 py-2 rounded-full font-playfair text-[10px] tracking-widest uppercase transition-all duration-300 ${
+              className={`px-6 py-2 rounded-full font-oswald text-[10px] tracking-widest uppercase transition-all duration-300 ${
                 activeMediaType === 'image' 
                 ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)]' 
                 : 'bg-black/40 border border-white/20 text-gray-400 hover:text-white'
@@ -116,7 +116,7 @@ const Gallery = () => {
             </button>
             <button 
               onClick={() => { setActiveMediaType('video'); setLightboxIndex(null); }}
-              className={`px-6 py-2 rounded-full font-playfair text-[10px] tracking-widest uppercase transition-all duration-300 ${
+              className={`px-6 py-2 rounded-full font-oswald text-[10px] tracking-widest uppercase transition-all duration-300 ${
                 activeMediaType === 'video' 
                 ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)]' 
                 : 'bg-black/40 border border-white/20 text-gray-400 hover:text-white'

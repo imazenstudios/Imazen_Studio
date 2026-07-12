@@ -190,7 +190,7 @@ const ServicePortfolio = () => {
             >
               <span>←</span> BACK TO HOME
             </button>
-            <h1 className="font-playfair font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl uppercase tracking-widest leading-none mb-4 md:mb-6 drop-shadow-2xl">
+            <h1 className="font-oswald font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl uppercase tracking-widest leading-none mb-4 md:mb-6 drop-shadow-2xl">
               {activeData.name}
             </h1>
             {activeData.tagline && (

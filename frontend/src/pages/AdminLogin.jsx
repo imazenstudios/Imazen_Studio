@@ -64,7 +64,7 @@ const AdminLogin = () => {
     <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-[#111] border border-white/10 rounded-2xl p-8 shadow-2xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-playfair text-white uppercase tracking-widest mb-2">Imazen OS</h1>
+          <h1 className="text-3xl font-oswald text-white uppercase tracking-widest mb-2">Imazen OS</h1>
           <p className="text-gray-500 font-sans text-xs uppercase tracking-widest">Admin Portal Access</p>
         </div>
 
@@ -81,7 +81,7 @@ const AdminLogin = () => {
               <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Password</label>
               <input type="password" required className="w-full bg-black/50 border border-white/10 text-white px-4 py-3 rounded outline-none focus:border-white/30 transition-colors" value={password} onChange={e => setPassword(e.target.value)} />
             </div>
-            <button type="submit" className="w-full py-3 mt-2 bg-white text-black font-playfair uppercase tracking-widest hover:bg-gray-200 transition-colors rounded">Login</button>
+            <button type="submit" className="w-full py-3 mt-2 bg-white text-black font-oswald uppercase tracking-widest hover:bg-gray-200 transition-colors rounded">Login</button>
             <div className="text-center pt-4">
               <button type="button" onClick={() => { setMode('forgot'); setError(''); setMessage(''); }} className="text-xs text-gray-500 hover:text-white transition-colors">Forgot Password?</button>
             </div>
@@ -94,7 +94,7 @@ const AdminLogin = () => {
               <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Email</label>
               <input type="email" required className="w-full bg-black/50 border border-white/10 text-white px-4 py-3 rounded outline-none focus:border-white/30 transition-colors" value={email} onChange={e => setEmail(e.target.value)} />
             </div>
-            <button type="submit" className="w-full py-3 mt-2 bg-white text-black font-playfair uppercase tracking-widest hover:bg-gray-200 transition-colors rounded">Send OTP</button>
+            <button type="submit" className="w-full py-3 mt-2 bg-white text-black font-oswald uppercase tracking-widest hover:bg-gray-200 transition-colors rounded">Send OTP</button>
             <div className="text-center pt-4">
               <button type="button" onClick={() => { setMode('login'); setError(''); setMessage(''); }} className="text-xs text-gray-500 hover:text-white transition-colors">Back to Login</button>
             </div>
@@ -115,7 +115,7 @@ const AdminLogin = () => {
               <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">New Password</label>
               <input type="password" required className="w-full bg-black/50 border border-white/10 text-white px-4 py-3 rounded outline-none focus:border-white/30 transition-colors" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
             </div>
-            <button type="submit" className="w-full py-3 mt-2 bg-white text-black font-playfair uppercase tracking-widest hover:bg-gray-200 transition-colors rounded">Reset Password</button>
+            <button type="submit" className="w-full py-3 mt-2 bg-white text-black font-oswald uppercase tracking-widest hover:bg-gray-200 transition-colors rounded">Reset Password</button>
             <div className="text-center pt-4">
               <button type="button" onClick={() => { setMode('login'); setError(''); setMessage(''); }} className="text-xs text-gray-500 hover:text-white transition-colors">Back to Login</button>
             </div>

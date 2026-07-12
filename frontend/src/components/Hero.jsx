@@ -113,20 +113,20 @@ const Hero = () => {
               <div className={`absolute inset-0 flex flex-col pointer-events-none ${i === 0 ? "items-center justify-center" : "items-center justify-end pb-24 md:pb-32"}`}>
                 <div className="relative z-10 text-center px-4 max-w-5xl mx-auto pointer-events-auto">
                   <div 
-                    className="font-playfair text-[12px] md:text-sm text-gray-400 uppercase tracking-[0.5em] mb-4" 
+                    className="font-oswald text-[12px] md:text-sm text-gray-400 uppercase tracking-[0.5em] mb-4" 
                     data-swiper-parallax="-200"
                   >
                     {slide.text}
                   </div>
                   <h1 
-                    className="font-playfair font-bold text-5xl md:text-7xl lg:text-8xl text-white uppercase tracking-widest leading-tight drop-shadow-2xl break-words"
+                    className="font-oswald font-bold text-5xl md:text-7xl lg:text-8xl text-white uppercase tracking-widest leading-tight drop-shadow-2xl break-words"
                     data-swiper-parallax="-300"
                   >
                     {slide.title || content.title.split(' ')[0]}
                   </h1>
                   {(slide.titleOutline || content.title.split(' ')[1]) && (
                     <h1 
-                      className="font-playfair font-bold text-5xl md:text-7xl lg:text-8xl text-transparent text-stroke-white uppercase tracking-widest leading-tight mt-2 drop-shadow-2xl break-words" 
+                      className="font-oswald font-bold text-5xl md:text-7xl lg:text-8xl text-transparent text-stroke-white uppercase tracking-widest leading-tight mt-2 drop-shadow-2xl break-words" 
                       data-swiper-parallax="-150"
                     >
                       {slide.titleOutline || content.title.split(' ').slice(1).join(' ')}
@@ -140,11 +140,11 @@ const Hero = () => {
           {/* Custom Navigation */}
           <div className="swiper-button-prev-custom absolute top-1/2 left-4 md:left-8 -translate-y-1/2 z-20 cursor-pointer opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center gap-2 md:gap-4">
             <div className="w-6 md:w-12 h-[1px] bg-white/50 group-hover:bg-white transition-colors"></div>
-            <span className="text-white font-playfair text-[8px] md:text-xs uppercase tracking-[0.3em] -rotate-90 origin-left">Prev</span>
+            <span className="text-white font-oswald text-[8px] md:text-xs uppercase tracking-[0.3em] -rotate-90 origin-left">Prev</span>
           </div>
           
           <div className="swiper-button-next-custom absolute top-1/2 right-4 md:right-8 -translate-y-1/2 z-20 cursor-pointer opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center gap-2 md:gap-4">
-            <span className="text-white font-playfair text-[8px] md:text-xs uppercase tracking-[0.3em] rotate-90 origin-right">Next</span>
+            <span className="text-white font-oswald text-[8px] md:text-xs uppercase tracking-[0.3em] rotate-90 origin-right">Next</span>
             <div className="w-6 md:w-12 h-[1px] bg-white/50 group-hover:bg-white transition-colors"></div>
           </div>
           
