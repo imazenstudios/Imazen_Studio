@@ -5,6 +5,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recha
 
 const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers = [], highlightedBookingId, onAddPartner, onAddExpense, onEditPartner, onEditExpense, onDeletePartner, onDeleteExpense, defaultViewMode = 'overview', hideTabsAndOverview = false }) => {
   const [filterType, setFilterType] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
   
@@ -120,19 +121,21 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
     const pendingAmount = totalAmount - paidAmount;
 
     const data = {
-      name: formData.get('name'),
-      clientName: formData.get('clientName'),
-      email: formData.get('email'),
-      phone: formData.get('phone'),
-      date: formData.get('date'),
-      totalAmount: totalAmount,
-      paidAmount: paidAmount,
-      pendingAmount: pendingAmount,
-      discount: Number(formData.get('discount') || 0),
-      status: formData.get('status'),
-      subEvents: formData.get('subEvents'),
-      services: editingEvent?.services || [],
-      subEventList: editingEvent?.subEventList || []
+        name: formData.get('name'),
+        clientName: formData.get('clientName'),
+        email: formData.get('email'),
+        phone: formData.get('phone'),
+        date: formData.get('date'),
+        totalAmount: totalAmount,
+        paidAmount: paidAmount,
+        pendingAmount: pendingAmount,
+        discount: Number(formData.get('discount') || 0),
+        status: formData.get('status'),
+        subEvents: formData.get('subEvents'),
+        services: editingEvent?.services || [],
+        subEventList: editingEvent?.subEventList || [],
+        deliverables: editingEvent?.deliverables || [],
+        complimentries: editingEvent?.complimentries || []
     };
     
     try {
@@ -274,11 +277,23 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
   };
 
   // Base Data
-  const allBookings = filterByDate(bookings, 'date').filter(b => b.status !== 'Cancelled');
-  const confirmedBookings = filterByDate(bookings.filter(b => b.status === 'Confirmed' || b.status === 'Finished'), 'date');
+  const applySearch = (items) => {
+    if (!searchQuery) return items;
+    const lowerQuery = searchQuery.toLowerCase();
+    return items.filter(item => 
+      (item.name && item.name.toLowerCase().includes(lowerQuery)) ||
+      (item.customerName && item.customerName.toLowerCase().includes(lowerQuery)) ||
+      (item.clientName && item.clientName.toLowerCase().includes(lowerQuery)) ||
+      (item.phone && item.phone.includes(searchQuery)) ||
+      (item.email && item.email.toLowerCase().includes(lowerQuery))
+    );
+  };
+
+  const allBookings = applySearch(filterByDate(bookings, 'date').filter(b => b.status !== 'Cancelled'));
+  const confirmedBookings = applySearch(filterByDate(bookings.filter(b => b.status === 'Confirmed' || b.status === 'Finished'), 'date'));
   const filteredExpenses = filterByDate(expenses, 'date');
-  const filteredProps = filterByDate(propsData, 'date');
-  const filteredEvents = filterByDate(eventsData, 'date');
+  const filteredProps = applySearch(filterByDate(propsData, 'date'));
+  const filteredEvents = applySearch(filterByDate(eventsData, 'date'));
 
   // Calculations
     const getTotals = () => {
@@ -402,7 +417,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
   const renderOverviewCards = () => (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div className="bg-[#111] p-6 rounded-xl border border-white/5">
-        <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Total Earnings</p>
+        <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Total Business</p>
         <p className="text-3xl font-light text-emerald-400">₹{totals.earnings.toLocaleString()}</p>
         <p className="text-xs text-white mt-2">
           {viewMode === 'overview' && `Shoots: ₹${totals.shootEarnings} | Rentals: ₹${totals.propEarnings} | Events: ₹${totals.eventEarnings}`}
@@ -452,16 +467,17 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
              {(() => {
                const data = viewMode === 'overview' 
                  ? [
-                     { name: 'Shoot Earnings', value: totals.shootEarnings, color: '#10b981' },
-                     { name: 'Prop Earnings', value: totals.propEarnings, color: '#3b82f6' },
-                     { name: 'Event Earnings', value: totals.eventEarnings, color: '#f59e0b' }
+                     { name: 'Shoot Profits', value: Math.max(0, totals.profitShoots), color: '#10b981' },
+                     { name: 'Prop Profits', value: Math.max(0, totals.profitProps), color: '#3b82f6' },
+                     { name: 'Event Profits', value: Math.max(0, totals.profitEvents), color: '#f59e0b' },
+                     { name: 'Expenditure', value: Math.max(0, totals.totalExpenses), color: '#ef4444' }
                    ].filter(d => d.value > 0)
                  : [
-                     { name: 'Earnings', value: Math.max(0, totals.earnings), color: '#3b82f6' },
+                     { name: 'Total Business', value: Math.max(0, totals.earnings), color: '#3b82f6' },
                      { name: 'Pending', value: Math.max(0, totals.pending), color: '#f59e0b' },
-                     { name: 'Expenses', value: Math.max(0, totals.totalExpenses), color: '#ef4444' },
-                     { name: 'Profit', value: Math.max(0, totals.profit), color: '#10b981' }
-                   ];
+                     { name: 'Total Expenses', value: Math.max(0, totals.totalExpenses), color: '#ef4444' },
+                     { name: 'Net Profit', value: Math.max(0, totals.profit), color: '#10b981' }
+                   ].filter(d => d.value > 0);
 
                if (data.length === 0 || data.every(d => d.value === 0)) return <p className="text-xs text-white/30 italic">No financial data to display.</p>;
                
@@ -484,15 +500,16 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                  data={
                    viewMode === 'overview' 
                      ? [
-                         { name: 'Shoot Earnings', value: Math.max(0, totals.shootEarnings), color: '#10b981' },
-                         { name: 'Prop Earnings', value: Math.max(0, totals.propEarnings), color: '#3b82f6' },
-                         { name: 'Event Earnings', value: Math.max(0, totals.eventEarnings), color: '#f59e0b' }
+                         { name: 'Shoot Profits', value: Math.max(0, totals.profitShoots), color: '#10b981' },
+                         { name: 'Prop Profits', value: Math.max(0, totals.profitProps), color: '#3b82f6' },
+                         { name: 'Event Profits', value: Math.max(0, totals.profitEvents), color: '#f59e0b' },
+                         { name: 'Expenditure', value: Math.max(0, totals.totalExpenses), color: '#ef4444' }
                        ]
                      : [
-                         { name: 'Earnings', value: Math.max(0, totals.earnings), color: '#3b82f6' },
+                         { name: 'Total Business', value: Math.max(0, totals.earnings), color: '#3b82f6' },
                          { name: 'Pending', value: Math.max(0, totals.pending), color: '#f59e0b' },
-                         { name: 'Expenses', value: Math.max(0, totals.totalExpenses), color: '#ef4444' },
-                         { name: 'Profit', value: Math.max(0, totals.profit), color: '#10b981' }
+                         { name: 'Total Expenses', value: Math.max(0, totals.totalExpenses), color: '#ef4444' },
+                         { name: 'Net Profit', value: Math.max(0, totals.profit), color: '#10b981' }
                        ]
                  }
                  cx="50%"
@@ -505,15 +522,16 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                  {(
                    viewMode === 'overview' 
                      ? [
-                         { name: 'Shoot Earnings', value: Math.max(0, totals.shootEarnings), color: '#10b981' },
-                         { name: 'Prop Earnings', value: Math.max(0, totals.propEarnings), color: '#3b82f6' },
-                         { name: 'Event Earnings', value: Math.max(0, totals.eventEarnings), color: '#f59e0b' }
+                         { name: 'Shoot Profits', value: Math.max(0, totals.profitShoots), color: '#10b981' },
+                         { name: 'Prop Profits', value: Math.max(0, totals.profitProps), color: '#3b82f6' },
+                         { name: 'Event Profits', value: Math.max(0, totals.profitEvents), color: '#f59e0b' },
+                         { name: 'Expenditure', value: Math.max(0, totals.totalExpenses), color: '#ef4444' }
                        ]
                      : [
-                         { name: 'Earnings', value: Math.max(0, totals.earnings), color: '#3b82f6' },
+                         { name: 'Total Business', value: Math.max(0, totals.earnings), color: '#3b82f6' },
                          { name: 'Pending', value: Math.max(0, totals.pending), color: '#f59e0b' },
-                         { name: 'Expenses', value: Math.max(0, totals.totalExpenses), color: '#ef4444' },
-                         { name: 'Profit', value: Math.max(0, totals.profit), color: '#10b981' }
+                         { name: 'Total Expenses', value: Math.max(0, totals.totalExpenses), color: '#ef4444' },
+                         { name: 'Net Profit', value: Math.max(0, totals.profit), color: '#10b981' }
                        ]
                  ).map((entry, index) => (
                    <Cell key={`cell-${index}`} fill={entry.color} stroke="transparent" />
@@ -548,7 +566,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
 
       {/* Shared Filters */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#111] p-6 rounded-xl border border-white/5">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
           {['all', 'weekly', 'monthly', 'custom'].map(type => (
             <button 
               key={type}
@@ -558,6 +576,13 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
               {type === 'all' ? 'All Time' : type === 'weekly' ? 'This Week' : type === 'monthly' ? 'This Month' : 'Date Range'}
             </button>
           ))}
+          <input 
+            type="text" 
+            placeholder="Search name, phone, email..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bg-black/50 border border-white/10 rounded px-3 py-1.5 text-xs text-white outline-none focus:border-white/50 w-64 ml-2"
+          />
         </div>
         {filterType === 'custom' && (
           <div className="flex gap-2 items-center">
@@ -839,7 +864,6 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                   />
                 </div>
               </div>
-              {/* Main Photo removed per request */}
               
               <div className="pt-4 border-t border-white/5">
                 <div className="flex justify-between items-center mb-2">
@@ -922,12 +946,19 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                 const eventTotalExpenses = eventExpenses.reduce((sum, exp) => sum + exp.amount, 0);
                 const eventProfit = (event.paidAmount || event.totalAmount || 0) - eventTotalExpenses;
 
+                const isSearched = searchQuery && (
+                  (event.name && event.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                  (event.clientName && event.clientName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                  (event.phone && event.phone.includes(searchQuery)) ||
+                  (event.email && event.email.toLowerCase().includes(searchQuery.toLowerCase()))
+                );
+
                 return (
-                <div key={event._id} className="bg-black/40 border border-white/5 rounded-xl overflow-hidden group relative">
+                <div key={event._id} className={`bg-black/40 border ${isSearched ? 'border-emerald-500 bg-emerald-900/10' : 'border-white/5'} rounded-xl overflow-hidden group relative`}>
                   <div className="p-4 space-y-3">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="font-bold text-white text-lg">{event.name}</h4>
+                        <h4 className="font-playfair text-white text-xl tracking-wide">{event.name}</h4>
                         <p className="text-xs text-white/50 uppercase tracking-widest mt-1">{event.status}</p>
                         {event.subEvents && <p className="text-xs text-emerald-400 mt-1">{event.subEvents}</p>}
                       </div>
@@ -938,14 +969,18 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                     </div>
                     
                     {event.clientName && (
-                      <div className="text-xs text-white/70 bg-white/5 p-2 rounded">
-                        <p><span className="text-white/40 uppercase">Client:</span> {event.clientName}</p>
+                      <div className="text-xs text-white/70 bg-white/5 p-2 rounded border border-white/10">
+                        <p><span className="text-white/40 uppercase">Client:</span> <span className="text-emerald-400 font-bold">{event.clientName}</span></p>
                         {event.phone && <p><span className="text-white/40 uppercase">Phone:</span> {event.phone}</p>}
                         {event.email && <p><span className="text-white/40 uppercase">Email:</span> {event.email}</p>}
                       </div>
                     )}
                     
                     <div className="grid grid-cols-3 gap-2 py-2 border-y border-white/5">
+                      <div>
+                        <p className="text-[11px] text-white/40 uppercase tracking-widest">Total</p>
+                        <p className="text-sm font-bold text-white">₹{(event.totalAmount || 0).toLocaleString()}</p>
+                      </div>
                       <div>
                         <p className="text-[11px] text-white/40 uppercase tracking-widest">Paid</p>
                         <p className="text-sm text-emerald-400">₹{(event.paidAmount || 0).toLocaleString()}</p>
@@ -954,16 +989,12 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                         <p className="text-[11px] text-white/40 uppercase tracking-widest">Pending</p>
                         <p className="text-sm text-amber-500">₹{(event.pendingAmount || 0).toLocaleString()}</p>
                       </div>
-                      <div>
-                        <p className="text-[11px] text-white/40 uppercase tracking-widest">Profit</p>
-                        <p className="text-sm font-bold text-white">₹{eventProfit.toLocaleString()}</p>
-                      </div>
                     </div>
 
                     <div>
                       <p className="text-[11px] uppercase tracking-widest text-white/40 mb-1">Services</p>
                       <div className="space-y-1">
-                        {event.services?.map((item, idx) => (
+                        {(event.subEventList && event.subEventList.length > 0 ? event.subEventList.flatMap(sub => sub.services || []) : event.services || []).map((item, idx) => (
                           <div key={idx} className="flex justify-between text-xs text-white/70 bg-white/5 px-2 py-1 rounded">
                             <span>{item.name}</span>
                             <span>₹{item.price}</span>
@@ -980,9 +1011,13 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                         </p>
                         <div className="space-y-1">
                           {eventExpenses.map((exp, idx) => (
-                            <div key={idx} className="flex justify-between text-xs text-white/70 bg-red-500/5 px-2 py-1 rounded">
+                            <div key={idx} className="flex justify-between items-center text-xs text-white/70 bg-red-500/5 px-2 py-1 rounded">
                               <span className="truncate pr-2">{exp.description}</span>
-                              <span>₹{exp.amount}</span>
+                              <div className="flex items-center gap-2">
+                                <span>₹{exp.amount}</span>
+                                <button onClick={() => onEditExpense(exp)} className="text-amber-500 hover:text-white">Edit</button>
+                                <button onClick={() => onDeleteExpense(exp._id)} className="text-red-500 hover:text-white">✕</button>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -1206,6 +1241,70 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                   {(!editingEvent.subEventList || editingEvent.subEventList.length === 0) && (
                     <p className="text-xs text-white/30 italic">No sub events added. Click + Add Sub Event.</p>
                   )}
+                  
+                  {/* Deliverables */}
+                  <div className="pt-4 border-t border-white/10 mt-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <label className="block text-xs uppercase tracking-widest text-white/50">Deliverables</label>
+                      <button type="button" onClick={() => setEditingEvent({
+                        ...editingEvent, 
+                        deliverables: [...(editingEvent.deliverables || []), '']
+                      })} className="text-xs text-white/50 hover:text-white border border-white/10 px-2 py-1 rounded">+ Add Deliverable</button>
+                    </div>
+                    <div className="space-y-2">
+                      {(editingEvent.deliverables || []).map((del, dIdx) => (
+                        <div key={dIdx} className="flex gap-2">
+                          <input 
+                            type="text" 
+                            placeholder="Deliverable Name (e.g., Candid Video)" 
+                            value={del}
+                            onChange={e => {
+                              const newList = [...(editingEvent.deliverables || [])];
+                              newList[dIdx] = e.target.value;
+                              setEditingEvent({...editingEvent, deliverables: newList});
+                            }}
+                            className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-sm text-white"
+                          />
+                          <button type="button" onClick={() => {
+                            const newList = editingEvent.deliverables.filter((_, i) => i !== dIdx);
+                            setEditingEvent({...editingEvent, deliverables: newList});
+                          }} className="text-red-500 hover:text-red-400">✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Complimentries */}
+                  <div className="pt-4 border-t border-white/10 mt-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <label className="block text-xs uppercase tracking-widest text-white/50">Complimentries</label>
+                      <button type="button" onClick={() => setEditingEvent({
+                        ...editingEvent, 
+                        complimentries: [...(editingEvent.complimentries || []), '']
+                      })} className="text-xs text-white/50 hover:text-white border border-white/10 px-2 py-1 rounded">+ Add Complimentry</button>
+                    </div>
+                    <div className="space-y-2">
+                      {(editingEvent.complimentries || []).map((comp, cIdx) => (
+                        <div key={cIdx} className="flex gap-2">
+                          <input 
+                            type="text" 
+                            placeholder="Complimentry (e.g., Free Album)" 
+                            value={comp}
+                            onChange={e => {
+                              const newList = [...(editingEvent.complimentries || [])];
+                              newList[cIdx] = e.target.value;
+                              setEditingEvent({...editingEvent, complimentries: newList});
+                            }}
+                            className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-sm text-white"
+                          />
+                          <button type="button" onClick={() => {
+                            const newList = editingEvent.complimentries.filter((_, i) => i !== cIdx);
+                            setEditingEvent({...editingEvent, complimentries: newList});
+                          }} className="text-red-500 hover:text-red-400">✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
 

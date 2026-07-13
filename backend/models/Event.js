@@ -15,6 +15,8 @@ const eventSchema = new mongoose.Schema({
   discount: { type: Number, default: 0 },
   status: { type: String, default: 'pending' },
   subEvents: { type: String }, // Legacy field
+  deliverables: [{ type: String }],
+  complimentries: [{ type: String }],
   subEventList: [{
     name: { type: String, required: true },
     services: [{

@@ -72,7 +72,7 @@ export const generateEventPdf = (event, discount = 0) => {
           }
 
           // Quote on the right
-          doc.font('Helvetica-Bold').fontSize(24).fillColor(whiteColor)
+          doc.font('Times-Bold').fontSize(24).fillColor(whiteColor)
              .text(`${event.name || 'Event'} Quote`.toUpperCase(), 50, 75, { align: 'right', width: doc.page.width - 100 });
 
           // Top line separator
@@ -125,7 +125,7 @@ export const generateEventPdf = (event, discount = 0) => {
           doc.font('Helvetica').fontSize(10).fillColor(lightGrayColor);
           if (subEventList.length > 0) {
             subEventList.forEach(sub => {
-              doc.font('Helvetica-Bold').fillColor(whiteColor).text(`${sub.name}`, 65, doc.y);
+              doc.font('Times-Bold').fillColor(whiteColor).text(`${sub.name}`, 65, doc.y);
               doc.y += 5;
               doc.font('Helvetica').fillColor(lightGrayColor);
               if (sub.services && sub.services.length > 0) {
@@ -152,6 +152,30 @@ export const generateEventPdf = (event, discount = 0) => {
             doc.text('- No services listed.', 65, doc.y);
             calculatedTotal = event.totalAmount || 0;
             doc.y += 20;
+          }
+
+          const deliverables = (event.deliverables || []).filter(d => d.trim() !== '');
+          if (deliverables.length > 0) {
+            doc.y += 10;
+            doc.font('Times-Bold').fontSize(11).fillColor(whiteColor).text('DELIVERABLES', 50, doc.y);
+            doc.y += 10;
+            doc.font('Helvetica').fontSize(10).fillColor(lightGrayColor);
+            deliverables.forEach(del => {
+              doc.text(`- ${del}`, 65, doc.y);
+              doc.y += 10;
+            });
+          }
+
+          const complimentries = (event.complimentries || []).filter(c => c.trim() !== '');
+          if (complimentries.length > 0) {
+            doc.y += 10;
+            doc.font('Times-Bold').fontSize(11).fillColor(whiteColor).text('COMPLIMENTARIES', 50, doc.y);
+            doc.y += 10;
+            doc.font('Helvetica').fontSize(10).fillColor(lightGrayColor);
+            complimentries.forEach(comp => {
+              doc.text(`- ${comp}`, 65, doc.y);
+              doc.y += 10;
+            });
           }
 
           doc.moveDown(2);

@@ -4573,9 +4573,9 @@ const AdminDashboard = () => {
                         </button>
                       </div>
                     </div>
-                    <h4 className="text-white font-oswald uppercase tracking-widest text-lg mb-1">{member.title}</h4>
-                    <p className="text-xs font-sans tracking-[0.3em] text-gray-500 uppercase">{member.subtitle}</p>
-                    <p className="text-[11px] text-gray-600 mt-2">Name: {member.name}</p>
+                    <h4 className="text-white font-oswald uppercase tracking-widest text-lg mb-1">{member.name}</h4>
+                    <p className="text-xs font-sans tracking-[0.3em] text-emerald-400 uppercase">{member.title}</p>
+                    <p className="text-[11px] text-gray-400 mt-2 font-light leading-relaxed">{member.subtitle}</p>
                   </div>
                 ))}
               </div>
