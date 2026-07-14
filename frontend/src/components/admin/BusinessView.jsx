@@ -3,7 +3,7 @@ import axios from 'axios';
 import DragDropImageUploader from '../DragDropImageUploader';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
-const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers = [], highlightedBookingId, onAddPartner, onAddExpense, onEditPartner, onEditExpense, onDeletePartner, onDeleteExpense, defaultViewMode = 'overview', hideTabsAndOverview = false }) => {
+const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers = [], highlightedBookingId, onAddPartner, onAddExpense, onEditPartner, onEditExpense, onDeletePartner, onDeleteExpense, defaultViewMode = 'overview', hideTabsAndOverview = false, userPermissions = [], isSuperAdmin = false }) => {
   const [filterType, setFilterType] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [customStartDate, setCustomStartDate] = useState('');
@@ -316,18 +316,22 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
           shootEarnings += (b.totalAmount || 0) - (b.pendingAmount || 0);
           pendingShoots += (b.pendingAmount || 0);
         });
-        filteredProps.forEach(p => {
-          propEarnings += p.paidAmount || p.totalAmount || 0;
-          pendingProps += p.pendingAmount || 0;
-        });
-        filteredEvents.forEach(e => {
-          eventEarnings += e.paidAmount || 0;
-          pendingEvents += e.pendingAmount || 0;
-        });
+        if (isSuperAdmin || userPermissions.includes('props rentals')) {
+          filteredProps.forEach(p => {
+            propEarnings += p.paidAmount || p.totalAmount || 0;
+            pendingProps += p.pendingAmount || 0;
+          });
+          propExpenses = filteredExpenses.filter(e => e.type === 'Prop').reduce((a, b) => a + b.amount, 0);
+        }
+        if (isSuperAdmin || userPermissions.includes('events')) {
+          filteredEvents.forEach(e => {
+            eventEarnings += e.paidAmount || 0;
+            pendingEvents += e.pendingAmount || 0;
+          });
+          eventExpenses = filteredExpenses.filter(e => e.type === 'Event').reduce((a, b) => a + b.amount, 0);
+        }
         studioExpenses = filteredExpenses.filter(e => e.type === 'Studio').reduce((a, b) => a + b.amount, 0);
         shootExpenses = filteredExpenses.filter(e => e.type === 'Shoot').reduce((a, b) => a + b.amount, 0);
-        propExpenses = filteredExpenses.filter(e => e.type === 'Prop').reduce((a, b) => a + b.amount, 0);
-        eventExpenses = filteredExpenses.filter(e => e.type === 'Event').reduce((a, b) => a + b.amount, 0);
       } 
       else if (viewMode === 'studio_shoots') {
         // Earnings from studio shoots only
@@ -558,8 +562,12 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
            <div className="flex gap-4">
              <button onClick={() => setViewMode('overview')} className={`text-sm uppercase tracking-widest ${viewMode === 'overview' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Overview</button>
              <button onClick={() => setViewMode('studio_shoots')} className={`text-sm uppercase tracking-widest ${viewMode === 'studio_shoots' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Studio Shoots</button>
-             <button onClick={() => setViewMode('props')} className={`text-sm uppercase tracking-widest ${viewMode === 'props' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Props Rentals</button>
-             <button onClick={() => setViewMode('events')} className={`text-sm uppercase tracking-widest ${viewMode === 'events' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Events</button>
+             {(isSuperAdmin || userPermissions.includes('props rentals')) && (
+               <button onClick={() => setViewMode('props')} className={`text-sm uppercase tracking-widest ${viewMode === 'props' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Props Rentals</button>
+             )}
+             {(isSuperAdmin || userPermissions.includes('events')) && (
+               <button onClick={() => setViewMode('events')} className={`text-sm uppercase tracking-widest ${viewMode === 'events' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Events</button>
+             )}
            </div>
         </div>
       )}

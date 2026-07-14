@@ -28,6 +28,10 @@ const settingsSchema = new mongoose.Schema({
       { platform: 'Pinterest', link: '#' }
     ]
   },
+  displays: {
+    type: [{ websiteLink: String, description: String }],
+    default: []
+  },
   whatWeDo: {
     type: [{ title: String, description: String }],
     default: [

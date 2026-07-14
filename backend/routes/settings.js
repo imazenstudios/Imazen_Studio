@@ -75,11 +75,11 @@ router.put('/analytics', async (req, res) => {
 // Update contact details
 router.put('/contact', async (req, res) => {
   try {
-    const { contactEmail, whatsappNumber, teamEmails, portfolioReferrers, footerStudioAddress, footerSocials } = req.body;
+    const { contactEmail, whatsappNumber, teamEmails, portfolioReferrers, footerStudioAddress, footerSocials, displays } = req.body;
     let settings = await Settings.findOne();
     
     if (!settings) {
-      settings = new Settings({ contactEmail, whatsappNumber, teamEmails, portfolioReferrers, footerStudioAddress, footerSocials });
+      settings = new Settings({ contactEmail, whatsappNumber, teamEmails, portfolioReferrers, footerStudioAddress, footerSocials, displays });
     } else {
       if (contactEmail !== undefined) settings.contactEmail = contactEmail;
       if (whatsappNumber !== undefined) settings.whatsappNumber = whatsappNumber;
@@ -87,6 +87,7 @@ router.put('/contact', async (req, res) => {
       if (portfolioReferrers !== undefined) settings.portfolioReferrers = portfolioReferrers;
       if (footerStudioAddress !== undefined) settings.footerStudioAddress = footerStudioAddress;
       if (footerSocials !== undefined) settings.footerSocials = footerSocials;
+      if (displays !== undefined) settings.displays = displays;
     }
     
     await settings.save();

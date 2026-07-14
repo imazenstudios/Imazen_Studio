@@ -4761,12 +4761,65 @@ const AdminDashboard = () => {
                   <div>
                     <label className="block text-xs uppercase text-gray-500 mb-2">Allowed Referrers (comma separated)</label>
                     <textarea 
-                      className={glassInput} 
+                      className={`${glassInput} mb-6`} 
                       rows="2" 
                       placeholder="e.g. saiprasanth.com, linkedin.com" 
                       value={settings.portfolioReferrers ? settings.portfolioReferrers.join(', ') : ''} 
                       onChange={e => setSettings({...settings, portfolioReferrers: e.target.value.split(',').map(r => r.trim()).filter(r => r)})}
                     />
+
+                    <label className="block text-[10px] uppercase text-gray-500 mb-3 tracking-widest">Displays</label>
+                    <div className="space-y-4 mb-6">
+                      {(settings.displays || []).map((disp, idx) => (
+                        <div key={idx} className="flex gap-4 items-center">
+                          <input 
+                            type="text" 
+                            className="w-full bg-[#111] border border-white/10 rounded px-4 py-3 text-white text-sm focus:outline-none focus:border-white/30"
+                            placeholder="Website Link"
+                            value={disp.websiteLink}
+                            onChange={e => {
+                              const newDisplays = [...(settings.displays || [])];
+                              newDisplays[idx].websiteLink = e.target.value;
+                              setSettings({...settings, displays: newDisplays});
+                            }}
+                          />
+                          <input 
+                            type="text" 
+                            className="w-full bg-[#111] border border-white/10 rounded px-4 py-3 text-white text-sm focus:outline-none focus:border-white/30"
+                            placeholder="Description"
+                            value={disp.description}
+                            onChange={e => {
+                              const newDisplays = [...(settings.displays || [])];
+                              newDisplays[idx].description = e.target.value;
+                              setSettings({...settings, displays: newDisplays});
+                            }}
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              const newDisplays = (settings.displays || []).filter((_, i) => i !== idx);
+                              setSettings({...settings, displays: newDisplays});
+                            }}
+                            className="text-red-500 hover:text-red-400 p-2 text-lg"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mb-8">
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          const newDisplays = [...(settings.displays || []), { websiteLink: '', description: '' }];
+                          setSettings({...settings, displays: newDisplays});
+                        }}
+                        className="px-6 py-3 border border-white/10 bg-[#111] text-white text-xs uppercase tracking-widest hover:bg-white/5 rounded"
+                      >
+                        + Add Display
+                      </button>
+                    </div>
+
                     <button 
                       type="button" 
                       onClick={async () => {
@@ -4777,14 +4830,15 @@ const AdminDashboard = () => {
                             teamEmails: settings.teamEmails,
                             portfolioReferrers: settings.portfolioReferrers,
                             footerStudioAddress: settings.footerStudioAddress,
-                            footerSocials: settings.footerSocials
+                            footerSocials: settings.footerSocials,
+                            displays: settings.displays
                           });
-                          alert('Portfolio Referrers saved!');
+                          alert('Portfolio Settings saved!');
                         } catch(err) {
-                          alert('Failed to save referrers');
+                          alert('Failed to save settings');
                         }
                       }}
-                      className="mt-4 px-6 py-2 rounded bg-white text-black font-bold text-xs uppercase tracking-widest hover:bg-gray-200 transition-all"
+                      className="px-6 py-3 rounded bg-white text-black font-bold text-xs uppercase tracking-widest hover:bg-gray-200 transition-all"
                     >
                       Save Referrers
                     </button>
@@ -4965,6 +5019,8 @@ const AdminDashboard = () => {
               partners={partners} 
               teamMembers={teamMembers}
               highlightedBookingId={highlightedBookingId}
+              userPermissions={userPermissions}
+              isSuperAdmin={isSuperAdmin}
               onAddPartner={() => setEditingPartner({name: '', sharePercentage: 0})}
               onAddExpense={(data) => setEditingExpense(data || {date: new Date().toISOString().split('T')[0], items: [{description: '', amount: 0}], type: 'Studio'})}
               onEditPartner={setEditingPartner}
