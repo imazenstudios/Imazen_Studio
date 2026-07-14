@@ -390,12 +390,14 @@ const Book = () => {
               <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white uppercase tracking-[0.2em] mb-12 text-center bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Your Details</h2>
               {sessionStorage.getItem('portfolioMode') === 'true' ? (
                 <div className="bg-white/5 border border-white/10 p-8 rounded-xl text-center max-w-md mx-auto">
-                  <p className="text-white font-sans text-sm tracking-widest uppercase mb-2">
-                    You have entered here from the Saiprasanth portfolio or LinkedIn.
-                  </p>
-                  <p className="text-gray-400 text-xs font-sans">
-                    Booking submissions are disabled in this preview mode.
-                  </p>
+                    <p className="text-white font-sans text-sm tracking-widest uppercase mb-2">
+                      {sessionStorage.getItem('portfolioDescription') || 'You have entered here from the Saiprasanth portfolio or LinkedIn.'}
+                    </p>
+                    {!sessionStorage.getItem('portfolioDescription') && (
+                      <p className="text-gray-400 text-xs font-sans">
+                        Booking submissions are disabled in this preview mode.
+                      </p>
+                    )}
                 </div>
               ) : (
               <form onSubmit={handleSubmit} className="space-y-6 max-w-md mx-auto">

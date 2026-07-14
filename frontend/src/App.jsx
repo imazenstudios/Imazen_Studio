@@ -126,6 +126,13 @@ function App() {
               const isPortfolioMode = settings.portfolioReferrers.some(ref => referrer.includes(ref.toLowerCase()));
               if (isPortfolioMode || window.location.search.includes('source=portfolio')) {
                 sessionStorage.setItem('portfolioMode', 'true');
+                
+                if (settings.displays && settings.displays.length > 0) {
+                  const matchedDisplay = settings.displays.find(d => referrer.includes(d.websiteLink.toLowerCase()));
+                  if (matchedDisplay) {
+                    sessionStorage.setItem('portfolioDescription', matchedDisplay.description);
+                  }
+                }
               }
             }
         }

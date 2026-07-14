@@ -67,12 +67,14 @@ const Contact = () => {
         >
           {sessionStorage.getItem('portfolioMode') === 'true' ? (
             <div className="bg-white/5 border border-white/10 p-8 rounded-xl text-center max-w-md mx-auto my-12">
-              <p className="text-white font-sans text-sm tracking-widest uppercase mb-2">
-                You have entered here from the Saiprasanth portfolio or LinkedIn.
-              </p>
-              <p className="text-gray-400 text-xs font-sans">
-                Contact submissions are disabled in this preview mode.
-              </p>
+                <p className="text-white font-sans text-sm tracking-widest uppercase mb-2">
+                  {sessionStorage.getItem('portfolioDescription') || 'You have entered here from the Saiprasanth portfolio or LinkedIn.'}
+                </p>
+                {!sessionStorage.getItem('portfolioDescription') && (
+                  <p className="text-gray-400 text-xs font-sans">
+                    Contact submissions are disabled in this preview mode.
+                  </p>
+                )}
             </div>
           ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
