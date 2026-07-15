@@ -418,13 +418,38 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
     </div>
   );
 
-  const renderOverviewCards = () => (
+  const renderOverviewCards = () => {
+    let pieData = [];
+    if (viewMode === 'overview') {
+       pieData = [
+         { name: 'Shoot Profits', value: Math.max(0, totals.profitShoots), color: '#10b981' },
+         (isSuperAdmin || userPermissions.includes('props rentals')) ? { name: 'Prop Profits', value: Math.max(0, totals.profitProps), color: '#3b82f6' } : null,
+         (isSuperAdmin || userPermissions.includes('events')) ? { name: 'Event Profits', value: Math.max(0, totals.profitEvents), color: '#f59e0b' } : null,
+         { name: 'Expenditure', value: Math.max(0, totals.totalExpenses), color: '#ef4444' }
+       ].filter(Boolean);
+    } else {
+       pieData = [
+         { name: 'Total Business', value: Math.max(0, totals.earnings), color: '#3b82f6' },
+         { name: 'Pending', value: Math.max(0, totals.pending), color: '#f59e0b' },
+         { name: 'Total Expenses', value: Math.max(0, totals.totalExpenses), color: '#ef4444' },
+         { name: 'Net Profit', value: Math.max(0, totals.profit), color: '#10b981' }
+       ];
+    }
+    const filteredPieData = pieData.filter(d => d.value > 0);
+
+    return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div className="bg-[#111] p-6 rounded-xl border border-white/5">
         <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Total Business</p>
         <p className="text-3xl font-light text-emerald-400">₹{totals.earnings.toLocaleString()}</p>
         <p className="text-xs text-white mt-2">
-          {viewMode === 'overview' && `Shoots: ₹${totals.shootEarnings} | Rentals: ₹${totals.propEarnings} | Events: ₹${totals.eventEarnings}`}
+          {viewMode === 'overview' && (
+            <>
+              Shoots: ₹{totals.shootEarnings}
+              {(isSuperAdmin || userPermissions.includes('props rentals')) && ` | Rentals: ₹${totals.propEarnings}`}
+              {(isSuperAdmin || userPermissions.includes('events')) && ` | Events: ₹${totals.eventEarnings}`}
+            </>
+          )}
           {viewMode === 'studio_shoots' && `Shoots: ₹${totals.shootEarnings}`}
           {viewMode === 'props' && `Rentals: ₹${totals.propEarnings}`}
           {viewMode === 'events' && `Events: ₹${totals.eventEarnings}`}
@@ -434,7 +459,13 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Pending Amount</p>
         <p className="text-3xl font-light text-amber-500">₹{totals.pending.toLocaleString()}</p>
         <p className="text-xs text-white mt-2">
-          {viewMode === 'overview' && `Shoots: ₹${totals.pendingShoots} | Rentals: ₹${totals.pendingProps} | Events: ₹${totals.pendingEvents}`}
+          {viewMode === 'overview' && (
+            <>
+              Shoots: ₹{totals.pendingShoots}
+              {(isSuperAdmin || userPermissions.includes('props rentals')) && ` | Rentals: ₹${totals.pendingProps}`}
+              {(isSuperAdmin || userPermissions.includes('events')) && ` | Events: ₹${totals.pendingEvents}`}
+            </>
+          )}
           {viewMode === 'studio_shoots' && `Shoots: ₹${totals.pendingShoots}`}
           {viewMode === 'props' && `Rentals: ₹${totals.pendingProps}`}
           {viewMode === 'events' && `Events: ₹${totals.pendingEvents}`}
@@ -444,7 +475,12 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Total Expenses</p>
         <p className="text-3xl font-light text-red-400">₹{totals.totalExpenses.toLocaleString()}</p>
         <p className="text-xs text-white mt-2">
-          {viewMode === 'overview' && `Studio: ₹${totals.studioExpenses} | Shoot: ₹${totals.shootExpenses} | Events: ₹${totals.eventExpenses}`}
+          {viewMode === 'overview' && (
+            <>
+              Studio: ₹{totals.studioExpenses} | Shoot: ₹{totals.shootExpenses}
+              {(isSuperAdmin || userPermissions.includes('events')) && ` | Events: ₹${totals.eventExpenses}`}
+            </>
+          )}
           {viewMode === 'studio_shoots' && `Shoot Expenses: ₹${totals.shootExpenses}`}
           {viewMode === 'props' && `No Expenses tracked`}
           {viewMode === 'events' && `Events: ₹${totals.eventExpenses}`}
@@ -454,7 +490,13 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Net Profit</p>
         <p className="text-3xl font-light text-white">₹{totals.profit.toLocaleString()}</p>
         <p className="text-xs text-white mt-2">
-          {viewMode === 'overview' && `Shoots: ₹${totals.profitShoots} | Rentals: ₹${totals.profitProps} | Events: ₹${totals.profitEvents}`}
+          {viewMode === 'overview' && (
+            <>
+              Shoots: ₹{totals.profitShoots}
+              {(isSuperAdmin || userPermissions.includes('props rentals')) && ` | Rentals: ₹${totals.profitProps}`}
+              {(isSuperAdmin || userPermissions.includes('events')) && ` | Events: ₹${totals.profitEvents}`}
+            </>
+          )}
           {viewMode === 'studio_shoots' && `Shoots: ₹${totals.profitShoots}`}
           {viewMode === 'props' && `Rentals: ₹${totals.profitProps}`}
           {viewMode === 'events' && `Events: ₹${totals.profitEvents}`}
@@ -469,23 +511,9 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
            
            <div className="space-y-4">
              {(() => {
-               const data = viewMode === 'overview' 
-                 ? [
-                     { name: 'Shoot Profits', value: Math.max(0, totals.profitShoots), color: '#10b981' },
-                     { name: 'Prop Profits', value: Math.max(0, totals.profitProps), color: '#3b82f6' },
-                     { name: 'Event Profits', value: Math.max(0, totals.profitEvents), color: '#f59e0b' },
-                     { name: 'Expenditure', value: Math.max(0, totals.totalExpenses), color: '#ef4444' }
-                   ].filter(d => d.value > 0)
-                 : [
-                     { name: 'Total Business', value: Math.max(0, totals.earnings), color: '#3b82f6' },
-                     { name: 'Pending', value: Math.max(0, totals.pending), color: '#f59e0b' },
-                     { name: 'Total Expenses', value: Math.max(0, totals.totalExpenses), color: '#ef4444' },
-                     { name: 'Net Profit', value: Math.max(0, totals.profit), color: '#10b981' }
-                   ].filter(d => d.value > 0);
-
-               if (data.length === 0 || data.every(d => d.value === 0)) return <p className="text-xs text-white/30 italic">No financial data to display.</p>;
+               if (filteredPieData.length === 0) return <p className="text-xs text-white/30 italic">No financial data to display.</p>;
                
-               return data.map((d, i) => (
+               return filteredPieData.map((d, i) => (
                  <div key={i} className="flex justify-between items-center text-sm">
                    <div className="flex items-center gap-2">
                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }}></span>
@@ -501,21 +529,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
            <ResponsiveContainer width="100%" height="100%">
              <PieChart>
                <Pie
-                 data={
-                   viewMode === 'overview' 
-                     ? [
-                         { name: 'Shoot Profits', value: Math.max(0, totals.profitShoots), color: '#10b981' },
-                         { name: 'Prop Profits', value: Math.max(0, totals.profitProps), color: '#3b82f6' },
-                         { name: 'Event Profits', value: Math.max(0, totals.profitEvents), color: '#f59e0b' },
-                         { name: 'Expenditure', value: Math.max(0, totals.totalExpenses), color: '#ef4444' }
-                       ]
-                     : [
-                         { name: 'Total Business', value: Math.max(0, totals.earnings), color: '#3b82f6' },
-                         { name: 'Pending', value: Math.max(0, totals.pending), color: '#f59e0b' },
-                         { name: 'Total Expenses', value: Math.max(0, totals.totalExpenses), color: '#ef4444' },
-                         { name: 'Net Profit', value: Math.max(0, totals.profit), color: '#10b981' }
-                       ]
-                 }
+                 data={pieData}
                  cx="50%"
                  cy="50%"
                  innerRadius={60}
@@ -523,21 +537,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                  paddingAngle={5}
                  dataKey="value"
                >
-                 {(
-                   viewMode === 'overview' 
-                     ? [
-                         { name: 'Shoot Profits', value: Math.max(0, totals.profitShoots), color: '#10b981' },
-                         { name: 'Prop Profits', value: Math.max(0, totals.profitProps), color: '#3b82f6' },
-                         { name: 'Event Profits', value: Math.max(0, totals.profitEvents), color: '#f59e0b' },
-                         { name: 'Expenditure', value: Math.max(0, totals.totalExpenses), color: '#ef4444' }
-                       ]
-                     : [
-                         { name: 'Total Business', value: Math.max(0, totals.earnings), color: '#3b82f6' },
-                         { name: 'Pending', value: Math.max(0, totals.pending), color: '#f59e0b' },
-                         { name: 'Total Expenses', value: Math.max(0, totals.totalExpenses), color: '#ef4444' },
-                         { name: 'Net Profit', value: Math.max(0, totals.profit), color: '#10b981' }
-                       ]
-                 ).map((entry, index) => (
+                 {pieData.map((entry, index) => (
                    <Cell key={`cell-${index}`} fill={entry.color} stroke="transparent" />
                  ))}
                </Pie>
@@ -552,7 +552,8 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-8">
