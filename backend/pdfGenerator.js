@@ -48,21 +48,9 @@ export const generateEventPdf = (event, discount = 0) => {
         doc.y = oldY;
       };
 
-      let drawHeaderOnNewPage = false;
       // Ensure background is drawn on automatically added pages
       doc.on('pageAdded', () => {
         drawBackground();
-        if (drawHeaderOnNewPage) {
-          const oldY = doc.y;
-          const oldX = doc.x;
-          if (hasLogo) {
-            doc.image(logoPath, 50, 40, { width: 150 });
-          } else {
-            doc.font(mainHeadingFont).fontSize(24).fillColor(whiteColor).text('IMAZEN STUDIOS', 50, 50);
-          }
-          doc.x = oldX;
-          doc.y = Math.max(oldY, 100); // Ensure content starts below header
-        }
       });
 
       // Fetch settings first, then generate PDF
@@ -86,8 +74,7 @@ export const generateEventPdf = (event, discount = 0) => {
           doc.addPage();
           doc.y = 50; // Reset Y after addPage
 
-          // Header on subsequent pages
-          drawHeaderOnNewPage = true; // Enable header for auto-pages
+          // Header on subsequent pages (Only first content page)
           if (hasLogo) {
             doc.image(logoPath, 50, 40, { width: 150 });
           } else {
@@ -257,7 +244,7 @@ export const generateEventPdf = (event, discount = 0) => {
           doc.addPage();
           doc.y = 50;
           
-          doc.font(mainHeadingFont).fontSize(24).fillColor(whiteColor).text('Terms and Conditions', 50, 50);
+          doc.font(mainHeadingFont).fontSize(24).fillColor(whiteColor).text('Terms and Conditions', { align: 'center' });
           doc.moveTo(50, 110).lineTo(doc.page.width - 50, 110).strokeColor(grayColor).lineWidth(1).stroke();
           
           doc.y = 130;
@@ -308,7 +295,6 @@ export const generateEventPdf = (event, discount = 0) => {
 
 
           // --- FINAL PAGE: Contact Details (Like 3rd image) ---
-          drawHeaderOnNewPage = false; // Disable header for final contact page
           doc.addPage();
           doc.y = 50; // Reset Y
           
