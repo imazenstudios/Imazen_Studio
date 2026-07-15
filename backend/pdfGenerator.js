@@ -181,13 +181,13 @@ export const generateEventPdf = (event, discount = 0) => {
 
           const deliverables = (event.deliverables || []).filter(d => d.trim() !== '');
           if (deliverables.length > 0) {
-            checkPageBreak(40);
+            checkPageBreak(120);
             doc.y += 10;
             doc.font(secondaryFont).fontSize(11).fillColor(whiteColor).text('DELIVERABLES', 50, doc.y);
             doc.y += 15;
             doc.font(bodyFont).fontSize(10).fillColor(lightGrayColor);
             deliverables.forEach(del => {
-              checkPageBreak(20);
+              checkPageBreak(25);
               doc.text(`- ${del}`, 65, doc.y);
               doc.y += 15;
             });
@@ -195,13 +195,13 @@ export const generateEventPdf = (event, discount = 0) => {
 
           const complimentries = (event.complimentries || []).filter(c => c.trim() !== '');
           if (complimentries.length > 0) {
-            checkPageBreak(40);
+            checkPageBreak(120);
             doc.y += 10;
             doc.font(secondaryFont).fontSize(11).fillColor(whiteColor).text('COMPLIMENTARIES', 50, doc.y);
             doc.y += 15;
             doc.font(bodyFont).fontSize(10).fillColor(lightGrayColor);
             complimentries.forEach(comp => {
-              checkPageBreak(20);
+              checkPageBreak(25);
               doc.text(`- ${comp}`, 65, doc.y);
               doc.y += 15;
             });
