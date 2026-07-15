@@ -159,6 +159,25 @@ router.put('/whatwedo', async (req, res) => {
   }
 });
 
+// Update predefined services
+router.put('/predefined-services', async (req, res) => {
+  try {
+    const { predefinedServices } = req.body;
+    let settings = await Settings.findOne();
+    
+    if (!settings) {
+      settings = new Settings({ predefinedServices });
+    } else {
+      if (predefinedServices !== undefined) settings.predefinedServices = predefinedServices;
+    }
+    
+    await settings.save();
+    res.json(settings);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error updating predefined services' });
+  }
+});
+
 // Export Settings
 router.get('/export', async (req, res) => {
   try {

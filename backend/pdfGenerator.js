@@ -288,7 +288,7 @@ export const generateEventPdf = (event, discount = 0) => {
           
           doc.y += 35; // Natural flow instead of fixed bottom
           
-          doc.font(bodyFont).fontSize(14).fillColor(whiteColor).text(`With gratitude,\nTeam\nImaZen studios`, 50, doc.y, { align: 'right', width: doc.page.width - 100 });
+          doc.font(bodyFont).fontSize(12).fillColor(whiteColor).text(`With gratitude,\nTeam\nImaZen studios`, 50, doc.y, { align: 'right', width: doc.page.width - 100 });
 
 
           // --- FINAL PAGE: Contact Details (Like 3rd image) ---

@@ -47,7 +47,17 @@ const settingsSchema = new mongoose.Schema({
   weddingHeroDescription: { type: String, default: '"Imazen is the sub-brand of Astitva Creation, dedicated to capturing your most precious moments with unparalleled elegance."' },
   weddingHeroButtonText: { type: String, default: 'Visit Astitva Creations' },
   weddingHeroButtonLink: { type: String, default: 'https://astitvacreations.com' },
-  weddingHeroBackground: { type: String, default: '/images/studio.jpeg' }
+  weddingHeroBackground: { type: String, default: '/images/studio.jpeg' },
+  predefinedServices: {
+    type: [{ name: String, price: Number }],
+    default: [
+      { name: 'Candid photography', price: 10000 },
+      { name: 'Candid videography', price: 10000 },
+      { name: 'Traditional photography', price: 10000 },
+      { name: 'Traditional videography', price: 10000 },
+      { name: 'Drone', price: 15000 }
+    ]
+  }
 }, { timestamps: true });
 
 export default mongoose.model('Settings', settingsSchema);

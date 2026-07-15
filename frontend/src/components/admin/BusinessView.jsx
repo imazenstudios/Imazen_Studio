@@ -20,12 +20,36 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
   const [inventoryImageUrl, setInventoryImageUrl] = useState('');
   const [viewShootExpenses, setViewShootExpenses] = useState(null);
   const [downloadingPdfId, setDownloadingPdfId] = useState(null);
+  const [predefinedServices, setPredefinedServices] = useState([]);
+  const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
 
   useEffect(() => {
     fetchProps();
     fetchEvents();
     fetchRentalItems();
+    fetchPredefinedServices();
   }, [defaultViewMode]);
+
+  const fetchPredefinedServices = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings`);
+      if (res.data && res.data.predefinedServices) {
+        setPredefinedServices(res.data.predefinedServices);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleSavePredefinedServices = async (updatedServices) => {
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings/predefined-services`, { predefinedServices: updatedServices });
+      setPredefinedServices(updatedServices);
+    } catch (error) {
+      console.error(error);
+      alert('Failed to save predefined services');
+    }
+  };
 
   useEffect(() => {
     setViewMode(defaultViewMode);
@@ -947,9 +971,14 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="text-sm uppercase tracking-widest text-white/70">Events ({filteredEvents.length})</h3>
-            <button onClick={() => setEditingEvent({name: '', services: [], paidAmount: 0, status: 'Scheduled'})} className="px-4 py-2 bg-white text-black hover:bg-white/90 uppercase tracking-widest text-xs font-bold rounded transition-colors">
-              + New Event
-            </button>
+            <div className="flex gap-2">
+              <button onClick={() => setIsServicesModalOpen(true)} className="px-4 py-2 border border-white/20 text-white hover:bg-white/10 uppercase tracking-widest text-xs font-bold rounded transition-colors">
+                Manage Services
+              </button>
+              <button onClick={() => setEditingEvent({name: '', services: [], paidAmount: 0, status: 'Scheduled'})} className="px-4 py-2 bg-white text-black hover:bg-white/90 uppercase tracking-widest text-xs font-bold rounded transition-colors">
+                + New Event
+              </button>
+            </div>
           </div>
 
           <div className="bg-[#111] rounded-xl border border-white/5 p-6">
@@ -1220,18 +1249,26 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                       <div className="space-y-2 pl-4 border-l border-white/10">
                         {(sub.services || []).map((svc, svcIdx) => (
                           <div key={svcIdx} className="flex gap-2">
-                            <input 
-                              type="text" 
-                              placeholder="Service Name" 
+                            <select 
                               value={svc.name}
                               onChange={e => {
                                 const newList = [...(editingEvent.subEventList || [])];
-                                newList[sIdx].services[svcIdx].name = e.target.value;
+                                const val = e.target.value;
+                                newList[sIdx].services[svcIdx].name = val;
+                                const predefined = predefinedServices?.find(ps => ps.name === val);
+                                if (predefined) {
+                                  newList[sIdx].services[svcIdx].price = predefined.price;
+                                }
                                 setEditingEvent({...editingEvent, subEventList: newList});
                               }}
                               className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-xs text-white"
                               required
-                            />
+                            >
+                              <option value="">Select Service</option>
+                              {predefinedServices?.map((ps, i) => (
+                                <option key={i} value={ps.name}>{ps.name}</option>
+                              ))}
+                            </select>
                             <input 
                               type="number" 
                               placeholder="Price" 
@@ -1426,6 +1463,58 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isServicesModalOpen && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111] border border-white/10 rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-playfair text-xl text-white">Manage Predefined Services</h3>
+              <button onClick={() => setIsServicesModalOpen(false)} className="text-white/50 hover:text-white">✕</button>
+            </div>
+            <div className="space-y-4">
+              {predefinedServices.map((ps, idx) => (
+                <div key={idx} className="flex gap-2 items-center">
+                  <input 
+                    type="text" 
+                    value={ps.name} 
+                    onChange={e => {
+                      const newSvcs = [...predefinedServices];
+                      newSvcs[idx].name = e.target.value;
+                      setPredefinedServices(newSvcs);
+                    }} 
+                    className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm"
+                    placeholder="Service Name"
+                  />
+                  <input 
+                    type="number" 
+                    value={ps.price} 
+                    onChange={e => {
+                      const newSvcs = [...predefinedServices];
+                      newSvcs[idx].price = Number(e.target.value);
+                      setPredefinedServices(newSvcs);
+                    }} 
+                    className="w-24 bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm"
+                    placeholder="Price"
+                  />
+                  <button onClick={() => {
+                    const newSvcs = predefinedServices.filter((_, i) => i !== idx);
+                    setPredefinedServices(newSvcs);
+                  }} className="text-red-500 hover:text-red-400 p-2">✕</button>
+                </div>
+              ))}
+              <button onClick={() => setPredefinedServices([...predefinedServices, {name: '', price: 0}])} className="w-full py-2 border border-white/10 text-white/70 hover:text-white rounded text-sm">+ Add Service Option</button>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button onClick={() => {
+                handleSavePredefinedServices(predefinedServices);
+                setIsServicesModalOpen(false);
+              }} className="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded">
+                Save Services
+              </button>
             </div>
           </div>
         </div>
