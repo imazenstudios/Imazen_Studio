@@ -49,6 +49,8 @@ export const generateEventPdf = (event, discount = 0) => {
       };
 
       let drawHeaderOnNewPage = false;
+      let currentEventName = 'Event';
+      
       // Ensure background is drawn on automatically added pages
       doc.on('pageAdded', () => {
         drawBackground();
@@ -60,8 +62,17 @@ export const generateEventPdf = (event, discount = 0) => {
           } else {
             doc.font(mainHeadingFont).fontSize(24).fillColor(whiteColor).text('IMAZEN STUDIOS', 50, 50);
           }
+          
+          doc.font(mainHeadingFont).fontSize(32).fillColor(whiteColor)
+             .text(currentEventName.toUpperCase(), 50, 50, { align: 'right', width: doc.page.width - 100 });
+          doc.font(secondaryFont).fontSize(14).fillColor(whiteColor)
+             .text('QUOTATION', 50, 95, { align: 'right', width: doc.page.width - 100 });
+
+          const separatorY = 125;
+          doc.moveTo(50, separatorY).lineTo(doc.page.width - 50, separatorY).strokeColor(grayColor).lineWidth(1).stroke();
+          
           doc.x = oldX;
-          doc.y = Math.max(oldY, 100); // Ensure content starts below header
+          doc.y = Math.max(oldY, 155); // Ensure content starts below header and separator
         }
       });
 
@@ -83,6 +94,7 @@ export const generateEventPdf = (event, discount = 0) => {
           }
 
           // --- PAGE 2: Content ---
+          currentEventName = event.name || 'Event';
           doc.addPage();
           doc.y = 50; // Reset Y after addPage
 
@@ -303,7 +315,9 @@ export const generateEventPdf = (event, discount = 0) => {
           doc.y += 15;
           const conclusion = `Our goal is to deliver your memories with care, clarity and commitment.\nWe appreciate your understanding and cooperation in making this journey smooth and memorable for both of us.`;
           doc.text(conclusion, 50, doc.y, { width: doc.page.width - 100 });
-          doc.y += 45;
+          
+          // Place gratitude at the bottom of the page
+          doc.y = doc.page.height - 150;
           
           doc.font(mainHeadingFont).fontSize(14).fillColor(whiteColor).text(`With gratitude,\nTeam\nImaZen studios`, 50, doc.y, { align: 'right', width: doc.page.width - 100 });
 
