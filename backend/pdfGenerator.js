@@ -48,9 +48,21 @@ export const generateEventPdf = (event, discount = 0) => {
         doc.y = oldY;
       };
 
+      let drawHeaderOnNewPage = false;
       // Ensure background is drawn on automatically added pages
       doc.on('pageAdded', () => {
         drawBackground();
+        if (drawHeaderOnNewPage) {
+          const oldY = doc.y;
+          const oldX = doc.x;
+          if (hasLogo) {
+            doc.image(logoPath, 50, 40, { width: 150 });
+          } else {
+            doc.font(mainHeadingFont).fontSize(24).fillColor(whiteColor).text('IMAZEN STUDIOS', 50, 50);
+          }
+          doc.x = oldX;
+          doc.y = Math.max(oldY, 100); // Ensure content starts below header
+        }
       });
 
       // Fetch settings first, then generate PDF
@@ -75,6 +87,7 @@ export const generateEventPdf = (event, discount = 0) => {
           doc.y = 50; // Reset Y after addPage
 
           // Header on subsequent pages
+          drawHeaderOnNewPage = true; // Enable header for auto-pages
           if (hasLogo) {
             doc.image(logoPath, 50, 40, { width: 150 });
           } else {
@@ -244,11 +257,7 @@ export const generateEventPdf = (event, discount = 0) => {
           doc.addPage();
           doc.y = 50;
           
-          if (hasLogo) {
-            doc.image(logoPath, 50, 40, { width: 150 });
-          } else {
-            doc.font(mainHeadingFont).fontSize(24).fillColor(whiteColor).text('IMAZEN STUDIOS', 50, 50);
-          }
+          doc.font(mainHeadingFont).fontSize(24).fillColor(whiteColor).text('Terms and Conditions', 50, 50);
           doc.moveTo(50, 110).lineTo(doc.page.width - 50, 110).strokeColor(grayColor).lineWidth(1).stroke();
           
           doc.y = 130;
@@ -265,15 +274,15 @@ export const generateEventPdf = (event, discount = 0) => {
           
           approachTexts.forEach(text => {
              doc.text(text, 50, doc.y, { width: doc.page.width - 100, align: 'justify' });
-             doc.y = doc.y + doc.heightOfString(text, { width: doc.page.width - 100 }) + 5;
+             doc.y += 5; // Just add a small gap, doc.text already advances y
           });
           
           doc.y += 15;
           doc.font(mainHeadingFont).fontSize(16).fillColor(whiteColor).text('Kindly Note', 50, doc.y);
-          doc.y += 25;
+          doc.y += 15; // smaller gap
           doc.font(bodyFont).fontSize(10).fillColor(lightGrayColor);
           doc.text(`We truly look forward to being part of your special celebration.\nTo ensure everything goes smoothly, we kindly request your support on the following:`, 50, doc.y, { width: doc.page.width - 100 });
-          doc.y += 30;
+          doc.y += 15;
           
           const terms = [
             `For complete RAW and edited footage handover, we kindly request you to provide two new external hard disks. This is purely for safety purposes. Since electronic devices can sometimes fail unexpectedly, we prefer maintaining a backup copy to ensure your wedding memories remain completely secure. Your wedding emotions and once-in-a-lifetime moments are priceless, and we believe taking this extra precaution is the best way to protect them for years to come. All data will be carefully transferred and handed over safely to you.`,
@@ -287,7 +296,7 @@ export const generateEventPdf = (event, discount = 0) => {
           terms.forEach(term => {
              const termText = `- ${term}`;
              doc.text(termText, 50, doc.y, { width: doc.page.width - 100, align: 'justify' });
-             doc.y = doc.y + doc.heightOfString(termText, { width: doc.page.width - 100 }) + 5;
+             doc.y += 5; // small gap
           });
           
           doc.y += 10;
@@ -295,10 +304,11 @@ export const generateEventPdf = (event, discount = 0) => {
           doc.text(conclusion, 50, doc.y, { width: doc.page.width - 100 });
           doc.y += 35;
           
-          doc.font(mainHeadingFont).fontSize(12).fillColor(whiteColor).text(`With gratitude,\nTeam\nImaZen studios`, 50, doc.y);
+          doc.font(mainHeadingFont).fontSize(12).fillColor(whiteColor).text(`With gratitude,\nTeam\nImaZen studios`, 50, doc.y, { align: 'right', width: doc.page.width - 100 });
 
 
           // --- FINAL PAGE: Contact Details (Like 3rd image) ---
+          drawHeaderOnNewPage = false; // Disable header for final contact page
           doc.addPage();
           doc.y = 50; // Reset Y
           
