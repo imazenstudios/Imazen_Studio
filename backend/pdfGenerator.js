@@ -271,9 +271,15 @@ export const generateEventPdf = (event, discount = 0) => {
           doc.y += 15;
           
           const terms = [
-            `For complete RAW and edited footage handover, we kindly request you to provide two new external hard disks. This is purely for safety purposes. Since electronic devices can sometimes fail unexpectedly, we prefer maintaining a backup copy to ensure your wedding memories remain completely secure. Your wedding emotions and once-in-a-lifetime moments are priceless, and we believe taking this extra precaution is the best way to protect them for years to come. All data will be carefully transferred and handed over safely to you.`,
-            `We kindly request you to cover all travel and accommodation expenses for our team, ensuring they have a comfortable stay. This allows us to focus entirely on capturing your special moments without any logistical worries.`,
-            `We operate with a minimum team of 3 members and can expand up to 10 or 15 depending on your event's scale. It is crucial to finalize the exact number of team members before the project begins so we can seamlessly plan and execute the shoot without any last-minute adjustments.`
+            `For complete RAW and edited footage handover, we kindly request you to provide two new external hard disks.
+This is purely for safety purposes. Since electronic devices can sometimes fail unexpectedly, we prefer maintaining a backup copy to ensure your wedding memories remain completely secure.
+Your wedding emotions and once-in-a-lifetime moments are priceless, and we believe taking this extra precaution is the best way to protect them for years to come.
+All data will be carefully transferred and handed over safely to you.`,
+            `To confirm the booking and block our team's dates, a 20% advance of the total budget is required. This helps us dedicate our complete availability exclusively for your event.`,
+            `After the pre-wedding shoot, 20% of the remaining payment will be cleared.`,
+            `Another 40% will be paid after the completion of all events.`,
+            `The final 20% will be paid after album and video delivery.`,
+            `Travel and accommodation arrangements for our team during the Event will be taken care of by the client.`
           ];
           
           terms.forEach(term => {
