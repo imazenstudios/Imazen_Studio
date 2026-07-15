@@ -19,6 +19,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
   const [editingInventoryItem, setEditingInventoryItem] = useState(null);
   const [inventoryImageUrl, setInventoryImageUrl] = useState('');
   const [viewShootExpenses, setViewShootExpenses] = useState(null);
+  const [downloadingPdfId, setDownloadingPdfId] = useState(null);
 
   useEffect(() => {
     fetchProps();
@@ -223,6 +224,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
   };
 
   const handleDownloadEventPdf = async (id) => {
+    setDownloadingPdfId(id);
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${id}/download-pdf`, {}, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -239,6 +241,8 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
     } catch (error) {
       console.error(error);
       alert('Failed to download PDF');
+    } finally {
+      setDownloadingPdfId(null);
     }
   };
 
@@ -1042,7 +1046,13 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                     })} className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded">
                       + Expense
                     </button>
-                    <button onClick={() => handleDownloadEventPdf(event._id)} className="text-blue-400 hover:text-white text-xs mr-2">Download PDF</button>
+                    <button 
+                      onClick={() => handleDownloadEventPdf(event._id)} 
+                      disabled={downloadingPdfId === event._id}
+                      className={`text-xs mr-2 ${downloadingPdfId === event._id ? 'text-gray-500 cursor-not-allowed' : 'text-blue-400 hover:text-white'}`}
+                    >
+                      {downloadingPdfId === event._id ? 'Downloading...' : 'Download PDF'}
+                    </button>
                     <button onClick={() => handleSendEventPdf(event._id)} className="text-emerald-400 hover:text-white text-xs mr-2">Send PDF</button>
                     <button onClick={() => setEditingEvent(event)} className="text-amber-500 hover:text-white text-xs">Edit</button>
                     <button onClick={() => handleDeleteEvent(event._id)} className="text-red-500 hover:text-white text-xs">Delete</button>
