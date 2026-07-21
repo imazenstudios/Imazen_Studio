@@ -111,12 +111,12 @@ const Contact = () => {
                     onChange={e => setFormData({...formData, countryCode: e.target.value})}
                     className="w-24 bg-black/40 border border-white/10 rounded-xl p-4 text-white focus:border-white focus:bg-white/5 outline-none transition-all font-sans appearance-none text-center cursor-pointer"
                   >
-                    <option value="91">IN (+91)</option>
-                    <option value="1">US (+1)</option>
-                    <option value="44">UK (+44)</option>
-                    <option value="971">UAE (+971)</option>
-                    <option value="61">AU (+61)</option>
-                    <option value="65">SG (+65)</option>
+                    <option value="91" className="bg-[#111] text-white tracking-widest">IN (+91)</option>
+                    <option value="1" className="bg-[#111] text-white tracking-widest">US (+1)</option>
+                    <option value="44" className="bg-[#111] text-white tracking-widest">UK (+44)</option>
+                    <option value="971" className="bg-[#111] text-white tracking-widest">UAE (+971)</option>
+                    <option value="61" className="bg-[#111] text-white tracking-widest">AU (+61)</option>
+                    <option value="65" className="bg-[#111] text-white tracking-widest">SG (+65)</option>
                   </select>
                   <input 
                     type="tel" 
