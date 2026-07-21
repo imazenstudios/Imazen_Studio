@@ -19,6 +19,7 @@ const Book = () => {
     slot: '',
     name: '',
     email: '',
+    countryCode: '91',
     phone: '',
     babyAge: '',
     notes: ''
@@ -110,6 +111,7 @@ const Book = () => {
     try {
       await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings`, {
         ...formData,
+        phone: `${formData.countryCode}${formData.phone}`,
         shootType: getActiveTitle(),
       });
       navigate('/thank-you?type=booking');
@@ -407,12 +409,25 @@ const Book = () => {
                   
                   <input type="email" placeholder="EMAIL ADDRESS *" required className="w-full bg-black/40 border border-white/10 rounded-xl p-5 font-sans text-xs tracking-[0.2em] text-white placeholder-gray-600 focus:outline-none focus:border-white/50 focus:bg-white/5 transition-all"
                     value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
-                    
-                  <input type="tel" placeholder="PHONE NUMBER *" required pattern="[0-9]{10}" maxLength="10" title="Phone number must be exactly 10 digits" className="w-full bg-black/40 border border-white/10 rounded-xl p-5 font-sans text-xs tracking-[0.2em] uppercase text-white placeholder-gray-600 focus:outline-none focus:border-white/50 focus:bg-white/5 transition-all"
-                    value={formData.phone} onChange={e => {
-                      const val = e.target.value.replace(/\D/g, '');
-                      if (val.length <= 10) setFormData({...formData, phone: val});
-                    }} />
+                  <div className="flex gap-2">
+                    <select
+                      value={formData.countryCode}
+                      onChange={e => setFormData({...formData, countryCode: e.target.value})}
+                      className="w-24 bg-black/40 border border-white/10 rounded-xl p-5 font-sans text-xs tracking-[0.2em] text-white focus:outline-none focus:border-white/50 focus:bg-white/5 transition-all appearance-none text-center cursor-pointer"
+                    >
+                      <option value="91">IN (+91)</option>
+                      <option value="1">US (+1)</option>
+                      <option value="44">UK (+44)</option>
+                      <option value="971">UAE (+971)</option>
+                      <option value="61">AU (+61)</option>
+                      <option value="65">SG (+65)</option>
+                    </select>
+                    <input type="tel" placeholder="PHONE NUMBER *" required pattern="[0-9]{10}" maxLength="10" title="Phone number must be exactly 10 digits" className="flex-1 bg-black/40 border border-white/10 rounded-xl p-5 font-sans text-xs tracking-[0.2em] uppercase text-white placeholder-gray-600 focus:outline-none focus:border-white/50 focus:bg-white/5 transition-all"
+                      value={formData.phone} onChange={e => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        if (val.length <= 10) setFormData({...formData, phone: val});
+                      }} />
+                  </div>
                     
                   <textarea placeholder="SPECIAL NOTES OR REQUESTS" className="w-full bg-black/40 border border-white/10 rounded-xl p-5 font-sans text-xs tracking-[0.2em] uppercase text-white placeholder-gray-600 focus:outline-none focus:border-white/50 focus:bg-white/5 transition-all min-h-[120px] resize-none"
                     value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})}></textarea>

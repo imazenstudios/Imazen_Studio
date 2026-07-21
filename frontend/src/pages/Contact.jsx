@@ -8,6 +8,7 @@ const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    countryCode: '91',
     phone: '',
     interestedIn: ''
   });
@@ -35,7 +36,7 @@ const Contact = () => {
       const payload = {
         name: formData.name,
         email: formData.email,
-        phone: formData.phone,
+        phone: `${formData.countryCode}${formData.phone}`,
         subject: formData.interestedIn,
         message: `I am interested in ${formData.interestedIn}.`
       };
@@ -104,13 +105,33 @@ const Contact = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-xs uppercase text-gray-500 tracking-widest mb-2">Phone Number</label>
-                <input 
-                  type="tel" 
-                  required
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white focus:border-white focus:bg-white/5 outline-none transition-all font-sans"
-                />
+                <div className="flex gap-2">
+                  <select
+                    value={formData.countryCode}
+                    onChange={e => setFormData({...formData, countryCode: e.target.value})}
+                    className="w-24 bg-black/40 border border-white/10 rounded-xl p-4 text-white focus:border-white focus:bg-white/5 outline-none transition-all font-sans appearance-none text-center cursor-pointer"
+                  >
+                    <option value="91">IN (+91)</option>
+                    <option value="1">US (+1)</option>
+                    <option value="44">UK (+44)</option>
+                    <option value="971">UAE (+971)</option>
+                    <option value="61">AU (+61)</option>
+                    <option value="65">SG (+65)</option>
+                  </select>
+                  <input 
+                    type="tel" 
+                    required
+                    maxLength="10"
+                    pattern="[0-9]{10}"
+                    title="Phone number must be exactly 10 digits"
+                    value={formData.phone}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      if (val.length <= 10) setFormData({...formData, phone: val});
+                    }}
+                    className="flex-1 bg-black/40 border border-white/10 rounded-xl p-4 text-white focus:border-white focus:bg-white/5 outline-none transition-all font-sans"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-xs uppercase text-gray-500 tracking-widest mb-2">Interested In</label>

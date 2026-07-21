@@ -28,7 +28,7 @@ const ReferenceLandingPage = () => {
   }, []);
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', serviceId: '', subId: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', countryCode: '91', phone: '', serviceId: '', subId: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [services, setServices] = useState([]);
   const [activePackages, setActivePackages] = useState([]);
@@ -82,15 +82,16 @@ const ReferenceLandingPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    try {
-      const selectedService = services.find(s => s.slug === formData.serviceId);
-      const selectedSub = selectedService?.subServices?.find(sub => sub.slug === formData.subId);
-      
-      const payload = { 
-        ...formData, 
-        interestedIn: selectedSub ? selectedSub.title : (selectedService ? selectedService.title : 'Baby Shoot'),
-        landingPageSource: pageData?.name || 'Landing Page' 
-      };
+      try {
+        const selectedService = services.find(s => s.slug === formData.serviceId);
+        const selectedSub = selectedService?.subServices?.find(sub => sub.slug === formData.subId);
+        
+        const payload = { 
+          ...formData, 
+          phone: `${formData.countryCode}${formData.phone}`,
+          interestedIn: selectedSub ? selectedSub.title : (selectedService ? selectedService.title : 'Baby Shoot'),
+          landingPageSource: pageData?.name || 'Landing Page' 
+        };
       
       await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/leads`, payload);
       navigate('/thank-you?type=lead');
@@ -681,14 +682,35 @@ const ReferenceLandingPage = () => {
                     value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})}
                   />
                 </div>
-                <div>
-                  <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Phone Number</label>
-                  <input 
-                    type="tel" required
-                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/50 transition-colors"
-                    value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})}
-                  />
-                </div>
+                       <div>
+                    <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Phone Number</label>
+                    <div className="flex gap-2">
+                      <select
+                        value={formData.countryCode}
+                        onChange={e => setFormData({...formData, countryCode: e.target.value})}
+                        className="w-24 bg-black/50 border border-white/10 rounded-xl px-2 py-3 text-white focus:outline-none focus:border-white/50 transition-colors appearance-none text-center cursor-pointer"
+                      >
+                        <option value="91">IN (+91)</option>
+                        <option value="1">US (+1)</option>
+                        <option value="44">UK (+44)</option>
+                        <option value="971">UAE (+971)</option>
+                        <option value="61">AU (+61)</option>
+                        <option value="65">SG (+65)</option>
+                      </select>
+                      <input 
+                        type="tel" required
+                        maxLength="10"
+                        pattern="[0-9]{10}"
+                        title="Phone number must be exactly 10 digits"
+                        className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/50 transition-colors"
+                        value={formData.phone} 
+                        onChange={e => {
+                          const val = e.target.value.replace(/\D/g, '');
+                          if (val.length <= 10) setFormData({...formData, phone: val});
+                        }}
+                      />
+                    </div>
+                  </div>
 
                 <div>
                   <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Service</label>
