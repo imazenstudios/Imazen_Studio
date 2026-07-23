@@ -147,35 +147,29 @@ function App() {
     initAnalytics();
   }, []);
 
-  const showLoader = isLoading || !animationFinished;
-  const isFadingOut = !isLoading && animationFinished;
+  const isFadingOut = !isLoading;
 
   return (
     <>
-      {showLoader && (
-        <div className={`fixed inset-0 z-[9999] bg-[#050505] flex flex-col items-center justify-center transition-opacity duration-500 ${isFadingOut ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-          <div className="relative w-40 sm:w-64 h-20 sm:h-24">
-            <img src="/images/logo.png" alt="Imazen Studios Logo" className="absolute inset-0 w-full h-full object-contain opacity-20" />
-            <div 
-              className="absolute top-0 left-0 h-full overflow-hidden" 
-              style={{ animation: 'fillLogo 2s ease-in-out forwards' }}
-              onAnimationEnd={() => {
-                setAnimationFinished(true);
-              }}
-            >
-              <img src="/images/logo.png" alt="Imazen Studios Logo" className="w-40 sm:w-64 h-20 sm:h-24 object-contain max-w-none origin-left" />
-            </div>
+      <div className={`fixed inset-0 z-[9999] bg-[#050505] flex flex-col items-center justify-center transition-opacity duration-500 ${isFadingOut ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+        <div className="relative w-40 sm:w-64 h-20 sm:h-24">
+          <img src="/images/logo.png" alt="Imazen Studios Logo" className="absolute inset-0 w-full h-full object-contain opacity-20" />
+          <div 
+            className="absolute top-0 left-0 h-full overflow-hidden" 
+            style={{ animation: 'fillLogo 2s ease-in-out forwards' }}
+          >
+            <img src="/images/logo.png" alt="Imazen Studios Logo" className="w-40 sm:w-64 h-20 sm:h-24 object-contain max-w-none origin-left" />
           </div>
-          <style>{`
-            @keyframes fillLogo {
-              0% { width: 0%; }
-              100% { width: 100%; }
-            }
-          `}</style>
         </div>
-      )}
+        <style>{`
+          @keyframes fillLogo {
+            0% { width: 0%; }
+            100% { width: 100%; }
+          }
+        `}</style>
+      </div>
 
-      {(!isLoading && animationFinished) && (
+      {!isLoading && (
       <HelmetProvider>
       <Router>
         <NoInternetOverlay />
