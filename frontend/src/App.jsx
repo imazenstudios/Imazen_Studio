@@ -75,6 +75,13 @@ function App() {
   const [adminBypass, setAdminBypass] = useState(false);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setAnimationFinished(true);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     // Check for admin bypass in localStorage
     if (localStorage.getItem('adminBypass') === 'true') {
       setAdminBypass(true);
@@ -159,9 +166,6 @@ function App() {
             <div 
               className="absolute top-0 left-0 h-full overflow-hidden" 
               style={{ animation: 'fillLogo 2.5s ease-in-out forwards' }}
-              onAnimationEnd={() => {
-                setAnimationFinished(true);
-              }}
             >
               <img src="/images/logo.png" alt="Imazen Studios Logo" className="w-40 sm:w-64 h-20 sm:h-24 object-contain max-w-none origin-left" />
             </div>
