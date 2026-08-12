@@ -37,10 +37,6 @@ const Footer = ({ isLandingPage = false, hideInquiries = false }) => {
   return (
     <footer className="bg-[#050505] text-white relative overflow-hidden pt-32 pb-12 border-t border-white/5 bg-cover bg-center" style={{ backgroundImage: "url('/images/logo2.png')" }}>
       
-      {/* Massive Background Typography */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[18vw] font-oswald font-bold text-white/5 whitespace-nowrap select-none pointer-events-none z-0 tracking-widest">
-        TWILIGHT
-      </div>
       <div className="absolute inset-0 bg-black/80 pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 flex flex-col items-center">
