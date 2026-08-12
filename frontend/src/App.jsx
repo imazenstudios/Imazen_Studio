@@ -154,13 +154,12 @@ function App() {
     initAnalytics();
   }, []);
 
-  const showLoader = isLoading || !animationFinished;
-  const isFadingOut = !isLoading && animationFinished;
+  const showLoader = !animationFinished;
 
   return (
     <>
       {showLoader && (
-        <div className={`fixed inset-0 z-[9999] bg-[#050505] flex flex-col items-center justify-center transition-opacity duration-500 ${isFadingOut ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+        <div className="fixed inset-0 z-[9999] bg-[#050505] flex flex-col items-center justify-center opacity-100">
           <div className="relative w-40 sm:w-64 h-20 sm:h-24">
             <img src="/images/logo.png" alt="Imazen Studios Logo" className="absolute inset-0 w-full h-full object-contain opacity-20" />
             <div 
@@ -179,7 +178,7 @@ function App() {
         </div>
       )}
 
-      {(!isLoading && animationFinished) && (
+      {!showLoader && (
       <HelmetProvider>
       <Router>
         <NoInternetOverlay />

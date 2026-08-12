@@ -12,8 +12,20 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 const Hero = () => {
-  const [slides, setSlides] = useState([]);
-  
+  const fallbackSlides = [
+    { img: 'https://images.unsplash.com/photo-1544256627-c10f8546b4fb?q=80&w=1920&auto=format&fit=crop', text: 'Premium Baby Studio', title: 'TIMELESS', titleOutline: '& CINEMATIC MEMORIES.' },
+    { img: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?q=80&w=1920&auto=format&fit=crop', text: 'Maternity Experiences', title: 'BEAUTIFUL', titleOutline: 'JOURNEY' },
+    { img: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=1920&auto=format&fit=crop', text: 'Cinematic Storytelling', title: 'CINEMATIC', titleOutline: 'STORIES' },
+  ];
+
+  const [slides, setSlides] = useState(() => {
+    const cached = localStorage.getItem('heroSlides');
+    if (cached) {
+      try { return JSON.parse(cached); } catch(e) {}
+    }
+    return fallbackSlides;
+  });
+
   // Helper to optimize Cloudinary URLs
   const optimizeCloudinaryUrl = (url) => {
     if (!url || !url.includes('cloudinary.com')) return url;
@@ -37,13 +49,7 @@ const Hero = () => {
       .then(res => {
         if (res.data && res.data.length > 0) {
           setSlides(res.data);
-        } else {
-          // Fallback slides
-          setSlides([
-            { img: 'https://images.unsplash.com/photo-1544256627-c10f8546b4fb?q=80&w=1920&auto=format&fit=crop', text: 'Premium Baby Studio', title: 'TIMELESS', titleOutline: '& CINEMATIC MEMORIES.' },
-            { img: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?q=80&w=1920&auto=format&fit=crop', text: 'Maternity Experiences', title: 'BEAUTIFUL', titleOutline: 'JOURNEY' },
-            { img: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=1920&auto=format&fit=crop', text: 'Cinematic Storytelling', title: 'CINEMATIC', titleOutline: 'STORIES' },
-          ]);
+          localStorage.setItem('heroSlides', JSON.stringify(res.data));
         }
       })
       .catch(console.error);
