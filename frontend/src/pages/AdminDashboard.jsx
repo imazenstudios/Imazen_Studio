@@ -1556,12 +1556,12 @@ const AdminDashboard = () => {
                           <div className="space-y-3">
                             {(settings.footerSocials || []).map((social, idx) => (
                               <div key={idx} className="flex gap-2 items-center">
-                                <input type="text" className={`${glassInput} w-1/3`} placeholder="Platform (e.g. Instagram)" value={social.platform} onChange={e => {
+                                <input type="text" className={`${glassInput.replace('w-full', '')} w-1/3`} placeholder="Platform (e.g. Instagram)" value={social.platform} onChange={e => {
                                   const newSocials = [...settings.footerSocials];
                                   newSocials[idx].platform = e.target.value;
                                   setSettings({...settings, footerSocials: newSocials});
                                 }} />
-                                <input type="text" className={`${glassInput} flex-1`} placeholder="Link (e.g. https://...)" value={social.link} onChange={e => {
+                                <input type="text" className={`${glassInput.replace('w-full', '')} flex-1`} placeholder="Link (e.g. https://...)" value={social.link} onChange={e => {
                                   const newSocials = [...settings.footerSocials];
                                   newSocials[idx].link = e.target.value;
                                   setSettings({...settings, footerSocials: newSocials});

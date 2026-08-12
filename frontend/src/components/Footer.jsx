@@ -46,9 +46,14 @@ const Footer = ({ isLandingPage = false, hideInquiries = false }) => {
           
           <div className="flex flex-col items-center md:items-start">
             <h3 className="font-oswald text-2xl uppercase tracking-[0.3em] mb-6">Studio</h3>
-            <p className="text-xs font-sans text-gray-400 tracking-widest leading-relaxed whitespace-pre-line">
+            <a 
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contact.footerStudioAddress || "123 Cinematic Way\nAesthetic District\nNew York, NY 10012")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-sans text-gray-400 tracking-widest leading-relaxed whitespace-pre-line text-center md:text-left hover:text-white transition-colors"
+            >
               {contact.footerStudioAddress || "123 Cinematic Way\nAesthetic District\nNew York, NY 10012"}
-            </p>
+            </a>
           </div>
 
           <div className="flex flex-col items-center">
