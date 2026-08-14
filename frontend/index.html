@@ -3,7 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/images/favicon.svg" />
-    <link rel="apple-touch-icon" href="/images/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#050505" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Imazen Studios" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Imazen Studios | Largest Premium Photography Studio in Srikakulam</title>
     <meta name="description" content="Capture your most beautiful memories with Imazen Studios. We specialize in premium Maternity, Newborn, Baby, and Family cinematic photography in Srikakulam, Vizag, and Vizianagaram." />
@@ -55,5 +60,14 @@
     </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((reg) => console.log('PWA Service Worker registered:', reg.scope))
+            .catch((err) => console.error('PWA Service Worker registration failed:', err));
+        });
+      }
+    </script>
   </body>
 </html>
