@@ -209,6 +209,15 @@ const Navbar = () => {
               <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">About</Link>
               <Link to="/testimonials" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">Testimonials</Link>
               <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">Contact</Link>
+              <button 
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  window.dispatchEvent(new CustomEvent('open-pwa-install'));
+                }} 
+                className="text-xl font-oswald text-white uppercase tracking-[0.2em] flex items-center gap-2"
+              >
+                <span>Install App</span>
+              </button>
               <Link 
                 to="/book"
                 onClick={() => setIsMobileMenuOpen(false)}
