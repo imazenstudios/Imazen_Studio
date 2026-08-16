@@ -129,6 +129,10 @@ function App() {
                 fbq('track', 'PageView');
               `;
               document.head.appendChild(pixelScript);
+
+              const pixelNoscript = document.createElement('noscript');
+              pixelNoscript.innerHTML = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${encodeURIComponent(settings.metaPixelId)}&ev=PageView&noscript=1" />`;
+              document.head.appendChild(pixelNoscript);
             } catch (e) {
               console.warn('Meta Pixel injection error:', e);
             }
