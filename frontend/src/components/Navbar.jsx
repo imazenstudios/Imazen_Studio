@@ -158,6 +158,17 @@ const Navbar = () => {
                 <span className="absolute -bottom-2 left-1/2 w-0 h-[1px] bg-white group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
               </Link>
             </motion.div>
+
+            {/* Install App */}
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.35 }}>
+              <button 
+                onClick={() => window.dispatchEvent(new CustomEvent('open-pwa-install'))}
+                className="font-sans text-xs text-white brightness-125 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block"
+              >
+                Install App
+                <span className="absolute -bottom-2 left-1/2 w-0 h-[1px] bg-white group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
+              </button>
+            </motion.div>
           </div>
 
           {/* BOOK BUTTON */}
