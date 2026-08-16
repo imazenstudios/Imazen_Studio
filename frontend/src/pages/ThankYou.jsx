@@ -7,6 +7,22 @@ const ThankYou = () => {
   
   useEffect(() => {
     window.scrollTo(0, 0);
+    try {
+      if (typeof window.fbq === 'function') {
+        const searchParams = new URLSearchParams(window.location.search);
+        const pageType = searchParams.get('type') || 'contact';
+        if (pageType === 'booking') {
+          window.fbq('track', 'Schedule');
+          window.fbq('track', 'Lead');
+        } else if (pageType === 'contact') {
+          window.fbq('track', 'Contact');
+        } else {
+          window.fbq('track', 'Lead');
+        }
+      }
+    } catch (e) {
+      console.warn('Meta Pixel thank you tracking error:', e);
+    }
   }, []);
 
   const searchParams = new URLSearchParams(location.search);
