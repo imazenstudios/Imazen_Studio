@@ -94,37 +94,43 @@ function App() {
         const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings`);
         const settings = res.data;
         if (settings) {
-          if (settings.googleAnalyticsId) {
-            // Inject Google Analytics
-            const gaScript = document.createElement('script');
-            gaScript.async = true;
-            gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${settings.googleAnalyticsId}`;
-            document.head.appendChild(gaScript);
+          if (settings.googleAnalyticsId && typeof settings.googleAnalyticsId === 'string' && settings.googleAnalyticsId.trim() !== '' && !settings.googleAnalyticsId.includes('XXXX')) {
+            try {
+              const gaScript = document.createElement('script');
+              gaScript.async = true;
+              gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(settings.googleAnalyticsId)}`;
+              document.head.appendChild(gaScript);
 
-            const gaInit = document.createElement('script');
-            gaInit.innerHTML = `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', '${settings.googleAnalyticsId}');
-            `;
-            document.head.appendChild(gaInit);
+              const gaInit = document.createElement('script');
+              gaInit.innerHTML = `
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', ${JSON.stringify(settings.googleAnalyticsId)});
+              `;
+              document.head.appendChild(gaInit);
+            } catch (e) {
+              console.warn('GA injection error:', e);
+            }
           }
-          if (settings.metaPixelId) {
-            // Inject Meta Pixel
-            const pixelScript = document.createElement('script');
-            pixelScript.innerHTML = `
-              !function(f,b,e,v,n,t,s)
-              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-              n.queue=[];t=b.createElement(e);t.async=!0;
-              t.src=v;s=b.getElementsByTagName(e)[0];
-              s.parentNode.insertBefore(t,s)}(window, document,'script',
-              'https://connect.facebook.net/en_US/fbevents.js');
-              fbq('init', '${settings.metaPixelId}');
-            `;
-            document.head.appendChild(pixelScript);
+          if (settings.metaPixelId && typeof settings.metaPixelId === 'string' && settings.metaPixelId.trim() !== '' && settings.metaPixelId !== 'null' && !settings.metaPixelId.includes('XXXX')) {
+            try {
+              const pixelScript = document.createElement('script');
+              pixelScript.innerHTML = `
+                !function(f,b,e,v,n,t,s)
+                {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+                n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+                if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+                n.queue=[];t=b.createElement(e);t.async=!0;
+                t.src=v;s=b.getElementsByTagName(e)[0];
+                s.parentNode.insertBefore(t,s)}(window, document,'script',
+                'https://connect.facebook.net/en_US/fbevents.js');
+                fbq('init', ${JSON.stringify(settings.metaPixelId)});
+              `;
+              document.head.appendChild(pixelScript);
+            } catch (e) {
+              console.warn('Meta Pixel injection error:', e);
+            }
           }
             if (settings.maintenanceMode) {
               setMaintenanceMode(true);
