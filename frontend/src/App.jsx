@@ -126,6 +126,7 @@ function App() {
                 s.parentNode.insertBefore(t,s)}(window, document,'script',
                 'https://connect.facebook.net/en_US/fbevents.js');
                 fbq('init', ${JSON.stringify(settings.metaPixelId)});
+                fbq('track', 'PageView');
               `;
               document.head.appendChild(pixelScript);
             } catch (e) {
