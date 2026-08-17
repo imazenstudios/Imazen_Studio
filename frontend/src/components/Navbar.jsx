@@ -159,16 +159,7 @@ const Navbar = () => {
               </Link>
             </motion.div>
 
-            {/* Install App */}
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.35 }}>
-              <button 
-                onClick={() => window.dispatchEvent(new CustomEvent('open-pwa-install'))}
-                className="font-sans text-xs text-white brightness-125 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block"
-              >
-                Install App
-                <span className="absolute -bottom-2 left-1/2 w-0 h-[1px] bg-white group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
-              </button>
-            </motion.div>
+
           </div>
 
           {/* BOOK BUTTON */}
@@ -220,15 +211,7 @@ const Navbar = () => {
               <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">About</Link>
               <Link to="/testimonials" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">Testimonials</Link>
               <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-oswald text-white uppercase tracking-[0.2em]">Contact</Link>
-              <button 
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  window.dispatchEvent(new CustomEvent('open-pwa-install'));
-                }} 
-                className="text-xl font-oswald text-white uppercase tracking-[0.2em] flex items-center gap-2"
-              >
-                <span>Install App</span>
-              </button>
+
               <Link 
                 to="/book"
                 onClick={() => setIsMobileMenuOpen(false)}

@@ -30,7 +30,7 @@ import ReferenceLandingPage from './pages/ReferenceLandingPage';
 import Wedding from './pages/Wedding';
 
 import ScrollToTopButton from './components/ScrollToTopButton';
-import PWAInstallPrompt from './components/PWAInstallPrompt';
+
 
 // Create a layout component to conditionally hide header/footer
 const Layout = ({ children }) => {
@@ -63,7 +63,7 @@ const Layout = ({ children }) => {
       {!isAdmin && <Footer />}
       {!isAdmin && <WhatsAppButton />}
       {!isAdmin && <ScrollToTopButton />}
-      {!isAdmin && <PWAInstallPrompt />}
+
     </div>
   );
 };
