@@ -1758,7 +1758,7 @@ const AdminDashboard = () => {
                         <h2 className="text-lg font-oswald text-white uppercase tracking-widest mb-1">Landing Pages</h2>
                         <p className="text-xs text-emerald-300/70 tracking-wide">Manage standalone landing pages for campaigns and promotions.</p>
                       </div>
-                      <button onClick={() => setEditingLandingPage({ name: '', slug: '', heroImage: '', mobileHeroImage: '', landingAbout: { title: '', description: '', imageUrl: '' }, features: [], faqs: [], portfolioImages: [], portfolioVideos: [], callToActionLink: '', isActive: true })} className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                      <button onClick={() => setEditingLandingPage({ name: '', slug: '', heroImage: '', cardImage: '', mobileHeroImage: '', landingAbout: { title: '', description: '', imageUrl: '' }, features: [], faqs: [], portfolioImages: [], portfolioVideos: [], callToActionLink: '', isActive: true })} className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)]">
                         + New Page
                       </button>
                     </div>
@@ -1766,7 +1766,7 @@ const AdminDashboard = () => {
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {landingPages.map(page => (
                         <div key={page._id} className={`${glassPanel} overflow-hidden group relative h-[250px]`}>
-                          <img src={page.heroImage || page.landingAbout?.imageUrl || 'https://via.placeholder.com/800x600?text=No+Image'} alt={page.name} className="w-full h-full object-cover opacity-50 group-hover:opacity-30 group-hover:scale-110 transition-all duration-700 cursor-pointer" />
+                          <img src={page.cardImage || page.heroImage || page.landingAbout?.imageUrl || 'https://via.placeholder.com/800x600?text=No+Image'} alt={page.name} className="w-full h-full object-cover opacity-50 group-hover:opacity-30 group-hover:scale-110 transition-all duration-700 cursor-pointer" />
                           <div className="absolute inset-0 p-6 flex flex-col justify-end bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none">
                             <h3 className="text-xl text-white font-oswald uppercase tracking-widest">{page.name}</h3>
                             <span className="mt-1 text-[11px] text-emerald-400 font-sans tracking-widest uppercase">/{page.slug}</span>
@@ -1806,9 +1806,15 @@ const AdminDashboard = () => {
                             </div>
                           </div>
                           
-                          <div className="mt-4">
-                            <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Desktop Hero Image</label>
-                            <DragDropImageUploader currentImage={editingLandingPage.heroImage} aspect={16/9} onUploadSuccess={(url) => setEditingLandingPage({...editingLandingPage, heroImage: url})} />
+                          <div className="grid grid-cols-2 gap-4 mt-4">
+                            <div>
+                              <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Desktop Hero Image</label>
+                              <DragDropImageUploader currentImage={editingLandingPage.heroImage} aspect={16/9} onUploadSuccess={(url) => setEditingLandingPage({...editingLandingPage, heroImage: url})} />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Admin Card Image</label>
+                              <DragDropImageUploader currentImage={editingLandingPage.cardImage} aspect={16/9} onUploadSuccess={(url) => setEditingLandingPage({...editingLandingPage, cardImage: url})} />
+                            </div>
                           </div>
                           
                           <div>
