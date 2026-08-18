@@ -3540,16 +3540,16 @@ const AdminDashboard = () => {
                                   <input type="number" name="pendingAmount" value={(booking.totalAmount || 0) - ((booking.payments && booking.payments.length > 0) ? booking.payments.reduce((sum, p) => sum + p.amount, 0) : (booking.advanceAmount || 0))} readOnly className={`${glassInput} w-full py-1 px-2 text-xs text-red-400 cursor-not-allowed opacity-70`} />
                                 </div>
                                 
-                                <div className="col-span-12 border-t border-white/10 my-1 pt-2">
-                                  <h5 className="text-[10px] uppercase text-gray-400 mb-2">Add Installment</h5>
+                                <div className="col-span-12 border-t border-white/10 my-1 pt-3">
+                                  <h5 className="text-[10px] uppercase text-gray-400 mb-3">Add Installment</h5>
                                 </div>
-                                <div className="col-span-3">
+                                <div className="col-span-6">
                                   <label className="block text-[9px] uppercase text-white mb-1">Amount</label>
-                                  <input type="number" name="newPaymentAmount" placeholder="Amount" className={`${glassInput} w-full py-1 px-2 text-xs`} />
+                                  <input type="number" name="newPaymentAmount" placeholder="Amount" className={`${glassInput} w-full py-1.5 px-2 text-xs`} />
                                 </div>
-                                <div className="col-span-3">
+                                <div className="col-span-6">
                                   <label className="block text-[9px] uppercase text-white mb-1">Method</label>
-                                  <select name="newPaymentMethod" className={`${glassInput} w-full py-1 px-2 text-xs`} onChange={(e) => {
+                                  <select name="newPaymentMethod" className={`${glassInput} w-full py-1.5 px-2 text-xs`} onChange={(e) => {
                                     const utrContainer = e.target.closest('form').querySelector('.utr-container');
                                     if(e.target.value === 'UPI') utrContainer.classList.remove('hidden');
                                     else utrContainer.classList.add('hidden');
@@ -3558,13 +3558,13 @@ const AdminDashboard = () => {
                                     <option value="UPI" className="bg-[#111]">UPI</option>
                                   </select>
                                 </div>
-                                <div className="col-span-3 utr-container hidden">
+                                <div className="col-span-6 utr-container hidden">
                                   <label className="block text-[9px] uppercase text-white mb-1">UTR Number</label>
-                                  <input type="text" name="newPaymentUTR" placeholder="UTR (If UPI)" className={`${glassInput} w-full py-1 px-2 text-xs`} />
+                                  <input type="text" name="newPaymentUTR" placeholder="UTR (If UPI)" className={`${glassInput} w-full py-1.5 px-2 text-xs`} />
                                 </div>
-                                <div className="col-span-3">
+                                <div className="col-span-6">
                                   <label className="block text-[9px] uppercase text-white mb-1">Received By</label>
-                                  <select name="newPaymentReceivedBy" className={`${glassInput} w-full py-1 px-2 text-xs`}>
+                                  <select name="newPaymentReceivedBy" className={`${glassInput} w-full py-1.5 px-2 text-xs`}>
                                     <option value="" className="bg-[#111]">Select Member</option>
                                     {teamMembers.map(tm => (
                                       <option key={tm._id} value={tm._id} className="bg-[#111] text-white">{tm.name}</option>
@@ -3572,8 +3572,8 @@ const AdminDashboard = () => {
                                   </select>
                                 </div>
                                 
-                                <div className="col-span-12 mt-1">
-                                  <button type="submit" disabled={isGlobalSubmitting} className="w-full py-1.5 bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white rounded text-[11px] uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Updating...' : 'Update Payment'}</button>
+                                <div className="col-span-12 mt-3">
+                                  <button type="submit" disabled={isGlobalSubmitting} className="w-full py-2 bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white rounded text-[11px] uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Updating...' : 'Update Payment'}</button>
                                 </div>
                               </form>
                             </div>
