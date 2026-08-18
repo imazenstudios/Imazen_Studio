@@ -912,6 +912,33 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleDeleteInstallment = async (bookingId, paymentId) => {
+    if (!window.confirm('Are you sure you want to delete this installment?')) return;
+    
+    const booking = bookings.find(b => b._id === bookingId);
+    if (!booking) return;
+    
+    const updatedPayments = booking.payments.filter(p => p._id !== paymentId);
+    const advance = updatedPayments.length > 0 
+      ? updatedPayments.reduce((sum, p) => sum + p.amount, 0)
+      : 0;
+      
+    const payload = {
+      totalAmount: booking.totalAmount,
+      advanceAmount: advance,
+      pendingAmount: (booking.totalAmount || 0) - advance,
+      payments: updatedPayments
+    };
+    
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${bookingId}/payment`, payload);
+      fetchData();
+    } catch (error) {
+      console.error(error);
+      alert('Error deleting installment');
+    }
+  };
+
   const handleUpdatePayment = async (bookingId, e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -3519,7 +3546,10 @@ const AdminDashboard = () => {
                                     {booking.payments.map((p, idx) => (
                                       <div key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-black/50 p-1.5 rounded text-[10px] text-gray-300">
                                         <span>{new Date(p.date).toLocaleDateString()} - {p.method} {p.method === 'UPI' && p.utrNumber ? `(UTR: ${p.utrNumber})` : ''}</span>
-                                        <span>₹{p.amount} (Rcvd by: {teamMembers.find(tm => tm._id === p.receivedBy)?.name || 'Unknown'})</span>
+                                        <div className="flex items-center gap-2">
+                                          <span>₹{p.amount} (Rcvd by: {teamMembers.find(tm => tm._id === p.receivedBy)?.name || 'Unknown'})</span>
+                                          <button type="button" onClick={() => handleDeleteInstallment(booking._id, p._id)} className="text-red-500 hover:text-red-400 p-0.5" title="Delete Installment">✕</button>
+                                        </div>
                                       </div>
                                     ))}
                                   </div>
