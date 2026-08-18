@@ -1808,11 +1808,21 @@ const AdminDashboard = () => {
                           
                           <div className="grid grid-cols-2 gap-4 mt-4">
                             <div>
-                              <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Desktop Hero Image</label>
+                              <div className="flex justify-between items-center mb-2">
+                                <label className="block text-[11px] text-gray-500 uppercase tracking-widest">Desktop Hero Image</label>
+                                {editingLandingPage.heroImage && (
+                                  <button type="button" onClick={() => setEditingLandingPage({...editingLandingPage, heroImage: ''})} className="text-[9px] text-red-500 hover:text-red-400 uppercase tracking-widest">Remove</button>
+                                )}
+                              </div>
                               <DragDropImageUploader currentImage={editingLandingPage.heroImage} aspect={16/9} onUploadSuccess={(url) => setEditingLandingPage({...editingLandingPage, heroImage: url})} />
                             </div>
                             <div>
-                              <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Admin Card Image</label>
+                              <div className="flex justify-between items-center mb-2">
+                                <label className="block text-[11px] text-gray-500 uppercase tracking-widest">Admin Card Image</label>
+                                {editingLandingPage.cardImage && (
+                                  <button type="button" onClick={() => setEditingLandingPage({...editingLandingPage, cardImage: ''})} className="text-[9px] text-red-500 hover:text-red-400 uppercase tracking-widest">Remove</button>
+                                )}
+                              </div>
                               <DragDropImageUploader currentImage={editingLandingPage.cardImage} aspect={16/9} onUploadSuccess={(url) => setEditingLandingPage({...editingLandingPage, cardImage: url})} />
                             </div>
                           </div>
@@ -1960,7 +1970,16 @@ const AdminDashboard = () => {
                                 
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
-                                    <label className="block text-[9px] text-gray-500 mb-1 uppercase">Desktop Image</label>
+                                    <div className="flex justify-between items-center mb-1">
+                                      <label className="block text-[9px] text-gray-500 uppercase">Desktop Image</label>
+                                      {slide.imageUrl && (
+                                        <button type="button" onClick={() => {
+                                          const newSlides = [...editingLandingPage.heroSlides];
+                                          newSlides[idx].imageUrl = '';
+                                          setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
+                                        }} className="text-[9px] text-red-500 hover:text-red-400 uppercase">Remove</button>
+                                      )}
+                                    </div>
                                     <DragDropImageUploader currentImage={slide.imageUrl} aspect={16/9} onUploadSuccess={(url) => {
                                       const newSlides = [...editingLandingPage.heroSlides];
                                       newSlides[idx].imageUrl = url;
@@ -1968,7 +1987,16 @@ const AdminDashboard = () => {
                                     }} />
                                   </div>
                                   <div>
-                                    <label className="block text-[9px] text-gray-500 mb-1 uppercase">Mobile Image</label>
+                                    <div className="flex justify-between items-center mb-1">
+                                      <label className="block text-[9px] text-gray-500 uppercase">Mobile Image</label>
+                                      {slide.mobileImageUrl && (
+                                        <button type="button" onClick={() => {
+                                          const newSlides = [...editingLandingPage.heroSlides];
+                                          newSlides[idx].mobileImageUrl = '';
+                                          setEditingLandingPage({...editingLandingPage, heroSlides: newSlides});
+                                        }} className="text-[9px] text-red-500 hover:text-red-400 uppercase">Remove</button>
+                                      )}
+                                    </div>
                                     <DragDropImageUploader currentImage={slide.mobileImageUrl} aspect={9/16} onUploadSuccess={(url) => {
                                       const newSlides = [...editingLandingPage.heroSlides];
                                       newSlides[idx].mobileImageUrl = url;

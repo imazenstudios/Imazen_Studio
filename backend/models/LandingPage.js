@@ -33,6 +33,7 @@ const landingPageSchema = new mongoose.Schema({
   // New Dynamic Content Fields
   logoUrl: { type: String },
   heroImage: { type: String },
+  cardImage: { type: String },
   mobileHeroImage: { type: String },
   
   approachHeading: { type: String, default: 'Our Approach' },

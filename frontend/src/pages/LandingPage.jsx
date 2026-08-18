@@ -56,10 +56,14 @@ const ReferenceLandingPage = () => {
 
   // Use pageData if available, fallback to default hardcoded arrays
   const heroImages = (pageData?.heroSlides && pageData.heroSlides.length > 0) 
-    ? pageData.heroSlides.map(s => s.imageUrl) 
+    ? pageData.heroSlides.map(s => ({ desktop: s.imageUrl, mobile: s.mobileImageUrl || s.imageUrl })) 
     : pageData?.heroImage 
-      ? [pageData.heroImage] 
-      : ['/images/about_bg.jpeg', '/images/experience_bg.jpeg', '/images/studio.jpeg'];
+      ? [{ desktop: pageData.heroImage, mobile: pageData.mobileHeroImage || pageData.heroImage }] 
+      : [
+          { desktop: '/images/about_bg.jpeg', mobile: '/images/about_bg.jpeg' },
+          { desktop: '/images/experience_bg.jpeg', mobile: '/images/experience_bg.jpeg' },
+          { desktop: '/images/studio.jpeg', mobile: '/images/studio.jpeg' }
+        ];
 
 
   useEffect(() => {
@@ -226,7 +230,8 @@ const ReferenceLandingPage = () => {
             {heroImages.map((img, i) => (
               <SwiperSlide key={i}>
                 <div className="w-full h-full">
-                  <img src={img} alt="Hero Background" className="w-full h-full object-cover opacity-60 scale-105 transform hover:scale-100 transition-transform duration-[10s] ease-out" />
+                  <img src={img.desktop} alt="Hero Background" className="hidden md:block w-full h-full object-cover opacity-60 scale-105 transform hover:scale-100 transition-transform duration-[10s] ease-out" />
+                  <img src={img.mobile} alt="Hero Background Mobile" className="block md:hidden w-full h-full object-cover opacity-60 scale-105 transform hover:scale-100 transition-transform duration-[10s] ease-out" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-black/50 to-black/20" />
                 </div>
               </SwiperSlide>
