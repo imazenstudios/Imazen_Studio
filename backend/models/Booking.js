@@ -36,6 +36,13 @@ const bookingSchema = new mongoose.Schema({
   totalAmount: { type: Number, default: 0 },
   advanceAmount: { type: Number, default: 0 },
   pendingAmount: { type: Number, default: 0 },
+  payments: [{
+    amount: { type: Number, required: true },
+    method: { type: String, enum: ['Cash', 'UPI'], required: true },
+    utrNumber: { type: String },
+    receivedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamMember', required: true },
+    date: { type: Date, default: Date.now }
+  }],
   assignedTeamMember: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamMember' },
   shootStatus: { type: String, default: '' },
   // Follow-ups

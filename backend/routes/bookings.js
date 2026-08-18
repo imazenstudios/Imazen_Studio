@@ -471,10 +471,10 @@ router.put('/:id/details', async (req, res) => {
 // Admin: Update payment tracking
 router.put('/:id/payment', async (req, res) => {
   try {
-    const { totalAmount, advanceAmount, pendingAmount } = req.body;
+    const { totalAmount, advanceAmount, pendingAmount, payments } = req.body;
     const booking = await Booking.findByIdAndUpdate(
       req.params.id, 
-      { totalAmount, advanceAmount, pendingAmount }, 
+      { totalAmount, advanceAmount, pendingAmount, payments }, 
       { returnDocument: 'after' }
     );
     res.json(booking);

@@ -916,16 +916,52 @@ const AdminDashboard = () => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const total = Number(formData.get('totalAmount'));
-    const advance = Number(formData.get('advanceAmount'));
+    const newAmount = Number(formData.get('newPaymentAmount'));
+    
+    const booking = bookings.find(b => b._id === bookingId);
+    let updatedPayments = [...(booking.payments || [])];
+    
+    if (newAmount > 0) {
+      const method = formData.get('newPaymentMethod');
+      const utrNumber = formData.get('newPaymentUTR');
+      const receivedBy = formData.get('newPaymentReceivedBy');
+      
+      if (!receivedBy) {
+         alert('Please select who received the payment.');
+         return;
+      }
+      if (method === 'UPI' && !utrNumber) {
+         alert('Please enter UTR number for UPI payment.');
+         return;
+      }
+      
+      updatedPayments.push({
+        amount: newAmount,
+        method,
+        utrNumber,
+        receivedBy,
+        date: new Date()
+      });
+    }
+
+    const advance = updatedPayments.length > 0 
+      ? updatedPayments.reduce((sum, p) => sum + p.amount, 0)
+      : Number(formData.get('advanceAmount') || 0);
+      
     const payload = {
       totalAmount: total,
       advanceAmount: advance,
       pendingAmount: total - advance,
+      payments: updatedPayments
     };
     try {
       await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${bookingId}/payment`, payload);
       fetchData();
       alert('Payment tracking updated');
+      e.target.reset();
+      // Reset the UTR visibility
+      const utrContainer = e.target.querySelector('.utr-container');
+      if(utrContainer) utrContainer.classList.add('hidden');
     } catch (error) {
       console.error(error);
       alert('Error updating payment');
@@ -3475,20 +3511,68 @@ const AdminDashboard = () => {
                             {/* Payment Tracking */}
                             <div className="mb-4 bg-black/40 border border-white/5 rounded-xl p-3">
                               <h4 className="font-oswald text-sm md:text-base text-white uppercase tracking-widest mb-2">Payment Tracking</h4>
-                              <form onSubmit={(e) => handleUpdatePayment(booking._id, e)} className="grid grid-cols-3 gap-2">
-                                <div>
-                                  <label className="block text-xs uppercase text-white mb-1">Total</label>
-                                  <input type="number" name="totalAmount" defaultValue={booking.totalAmount || 0} className={`${glassInput} py-1 px-2 text-xs`} />
+                              
+                              {booking.payments && booking.payments.length > 0 && (
+                                <div className="mb-3">
+                                  <h5 className="text-[10px] uppercase text-gray-400 mb-1">Installments</h5>
+                                  <div className="space-y-1">
+                                    {booking.payments.map((p, idx) => (
+                                      <div key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-black/50 p-1.5 rounded text-[10px] text-gray-300">
+                                        <span>{new Date(p.date).toLocaleDateString()} - {p.method} {p.method === 'UPI' && p.utrNumber ? `(UTR: ${p.utrNumber})` : ''}</span>
+                                        <span>₹{p.amount} (Rcvd by: {teamMembers.find(tm => tm._id === p.receivedBy)?.name || 'Unknown'})</span>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
-                                <div>
-                                  <label className="block text-xs uppercase text-white mb-1">Paid So Far</label>
-                                  <input type="number" name="advanceAmount" defaultValue={booking.advanceAmount || 0} className={`${glassInput} py-1 px-2 text-xs text-green-400`} />
+                              )}
+
+                              <form onSubmit={(e) => handleUpdatePayment(booking._id, e)} className="grid grid-cols-12 gap-2 items-end">
+                                <div className="col-span-4">
+                                  <label className="block text-[10px] uppercase text-white mb-1">Total Amount</label>
+                                  <input type="number" name="totalAmount" defaultValue={booking.totalAmount || 0} className={`${glassInput} w-full py-1 px-2 text-xs`} />
                                 </div>
-                                <div>
-                                  <label className="block text-xs uppercase text-white mb-1">Pending</label>
-                                  <input type="number" name="pendingAmount" value={(booking.totalAmount || 0) - (booking.advanceAmount || 0)} readOnly className={`${glassInput} py-1 px-2 text-xs text-red-400 cursor-not-allowed opacity-70`} />
+                                <div className="col-span-4">
+                                  <label className="block text-[10px] uppercase text-white mb-1">Paid So Far</label>
+                                  <input type="number" name="advanceAmount" value={(booking.payments && booking.payments.length > 0) ? booking.payments.reduce((sum, p) => sum + p.amount, 0) : (booking.advanceAmount || 0)} readOnly={(booking.payments && booking.payments.length > 0)} className={`${glassInput} w-full py-1 px-2 text-xs text-green-400 ${booking.payments && booking.payments.length > 0 ? 'cursor-not-allowed opacity-70' : ''}`} />
                                 </div>
-                                <div className="col-span-3 mt-1">
+                                <div className="col-span-4">
+                                  <label className="block text-[10px] uppercase text-white mb-1">Pending</label>
+                                  <input type="number" name="pendingAmount" value={(booking.totalAmount || 0) - ((booking.payments && booking.payments.length > 0) ? booking.payments.reduce((sum, p) => sum + p.amount, 0) : (booking.advanceAmount || 0))} readOnly className={`${glassInput} w-full py-1 px-2 text-xs text-red-400 cursor-not-allowed opacity-70`} />
+                                </div>
+                                
+                                <div className="col-span-12 border-t border-white/10 my-1 pt-2">
+                                  <h5 className="text-[10px] uppercase text-gray-400 mb-2">Add Installment</h5>
+                                </div>
+                                <div className="col-span-3">
+                                  <label className="block text-[9px] uppercase text-white mb-1">Amount</label>
+                                  <input type="number" name="newPaymentAmount" placeholder="Amount" className={`${glassInput} w-full py-1 px-2 text-xs`} />
+                                </div>
+                                <div className="col-span-3">
+                                  <label className="block text-[9px] uppercase text-white mb-1">Method</label>
+                                  <select name="newPaymentMethod" className={`${glassInput} w-full py-1 px-2 text-xs`} onChange={(e) => {
+                                    const utrContainer = e.target.closest('form').querySelector('.utr-container');
+                                    if(e.target.value === 'UPI') utrContainer.classList.remove('hidden');
+                                    else utrContainer.classList.add('hidden');
+                                  }}>
+                                    <option value="Cash" className="bg-[#111]">Cash</option>
+                                    <option value="UPI" className="bg-[#111]">UPI</option>
+                                  </select>
+                                </div>
+                                <div className="col-span-3 utr-container hidden">
+                                  <label className="block text-[9px] uppercase text-white mb-1">UTR Number</label>
+                                  <input type="text" name="newPaymentUTR" placeholder="UTR (If UPI)" className={`${glassInput} w-full py-1 px-2 text-xs`} />
+                                </div>
+                                <div className="col-span-3">
+                                  <label className="block text-[9px] uppercase text-white mb-1">Received By</label>
+                                  <select name="newPaymentReceivedBy" className={`${glassInput} w-full py-1 px-2 text-xs`}>
+                                    <option value="" className="bg-[#111]">Select Member</option>
+                                    {teamMembers.map(tm => (
+                                      <option key={tm._id} value={tm._id} className="bg-[#111] text-white">{tm.name}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                                
+                                <div className="col-span-12 mt-1">
                                   <button type="submit" disabled={isGlobalSubmitting} className="w-full py-1.5 bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white rounded text-[11px] uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Updating...' : 'Update Payment'}</button>
                                 </div>
                               </form>
