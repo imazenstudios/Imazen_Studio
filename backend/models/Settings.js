@@ -15,6 +15,7 @@ const settingsSchema = new mongoose.Schema({
   googleAnalyticsId: { type: String, default: '' },
   contactEmail: { type: String, default: 'hello@imazenstudios.in' },
   whatsappNumber: { type: String, default: '+919999999999' },
+  contactNumber: { type: String, default: '+919999999999' },
   teamEmails: { type: [String], default: [] },
   portfolioReferrers: { type: [String], default: [] },
   maintenanceMode: { type: Boolean, default: false },

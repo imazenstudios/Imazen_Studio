@@ -75,14 +75,15 @@ router.put('/analytics', async (req, res) => {
 // Update contact details
 router.put('/contact', async (req, res) => {
   try {
-    const { contactEmail, whatsappNumber, teamEmails, portfolioReferrers, footerStudioAddress, footerSocials, displays } = req.body;
+    const { contactEmail, whatsappNumber, contactNumber, teamEmails, portfolioReferrers, footerStudioAddress, footerSocials, displays } = req.body;
     let settings = await Settings.findOne();
     
     if (!settings) {
-      settings = new Settings({ contactEmail, whatsappNumber, teamEmails, portfolioReferrers, footerStudioAddress, footerSocials, displays });
+      settings = new Settings({ contactEmail, whatsappNumber, contactNumber, teamEmails, portfolioReferrers, footerStudioAddress, footerSocials, displays });
     } else {
       if (contactEmail !== undefined) settings.contactEmail = contactEmail;
       if (whatsappNumber !== undefined) settings.whatsappNumber = whatsappNumber;
+      if (contactNumber !== undefined) settings.contactNumber = contactNumber;
       if (teamEmails !== undefined) settings.teamEmails = teamEmails;
       if (portfolioReferrers !== undefined) settings.portfolioReferrers = portfolioReferrers;
       if (footerStudioAddress !== undefined) settings.footerStudioAddress = footerStudioAddress;

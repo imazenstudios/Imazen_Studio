@@ -829,6 +829,7 @@ const AdminDashboard = () => {
       await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings/contact`, {
         contactEmail: settings.contactEmail,
         whatsappNumber: settings.whatsappNumber,
+        contactNumber: settings.contactNumber,
         teamEmails: settings.teamEmails,
         footerStudioAddress: settings.footerStudioAddress,
         footerSocials: settings.footerSocials,
@@ -1559,6 +1560,10 @@ const AdminDashboard = () => {
                         <div>
                           <label className="block text-xs uppercase text-gray-500 mb-2">WhatsApp Number</label>
                           <input type="text" className={glassInput} placeholder="e.g. +919999999999" value={settings.whatsappNumber || ''} onChange={e => setSettings({...settings, whatsappNumber: e.target.value})} />
+                        </div>
+                        <div>
+                          <label className="block text-xs uppercase text-gray-500 mb-2">Contact Number (Calls)</label>
+                          <input type="text" className={glassInput} placeholder="e.g. +919999999999" value={settings.contactNumber || ''} onChange={e => setSettings({...settings, contactNumber: e.target.value})} />
                         </div>
                         <div>
                           <label className="block text-xs uppercase text-gray-500 mb-2">Contact Email</label>
@@ -3463,8 +3468,40 @@ const AdminDashboard = () => {
                             [b.name, b.phone, b.email].some(val => val && String(val).toLowerCase().includes(bookingSearchText.toLowerCase()));
                           return matchesMonth && matchesStatus && matchesSearch;
                         }).map(booking => (
-                          <div key={booking._id} id={`booking-${booking._id}`} className={`${glassPanel} p-6 flex flex-col relative transition-all duration-500 ${highlightedBookingId === booking._id ? 'border-2 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)] scale-[1.02] bg-emerald-900/10' : ''}`}>
-                            <div className="absolute top-4 right-4 flex gap-2 z-10">
+                          <div key={booking._id} id={`booking-${booking._id}`} className={viewingDetailsBookingId === booking._id ? "" : `${glassPanel} p-6 flex flex-col relative transition-all duration-500 ${highlightedBookingId === booking._id ? 'border-2 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)] scale-[1.02] bg-emerald-900/10' : ''}`}>
+                            {viewingDetailsBookingId !== booking._id ? (
+                              <div className="flex flex-col h-full">
+                                <div className="flex justify-between items-start mb-4 pr-12">
+                                  <div>
+                                    {booking.bookingType === 'Studio' && (
+                                      <span className="inline-block bg-blue-600/20 text-blue-400 text-[9px] px-2 py-0.5 rounded uppercase tracking-widest mb-1 border border-blue-500/20">Studio Booking</span>
+                                    )}
+                                    {booking.isSubscription && (
+                                      <span className="inline-block bg-purple-600/20 text-purple-400 text-[9px] px-2 py-0.5 rounded uppercase tracking-widest mb-1 border border-purple-500/20">Subscription</span>
+                                    )}
+                                    <h3 className="text-xl text-white font-oswald uppercase tracking-widest">{booking.name}</h3>
+                                    <p className="text-xs text-gray-400 font-sans">{booking.phone}</p>
+                                    <p className="text-xs text-gray-400 font-sans">{booking.email}</p>
+                                  </div>
+                                </div>
+                                <div className="bg-black/30 rounded-lg p-3 grid grid-cols-2 gap-2 text-xs mb-4 border border-white/5 flex-1">
+                                  <div><span className="text-gray-500 uppercase text-[9px] block">Package</span><span className="text-white">{booking.package}</span></div>
+                                  <div><span className="text-gray-500 uppercase text-[9px] block">Shoot Date</span><span className="text-emerald-400">{booking.date}</span></div>
+                                  <div><span className="text-gray-500 uppercase text-[9px] block">Booking Date</span><span className="text-white">{new Date(booking.createdAt || booking.date).toLocaleDateString()}</span></div>
+                                  <div><span className="text-gray-500 uppercase text-[9px] block">Slot</span><span className="text-emerald-400">{booking.slots && booking.slots.length > 0 ? booking.slots.join(', ') : booking.slot}</span></div>
+                                </div>
+                                <button 
+                                  onClick={() => setViewingDetailsBookingId(booking._id)}
+                                  className="w-full py-2 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-500 hover:text-white rounded-lg text-xs uppercase tracking-widest transition-colors border border-emerald-500/20 font-bold mt-auto"
+                                >
+                                  View Details
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="fixed inset-0 z-[100] bg-black/95 overflow-y-auto flex justify-center items-start p-4 backdrop-blur-md">
+                                <div className="w-full max-w-4xl bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 relative shadow-2xl mt-4 sm:mt-10 mb-10 animate-fade-in">
+                                  <button type="button" onClick={(e) => { e.stopPropagation(); setViewingDetailsBookingId(null); }} className="absolute top-4 right-4 text-gray-400 hover:text-white text-xl z-20 w-8 h-8 flex items-center justify-center bg-black/40 rounded-full">✕</button>
+                                  <div className="absolute top-4 right-16 flex gap-2 z-10">
                               <button 
                                 onClick={() => { setActiveTab('business'); setHighlightedBookingId(booking._id); }}
                                 className="text-[11px] text-emerald-400/70 hover:text-emerald-400 uppercase tracking-widest flex items-center gap-1 bg-emerald-900/20 px-2 py-1 rounded border border-emerald-500/20 transition-colors"
@@ -3746,6 +3783,9 @@ const AdminDashboard = () => {
                                 Delete Booking
                               </button>
                             </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
