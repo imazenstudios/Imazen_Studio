@@ -349,17 +349,17 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
             propEarnings += p.paidAmount || p.totalAmount || 0;
             pendingProps += p.pendingAmount || 0;
           });
-          propExpenses = filteredExpenses.filter(e => e.type === 'Prop').reduce((a, b) => a + b.amount, 0);
+          propExpenses = filteredExpenses.filter(e => e.type === 'Prop' && filteredProps.some(cp => cp._id === e.bookingId)).reduce((a, b) => a + b.amount, 0);
         }
         if (isSuperAdmin || userPermissions.includes('events')) {
           filteredEvents.forEach(e => {
             eventEarnings += e.paidAmount || 0;
             pendingEvents += e.pendingAmount || 0;
           });
-          eventExpenses = filteredExpenses.filter(e => e.type === 'Event').reduce((a, b) => a + b.amount, 0);
+          eventExpenses = filteredExpenses.filter(e => e.type === 'Event' && filteredEvents.some(ce => ce._id === e.bookingId)).reduce((a, b) => a + b.amount, 0);
         }
         studioExpenses = filteredExpenses.filter(e => e.type === 'Studio').reduce((a, b) => a + b.amount, 0);
-        shootExpenses = filteredExpenses.filter(e => e.type === 'Shoot').reduce((a, b) => a + b.amount, 0);
+        shootExpenses = filteredExpenses.filter(e => e.type === 'Shoot' && allBookings.some(cb => cb._id === e.bookingId)).reduce((a, b) => a + b.amount, 0);
       } 
       else if (viewMode === 'studio_shoots') {
         // Earnings from studio shoots only
@@ -375,7 +375,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
           propEarnings += p.paidAmount || p.totalAmount || 0;
           pendingProps += p.pendingAmount || 0;
         });
-        propExpenses = filteredExpenses.filter(e => e.type === 'Prop').reduce((a, b) => a + b.amount, 0);
+        propExpenses = filteredExpenses.filter(e => e.type === 'Prop' && filteredProps.some(cp => cp._id === e.bookingId)).reduce((a, b) => a + b.amount, 0);
       }
       else if (viewMode === 'events') {
         // Earnings from events only
@@ -383,7 +383,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
           eventEarnings += e.paidAmount || 0;
           pendingEvents += e.pendingAmount || 0;
         });
-        eventExpenses = filteredExpenses.filter(e => e.type === 'Event').reduce((a, b) => a + b.amount, 0);
+        eventExpenses = filteredExpenses.filter(e => e.type === 'Event' && filteredEvents.some(ce => ce._id === e.bookingId)).reduce((a, b) => a + b.amount, 0);
       }
   
       const earnings = shootEarnings + propEarnings + eventEarnings;
