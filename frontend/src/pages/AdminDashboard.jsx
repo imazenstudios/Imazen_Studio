@@ -27,6 +27,7 @@ const AdminDashboard = () => {
   const [filterPending, setFilterPending] = useState('all');
   const [filterConfirmed, setFilterConfirmed] = useState('all');
   const [highlightedBookingId, setHighlightedBookingId] = useState(null);
+  const [viewingDetailsBookingId, setViewingDetailsBookingId] = useState(null);
 
   // Data States
   const [content, setContent] = useState([]);
