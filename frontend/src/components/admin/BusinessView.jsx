@@ -511,7 +511,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
        ].filter(Boolean);
     } else {
        pieData = [
-         { name: 'Total Business', value: Math.max(0, totals.earnings), color: '#3b82f6' },
+         { name: 'Amount received', value: Math.max(0, totals.earnings), color: '#3b82f6' },
          { name: 'Pending', value: Math.max(0, totals.pending), color: '#f59e0b' },
          { name: 'Total Expenses', value: Math.max(0, totals.totalExpenses), color: '#ef4444' },
          { name: 'Net Profit', value: Math.max(0, totals.profit), color: '#10b981' }
@@ -522,7 +522,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
     return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div className="bg-[#111] p-6 rounded-xl border border-white/5">
-        <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Total Business</p>
+        <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Amount received</p>
         <p className="text-3xl font-light text-emerald-400">₹{totals.earnings.toLocaleString()}</p>
         <p className="text-xs text-white mt-2">
           {viewMode === 'overview' && (

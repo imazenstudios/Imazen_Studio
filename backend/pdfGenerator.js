@@ -248,15 +248,15 @@ export const generateEventPdf = (event, discount = 0) => {
 
           // --- PAGE: Terms & Conditions ---
           doc.addPage();
-          doc.y = 45;
+          doc.y = 50;
           
-          doc.font(mainHeadingFont).fontSize(22).fillColor(whiteColor).text('Terms and Conditions', { align: 'center' });
+          doc.font(mainHeadingFont).fontSize(26).fillColor(whiteColor).text('Terms and Conditions', { align: 'center' });
+          doc.y += 18;
+          
+          doc.font(mainHeadingFont).fontSize(16).fillColor(whiteColor).text('Our Shooting Approach', { align: 'center' });
           doc.y += 12;
           
-          doc.font(mainHeadingFont).fontSize(14).fillColor(whiteColor).text('Our Shooting Approach', { align: 'center' });
-          doc.y += 8;
-          
-          doc.font(bodyFont).fontSize(9.5).fillColor(lightGrayColor);
+          doc.font(bodyFont).fontSize(10.5).fillColor(lightGrayColor);
           const approachTexts = [
             `We follow a storytelling style approach that focuses on real emotions, natural moments and ritual depth.`,
             `Our photography captures genuine expressions and family reactions with clean and timeless framing.`,
@@ -265,16 +265,16 @@ export const generateEventPdf = (event, discount = 0) => {
           ];
           
           approachTexts.forEach(text => {
-             doc.text(text, 50, doc.y, { width: doc.page.width - 100, align: 'center', lineGap: 1 });
-             doc.y += 4;
+             doc.text(text, 50, doc.y, { width: doc.page.width - 100, align: 'center', lineGap: 3 });
+             doc.y += 8;
           });
           
-          doc.y += 10;
-          doc.font(mainHeadingFont).fontSize(14).fillColor(whiteColor).text('Kindly Note', { align: 'center' });
-          doc.y += 8;
-          doc.font(bodyFont).fontSize(9.5).fillColor(lightGrayColor);
-          doc.text(`We truly look forward to being part of your special celebration.\nTo ensure everything goes smoothly, we kindly request your support on the following:`, 50, doc.y, { width: doc.page.width - 100, align: 'center', lineGap: 1 });
-          doc.y += 8;
+          doc.y += 16;
+          doc.font(mainHeadingFont).fontSize(16).fillColor(whiteColor).text('Kindly Note', { align: 'center' });
+          doc.y += 12;
+          doc.font(bodyFont).fontSize(10.5).fillColor(lightGrayColor);
+          doc.text(`We truly look forward to being part of your special celebration.\nTo ensure everything goes smoothly, we kindly request your support on the following:`, 50, doc.y, { width: doc.page.width - 100, align: 'center', lineGap: 3 });
+          doc.y += 12;
           
           const terms = [
             `For complete RAW and edited footage handover, we kindly request you to provide two new external hard disks. This is purely for safety purposes. Since electronic devices can sometimes fail unexpectedly, we prefer maintaining a backup copy to ensure your memories remain secure. All data will be carefully transferred and handed over safely to you.`,
@@ -287,17 +287,17 @@ export const generateEventPdf = (event, discount = 0) => {
           
           terms.forEach(term => {
              const termText = `- ${term}`;
-             doc.text(termText, 50, doc.y, { width: doc.page.width - 100, align: 'center', lineGap: 1 });
-             doc.y += 4;
+             doc.text(termText, 50, doc.y, { width: doc.page.width - 100, align: 'center', lineGap: 3 });
+             doc.y += 10;
           });
           
-          doc.y += 6;
+          doc.y += 14;
           const conclusion = `Our goal is to deliver your memories with care, clarity and commitment.\nWe appreciate your understanding and cooperation in making this journey smooth and memorable for both of us.`;
-          doc.text(conclusion, 50, doc.y, { width: doc.page.width - 100, align: 'center', lineGap: 1 });
+          doc.text(conclusion, 50, doc.y, { width: doc.page.width - 100, align: 'center', lineGap: 3 });
           
-          doc.y += 15;
+          doc.y += 28;
           
-          doc.font(bodyFont).fontSize(10).fillColor(whiteColor).text(`With gratitude,\nTeam ImaZen studios`, 50, doc.y, { align: 'right', width: doc.page.width - 100 });
+          doc.font(bodyFont).fontSize(11).fillColor(whiteColor).text(`With gratitude,\nTeam ImaZen studios`, 50, doc.y, { align: 'right', width: doc.page.width - 100 });
 
 
           // --- FINAL PAGE: Contact Details (Like 3rd image) ---
