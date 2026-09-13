@@ -6,6 +6,30 @@ import DragDropImageUploader from '../components/DragDropImageUploader';
 import DragDropVideoUploader from '../components/DragDropVideoUploader';
 import CalendarView from '../components/admin/CalendarView';
 import BusinessView from '../components/admin/BusinessView';
+import { packagesData } from '../data/packages';
+
+export const getTypeBadgeClass = (type) => {
+  const t = String(type || '').toUpperCase();
+  if (t === 'LEAD') return 'border-cyan-500/40 text-cyan-400 bg-cyan-500/10';
+  if (t === 'BOOKING') return 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10';
+  if (t === 'INQUIRY') return 'border-purple-500/40 text-purple-400 bg-purple-500/10';
+  return 'border-white/20 text-white/70 bg-white/5';
+};
+
+export const getStatusBadgeClass = (status) => {
+  const s = String(status || '').toLowerCase();
+  if (s === 'new') return 'border-sky-500/40 text-sky-400 bg-sky-500/10';
+  if (s === 'contacted') return 'border-blue-500/40 text-blue-400 bg-blue-500/10';
+  if (s === 'pending') return 'border-amber-500/40 text-amber-400 bg-amber-500/10';
+  if (s === 'negotiation') return 'border-orange-500/40 text-orange-400 bg-orange-500/10';
+  if (s === 'confirmed' || s === 'converted') return 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10';
+  if (s === 'shoot done') return 'border-purple-500/40 text-purple-400 bg-purple-500/10';
+  if (s === 'editing in process') return 'border-cyan-500/40 text-cyan-400 bg-cyan-500/10';
+  if (s === 'finished' || s === 'completed') return 'border-teal-500/40 text-teal-400 bg-teal-500/10';
+  if (s === 'cancelled' || s === 'lost') return 'border-rose-500/40 text-rose-400 bg-rose-500/10';
+  if (s === 'junk lead' || s === 'junk') return 'border-gray-500/40 text-gray-400 bg-gray-500/10';
+  return 'border-white/20 text-white/70 bg-white/5';
+};
 
 const AdminDashboard = () => {
   const storedUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
@@ -1020,7 +1044,10 @@ const AdminDashboard = () => {
   const filteredInquiries = inquiries.filter(inq => {
     const searchString = `${inq.name || ''} ${inq.email || ''} ${inq.phone || ''}`.toLowerCase();
     const matchesSearch = searchString.includes(inquirySearch.toLowerCase());
-    const matchesFilter = inquiryFilter === 'All' || inq.status === inquiryFilter;
+    const matchesFilter = inquiryFilter === 'All' || 
+      (inq.status && inq.status.toLowerCase() === inquiryFilter.toLowerCase()) ||
+      (inquiryFilter.toLowerCase() === 'confirmed' && inq.status?.toLowerCase() === 'converted') ||
+      (inquiryFilter.toLowerCase() === 'cancelled' && inq.status?.toLowerCase() === 'lost');
     return matchesSearch && matchesFilter;
   });
 
@@ -1521,11 +1548,11 @@ const AdminDashboard = () => {
                     <tbody>
                       {combinedRecent.map((item, idx) => (
                         <tr key={idx} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                          <td className="py-4"><span className="text-[9px] uppercase tracking-widest border border-purple-500/30 text-purple-400 px-2 py-1 rounded">{item.isType}</span></td>
+                          <td className="py-4"><span className={`text-[9px] uppercase tracking-widest border px-2 py-1 rounded font-semibold ${getTypeBadgeClass(item.isType)}`}>{item.isType}</span></td>
                           <td className="py-4 text-white">{item.name}</td>
                           <td className="py-4 text-gray-400">{item.eventDate || item.date || 'N/A'}</td>
                           <td className="py-4 text-gray-400">{item.interestedIn || item.package || item.service || 'N/A'}</td>
-                          <td className="py-4"><span className="text-[9px] uppercase tracking-widest border border-yellow-500/30 text-yellow-400 px-2 py-1 rounded">{item.status}</span></td>
+                          <td className="py-4"><span className={`text-[9px] uppercase tracking-widest border px-2 py-1 rounded font-semibold ${getStatusBadgeClass(item.status)}`}>{item.status}</span></td>
                           <td className="py-4"><button onClick={() => setActiveTab(item.isType === 'LEAD' ? 'leads' : item.isType === 'BOOKING' ? 'studio bookings' : 'inquiries')} className="text-xs uppercase tracking-widest text-gray-400 hover:text-white transition-colors">Review</button></td>
                         </tr>
                       ))}
@@ -3422,12 +3449,14 @@ const AdminDashboard = () => {
                           <option value="Pending">Pending</option>
                           <option value="Contacted">Contacted</option>
                           <option value="Confirmed">Confirmed</option>
+                          <option value="Shoot Done">Shoot Done</option>
+                          <option value="Editing In Process">Editing In Process</option>
                           <option value="Finished">Finished</option>
                           <option value="Cancelled">Cancelled</option>
                         </select>
                         <input 
                           type="month" 
-                          className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none [&::-webkit-calendar-picker-indicator]:invert w-full sm:w-auto"
+                          className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:brightness-[10] w-full sm:w-auto"
                           value={bookingMonthFilter}
                           onChange={(e) => setBookingMonthFilter(e.target.value)}
                         />
@@ -3452,53 +3481,114 @@ const AdminDashboard = () => {
                       </div>
                     </div>
 
-                    {bookings.filter(b => {
-                      const matchesMonth = bookingMonthFilter ? (b.date && b.date.startsWith(bookingMonthFilter)) : true;
-                      const matchesStatus = bookingStatusFilter === 'All Bookings' || b.status === bookingStatusFilter;
-                      const matchesSearch = bookingSearchText.trim() === '' || 
-                        [b.name, b.phone, b.email].some(val => val && String(val).toLowerCase().includes(bookingSearchText.toLowerCase()));
-                      return matchesMonth && matchesStatus && matchesSearch;
-                    }).length === 0 ? (
-                      <div className="text-center py-20 text-gray-500 uppercase tracking-widest">No bookings found for the selected filters.</div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {bookings.filter(b => {
-                          const matchesMonth = bookingMonthFilter ? (b.date && b.date.startsWith(bookingMonthFilter)) : true;
-                          const matchesStatus = bookingStatusFilter === 'All Bookings' || b.status === bookingStatusFilter;
-                          const matchesSearch = bookingSearchText.trim() === '' || 
-                            [b.name, b.phone, b.email].some(val => val && String(val).toLowerCase().includes(bookingSearchText.toLowerCase()));
-                          return matchesMonth && matchesStatus && matchesSearch;
-                        }).map(booking => (
-                          <div key={booking._id} id={`booking-${booking._id}`} className={viewingDetailsBookingId === booking._id ? "" : `${glassPanel} p-6 flex flex-col relative transition-all duration-500 ${highlightedBookingId === booking._id ? 'border-2 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)] scale-[1.02] bg-emerald-900/10' : ''}`}>
-                            {viewingDetailsBookingId !== booking._id ? (
-                              <div className="flex flex-col h-full">
-                                <div className="flex justify-between items-start mb-4 pr-12">
-                                  <div>
-                                    {booking.bookingType === 'Studio' && (
-                                      <span className="inline-block bg-blue-600/20 text-blue-400 text-[9px] px-2 py-0.5 rounded uppercase tracking-widest mb-1 border border-blue-500/20">Studio Booking</span>
-                                    )}
-                                    {booking.isSubscription && (
-                                      <span className="inline-block bg-purple-600/20 text-purple-400 text-[9px] px-2 py-0.5 rounded uppercase tracking-widest mb-1 border border-purple-500/20">Subscription</span>
-                                    )}
-                                    <h3 className="text-xl text-white font-oswald uppercase tracking-widest">{booking.name}</h3>
-                                    <p className="text-xs text-gray-400 font-sans">{booking.phone}</p>
-                                    <p className="text-xs text-gray-400 font-sans">{booking.email}</p>
+                    {(() => {
+                      // Whenever status updated to confirmed in leads or inquiries, display in studio bookings
+                      const confirmedLeadBookings = leads
+                        .filter(l => l.status && l.status.toLowerCase() === 'confirmed')
+                        .filter(l => !bookings.some(b => (b.email && l.email && b.email.toLowerCase() === l.email.toLowerCase()) || (b.notes && b.notes.includes(l._id))))
+                        .map(l => ({
+                          _id: 'lead-' + l._id,
+                          name: l.name,
+                          email: l.email,
+                          phone: l.phone,
+                          package: 'Standard Package',
+                          shootType: l.interestedIn || 'General Shoot',
+                          date: l.eventDate ? new Date(l.eventDate).toISOString().split('T')[0] : (l.createdAt ? new Date(l.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]),
+                          createdAt: l.createdAt,
+                          slot: 'Morning',
+                          status: 'Confirmed',
+                          fromLead: true,
+                          notes: `Confirmed Lead (${l.landingPageSource || 'Landing Page'})`
+                        }));
+
+                      const confirmedInquiryBookings = inquiries
+                        .filter(i => i.status && ['confirmed', 'converted'].includes(i.status.toLowerCase()))
+                        .filter(i => !bookings.some(b => (b.email && i.email && b.email.toLowerCase() === i.email.toLowerCase()) || (b.notes && b.notes.includes(i._id))))
+                        .map(i => ({
+                          _id: 'inquiry-' + i._id,
+                          name: i.name,
+                          email: i.email,
+                          phone: i.phone,
+                          package: 'Standard Package',
+                          shootType: i.subject || 'General Shoot',
+                          date: i.createdAt ? new Date(i.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                          createdAt: i.createdAt,
+                          slot: 'Morning',
+                          status: 'Confirmed',
+                          fromInquiry: true,
+                          notes: `Confirmed Inquiry (${i.subject})`
+                        }));
+
+                      const allStudioBookings = [...bookings, ...confirmedLeadBookings, ...confirmedInquiryBookings];
+
+                      const filteredStudioBookings = allStudioBookings.filter(b => {
+                        const matchesMonth = bookingMonthFilter ? (b.date && b.date.startsWith(bookingMonthFilter)) : true;
+                        const matchesStatus = bookingStatusFilter === 'All Bookings' || (b.status && b.status.toLowerCase() === bookingStatusFilter.toLowerCase());
+                        const matchesSearch = bookingSearchText.trim() === '' || 
+                          [b.name, b.phone, b.email].some(val => val && String(val).toLowerCase().includes(bookingSearchText.toLowerCase()));
+                        return matchesMonth && matchesStatus && matchesSearch;
+                      });
+
+                      if (filteredStudioBookings.length === 0) {
+                        return <div className="text-center py-20 text-gray-500 uppercase tracking-widest">No bookings found for the selected filters.</div>;
+                      }
+
+                      return (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {filteredStudioBookings.map(booking => (
+                            <div key={booking._id} id={`booking-${booking._id}`} className={viewingDetailsBookingId === booking._id ? "" : `${glassPanel} p-6 flex flex-col relative transition-all duration-500 ${highlightedBookingId === booking._id ? 'border-2 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)] scale-[1.02] bg-emerald-900/10' : ''}`}>
+                              {viewingDetailsBookingId !== booking._id ? (
+                                <div className="flex flex-col h-full">
+                                  <div className="flex justify-between items-start mb-4 pr-2">
+                                    <div>
+                                      <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                                        {booking.bookingType === 'Studio' && (
+                                          <span className="inline-block bg-blue-600/20 text-blue-400 text-[9px] px-2 py-0.5 rounded uppercase tracking-widest border border-blue-500/20">Studio Booking</span>
+                                        )}
+                                        {booking.isSubscription && (
+                                          <span className="inline-block bg-purple-600/20 text-purple-400 text-[9px] px-2 py-0.5 rounded uppercase tracking-widest border border-purple-500/20">Subscription</span>
+                                        )}
+                                        {booking.fromLead && (
+                                          <span className="inline-block bg-cyan-600/20 text-cyan-400 text-[9px] px-2 py-0.5 rounded uppercase tracking-widest border border-cyan-500/20">Lead Converted</span>
+                                        )}
+                                        {booking.fromInquiry && (
+                                          <span className="inline-block bg-amber-600/20 text-amber-400 text-[9px] px-2 py-0.5 rounded uppercase tracking-widest border border-amber-500/20">Inquiry Converted</span>
+                                        )}
+                                      </div>
+                                      <h3 className="text-xl text-white font-oswald uppercase tracking-widest">{booking.name}</h3>
+                                      <p className="text-xs text-gray-400 font-sans">{booking.phone}</p>
+                                      <p className="text-xs text-gray-400 font-sans">{booking.email}</p>
+                                    </div>
+                                    <span className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider shrink-0 border ${getStatusBadgeClass(booking.status)}`}>
+                                      {booking.status || 'Pending'}
+                                    </span>
                                   </div>
+                                  <div className="bg-black/30 rounded-lg p-3 grid grid-cols-2 gap-2 text-xs mb-4 border border-white/5 flex-1">
+                                    <div><span className="text-gray-500 uppercase text-[9px] block">Package</span><span className="text-white">{booking.package}</span></div>
+                                    <div><span className="text-gray-500 uppercase text-[9px] block">Shoot Date</span><span className="text-emerald-400">{booking.date}</span></div>
+                                    <div><span className="text-gray-500 uppercase text-[9px] block">Booking Date</span><span className="text-white">{new Date(booking.createdAt || booking.date).toLocaleDateString()}</span></div>
+                                    <div><span className="text-gray-500 uppercase text-[9px] block">Slot</span><span className="text-emerald-400">{booking.slots && booking.slots.length > 0 ? booking.slots.join(', ') : booking.slot}</span></div>
+                                    <div className="col-span-2 pt-1 border-t border-white/5 flex justify-between items-center">
+                                      <span className="text-gray-500 uppercase text-[9px]">Status</span>
+                                      <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                                        (booking.status || '').toLowerCase() === 'confirmed' ? 'text-emerald-400' :
+                                        (booking.status || '').toLowerCase() === 'shoot done' ? 'text-purple-400' :
+                                        (booking.status || '').toLowerCase() === 'editing in process' ? 'text-cyan-400' :
+                                        (booking.status || '').toLowerCase() === 'finished' ? 'text-teal-400' :
+                                        (booking.status || '').toLowerCase() === 'contacted' ? 'text-blue-400' :
+                                        (booking.status || '').toLowerCase() === 'cancelled' ? 'text-rose-400' :
+                                        'text-amber-400'
+                                      }`}>{booking.status || 'Pending'}</span>
+                                    </div>
+                                  </div>
+                                  <button 
+                                    onClick={() => setViewingDetailsBookingId(booking._id)}
+                                    className="w-full py-2 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-500 hover:text-white rounded-lg text-xs uppercase tracking-widest transition-colors border border-emerald-500/20 font-bold mt-auto"
+                                  >
+                                    View Details
+                                  </button>
                                 </div>
-                                <div className="bg-black/30 rounded-lg p-3 grid grid-cols-2 gap-2 text-xs mb-4 border border-white/5 flex-1">
-                                  <div><span className="text-gray-500 uppercase text-[9px] block">Package</span><span className="text-white">{booking.package}</span></div>
-                                  <div><span className="text-gray-500 uppercase text-[9px] block">Shoot Date</span><span className="text-emerald-400">{booking.date}</span></div>
-                                  <div><span className="text-gray-500 uppercase text-[9px] block">Booking Date</span><span className="text-white">{new Date(booking.createdAt || booking.date).toLocaleDateString()}</span></div>
-                                  <div><span className="text-gray-500 uppercase text-[9px] block">Slot</span><span className="text-emerald-400">{booking.slots && booking.slots.length > 0 ? booking.slots.join(', ') : booking.slot}</span></div>
-                                </div>
-                                <button 
-                                  onClick={() => setViewingDetailsBookingId(booking._id)}
-                                  className="w-full py-2 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-500 hover:text-white rounded-lg text-xs uppercase tracking-widest transition-colors border border-emerald-500/20 font-bold mt-auto"
-                                >
-                                  View Details
-                                </button>
-                              </div>
-                            ) : (
+                              ) : (
                               <div className="fixed inset-0 z-[100] bg-black/95 overflow-y-auto flex justify-center items-start p-4 backdrop-blur-md">
                                 <div className="w-full max-w-4xl bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 relative shadow-2xl mt-4 sm:mt-10 mb-10 animate-fade-in">
                                   <button type="button" onClick={(e) => { e.stopPropagation(); setViewingDetailsBookingId(null); }} className="absolute top-4 right-4 text-gray-400 hover:text-white text-xl z-20 w-8 h-8 flex items-center justify-center bg-black/40 rounded-full">✕</button>
@@ -3678,7 +3768,7 @@ const AdminDashboard = () => {
                               </button>
                             </div>
 
-                            {['Confirmed', 'Finished', 'Shoot Completed', 'Photos Delivered', 'Videos Delivered'].includes(booking.status) && booking.bookingType !== 'Studio' && (
+                            {['Confirmed', 'Finished', 'Shoot Done', 'Editing In Process', 'Shoot Completed', 'Photos Delivered', 'Videos Delivered'].includes(booking.status) && booking.bookingType !== 'Studio' && (
                               <div className="mb-4 bg-black/40 border border-white/5 rounded-xl p-3">
                                 <h4 className="text-[11px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Progress Tracking</h4>
                                 <div className="space-y-2">
@@ -3713,6 +3803,8 @@ const AdminDashboard = () => {
                                   booking.status === 'Pending' ? 'text-yellow-500' :
                                   booking.status === 'Contacted' ? 'text-orange-400' :
                                   booking.status === 'Confirmed' ? 'text-green-500' :
+                                  booking.status === 'Shoot Done' ? 'text-purple-400' :
+                                  booking.status === 'Editing In Process' ? 'text-cyan-400' :
                                   (booking.status === 'Finished' || booking.status === 'Completed') ? 'text-blue-500' : 'text-red-500'
                                 }`}
                                 value={booking.status}
@@ -3721,6 +3813,8 @@ const AdminDashboard = () => {
                                 <option value="Pending" className="text-yellow-500 bg-[#111]">Pending</option>
                                 <option value="Contacted" className="text-orange-400 bg-[#111]">Contacted</option>
                                 <option value="Confirmed" className="text-green-500 bg-[#111]">Confirmed</option>
+                                <option value="Shoot Done" className="text-purple-400 bg-[#111]">Shoot Done</option>
+                                <option value="Editing In Process" className="text-cyan-400 bg-[#111]">Editing In Process</option>
                                 <option value="Finished" className="text-blue-500 bg-[#111]">Finished</option>
                                 <option value="Cancelled" className="text-red-500 bg-[#111]">Cancelled</option>
                               </select>
@@ -3790,7 +3884,8 @@ const AdminDashboard = () => {
                           </div>
                         ))}
                       </div>
-                    )}
+                    );
+                  })()}
                   </div>
                 )}
 
@@ -4094,35 +4189,42 @@ const AdminDashboard = () => {
                           onChange={e => setInquiryFilter(e.target.value)}
                         >
                           <option value="All">All Statuses</option>
-                          <option value="Pending">Pending</option>
+                          <option value="New">New</option>
                           <option value="Contacted">Contacted</option>
-                          <option value="Converted">Converted</option>
-                          <option value="Lost">Lost</option>
+                          <option value="Pending">Pending</option>
+                          <option value="Negotiation">Negotiation</option>
+                          <option value="Confirmed">Confirmed</option>
+                          <option value="Cancelled">Cancelled</option>
+                          <option value="Junk Lead">Junk Lead</option>
                         </select>
                       </div>
                     </div>
 
                     {/* STATS ROW */}
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                       <div className="bg-black/40 border border-white/5 p-4 rounded-xl">
                         <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Total Inquiries</p>
                         <p className="text-2xl font-bold font-oswald text-white">{inquiries.length}</p>
                       </div>
                       <div className="bg-black/40 border border-yellow-500/20 p-4 rounded-xl">
                         <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Pending</p>
-                        <p className="text-2xl font-bold font-oswald text-yellow-500">{inquiries.filter(i => i.status === 'Pending').length}</p>
+                        <p className="text-2xl font-bold font-oswald text-yellow-500">{inquiries.filter(i => (i.status || '').toLowerCase() === 'pending').length}</p>
                       </div>
                       <div className="bg-black/40 border border-blue-500/20 p-4 rounded-xl">
                         <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Contacted</p>
-                        <p className="text-2xl font-bold font-oswald text-blue-500">{inquiries.filter(i => i.status === 'Contacted').length}</p>
+                        <p className="text-2xl font-bold font-oswald text-blue-500">{inquiries.filter(i => (i.status || '').toLowerCase() === 'contacted').length}</p>
+                      </div>
+                      <div className="bg-black/40 border border-orange-500/20 p-4 rounded-xl">
+                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Negotiation</p>
+                        <p className="text-2xl font-bold font-oswald text-orange-500">{inquiries.filter(i => (i.status || '').toLowerCase() === 'negotiation').length}</p>
                       </div>
                       <div className="bg-black/40 border border-green-500/20 p-4 rounded-xl">
-                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Converted</p>
-                        <p className="text-2xl font-bold font-oswald text-green-500">{inquiries.filter(i => i.status === 'Converted').length}</p>
+                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Confirmed</p>
+                        <p className="text-2xl font-bold font-oswald text-green-500">{inquiries.filter(i => ['confirmed', 'converted'].includes((i.status || '').toLowerCase())).length}</p>
                       </div>
                       <div className="bg-black/40 border border-red-500/20 p-4 rounded-xl">
-                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Lost</p>
-                        <p className="text-2xl font-bold font-oswald text-red-500">{inquiries.filter(i => i.status === 'Lost').length}</p>
+                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Cancelled / Lost</p>
+                        <p className="text-2xl font-bold font-oswald text-red-500">{inquiries.filter(i => ['cancelled', 'lost'].includes((i.status || '').toLowerCase())).length}</p>
                       </div>
                     </div>
 
@@ -4176,10 +4278,13 @@ const AdminDashboard = () => {
                                 value={inq.status}
                                 onChange={(e) => handleUpdateInquiryStatus(inq._id, e.target.value)}
                               >
-                                <option value="Pending">Pending</option>
+                                <option value="New">New</option>
                                 <option value="Contacted">Contacted</option>
-                                <option value="Converted">Converted</option>
-                                <option value="Lost">Lost</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Negotiation">Negotiation</option>
+                                <option value="Confirmed">Confirmed</option>
+                                <option value="Cancelled">Cancelled</option>
+                                <option value="Junk Lead">Junk Lead</option>
                               </select>
                               <button onClick={() => setFollowUpModal({ type: 'inquiry', id: inq._id })} className="text-[9px] text-green-400 hover:text-white uppercase tracking-widest transition-colors flex items-center justify-center border border-green-500/30 rounded py-1 bg-green-500/10 hover:bg-green-500/30">
                                 📋 Notes ({inq.followUps?.length || 0})
@@ -4227,6 +4332,7 @@ const AdminDashboard = () => {
                           <option value="new">New</option>
                           <option value="contacted">Contacted</option>
                           <option value="pending">Pending</option>
+                          <option value="negotiation">Negotiation</option>
                           <option value="confirmed">Confirmed</option>
                           <option value="cancelled">Cancelled</option>
                           <option value="junk lead">Junk Lead</option>
@@ -4235,26 +4341,30 @@ const AdminDashboard = () => {
                     </div>
 
                     {/* STATS ROW */}
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                       <div className="bg-black/40 border border-white/5 p-4 rounded-xl">
                         <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Total Leads</p>
                         <p className="text-2xl font-bold font-oswald text-white">{leads.length}</p>
                       </div>
                       <div className="bg-black/40 border border-emerald-500/20 p-4 rounded-xl">
                         <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">New</p>
-                        <p className="text-2xl font-bold font-oswald text-emerald-500">{leads.filter(l => l.status === 'new').length}</p>
+                        <p className="text-2xl font-bold font-oswald text-emerald-500">{leads.filter(l => (l.status || '').toLowerCase() === 'new').length}</p>
                       </div>
                       <div className="bg-black/40 border border-blue-500/20 p-4 rounded-xl">
                         <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Contacted</p>
-                        <p className="text-2xl font-bold font-oswald text-blue-500">{leads.filter(l => l.status === 'contacted').length}</p>
+                        <p className="text-2xl font-bold font-oswald text-blue-500">{leads.filter(l => (l.status || '').toLowerCase() === 'contacted').length}</p>
                       </div>
                       <div className="bg-black/40 border border-yellow-500/20 p-4 rounded-xl">
                         <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Pending</p>
-                        <p className="text-2xl font-bold font-oswald text-yellow-500">{leads.filter(l => l.status === 'pending').length}</p>
+                        <p className="text-2xl font-bold font-oswald text-yellow-500">{leads.filter(l => (l.status || '').toLowerCase() === 'pending').length}</p>
+                      </div>
+                      <div className="bg-black/40 border border-orange-500/20 p-4 rounded-xl">
+                        <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Negotiation</p>
+                        <p className="text-2xl font-bold font-oswald text-orange-500">{leads.filter(l => (l.status || '').toLowerCase() === 'negotiation').length}</p>
                       </div>
                       <div className="bg-black/40 border border-purple-500/20 p-4 rounded-xl">
                         <p className="text-[11px] text-gray-500 uppercase tracking-widest mb-2">Confirmed</p>
-                        <p className="text-2xl font-bold font-oswald text-purple-500">{leads.filter(l => l.status === 'confirmed').length}</p>
+                        <p className="text-2xl font-bold font-oswald text-purple-500">{leads.filter(l => (l.status || '').toLowerCase() === 'confirmed').length}</p>
                       </div>
                     </div>
                     <div className="bg-black/40 rounded-2xl border border-white/5 overflow-hidden shadow-2xl">
@@ -4299,6 +4409,7 @@ const AdminDashboard = () => {
                                     <option className="bg-[#1a1a1a] text-white" value="new">New</option>
                                     <option className="bg-[#1a1a1a] text-white" value="contacted">Contacted</option>
                                     <option className="bg-[#1a1a1a] text-white" value="pending">Pending</option>
+                                    <option className="bg-[#1a1a1a] text-white" value="negotiation">Negotiation</option>
                                     <option className="bg-[#1a1a1a] text-white" value="confirmed">Confirmed</option>
                                     <option className="bg-[#1a1a1a] text-white" value="cancelled">Cancelled</option>
                                     <option className="bg-[#1a1a1a] text-white" value="junk lead">Junk Lead</option>
@@ -5251,18 +5362,95 @@ const AdminDashboard = () => {
                       <label className="block text-[11px] uppercase text-gray-500 mb-2">Baby Age (if applicable)</label>
                       <input type="text" className={glassInput} value={editingBooking.babyAge || ''} onChange={e => setEditingBooking({...editingBooking, babyAge: e.target.value})} />
                     </div>
-                    <div>
-                      <label className="block text-[11px] uppercase text-gray-500 mb-2">Shoot Type</label>
-                      <input type="text" className={glassInput} required value={editingBooking.shootType || ''} onChange={e => setEditingBooking({...editingBooking, shootType: e.target.value})} placeholder="e.g. Maternity Shoots" />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] uppercase text-gray-500 mb-2">Package</label>
-                      <input type="text" className={glassInput} required value={editingBooking.package || ''} onChange={e => setEditingBooking({...editingBooking, package: e.target.value})} placeholder="e.g. Gold Package" />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] uppercase text-gray-500 mb-2">Date</label>
-                      <input type="date" className={`${glassInput} [&::-webkit-calendar-picker-indicator]:invert`} required value={editingBooking.date || ''} onChange={e => setEditingBooking({...editingBooking, date: e.target.value})} />
-                    </div>
+                    {(() => {
+                      // Gather sub-services from services
+                      const availableSubServices = [];
+                      (services || []).forEach(svc => {
+                        if (svc.subServices && svc.subServices.length > 0) {
+                          svc.subServices.forEach(sub => {
+                            availableSubServices.push({
+                              name: sub.name,
+                              serviceName: svc.name,
+                              packages: (sub.packages && sub.packages.length > 0) ? sub.packages.map(p => typeof p === 'string' ? p : p.name) : ['Silver Package', 'Gold Package', 'Platinum Package']
+                            });
+                          });
+                        } else if (svc.packages && svc.packages.length > 0) {
+                          availableSubServices.push({
+                            name: svc.name,
+                            serviceName: svc.name,
+                            packages: svc.packages.map(p => typeof p === 'string' ? p : p.name)
+                          });
+                        }
+                      });
+
+                      // Only use real sub-services from DB (no fallback packagesData)
+
+                      const selectedSub = availableSubServices.find(s => s.name === editingBooking.shootType);
+                      const currentPackages = selectedSub?.packages?.length > 0 
+                        ? selectedSub.packages 
+                        : ['Silver Package', 'Gold Package', 'Platinum Package'];
+
+                      return (
+                        <>
+                          <div>
+                            <label className="block text-[11px] uppercase text-gray-500 mb-2">Shoot Type</label>
+                            <select 
+                              className={`${glassInput} [&>option]:bg-[#111] [&>option]:text-white`}
+                              required 
+                              value={editingBooking.shootType || ''} 
+                              onChange={e => {
+                                const selectedShoot = e.target.value;
+                                setEditingBooking(prev => ({
+                                  ...prev, 
+                                  shootType: selectedShoot, 
+                                  package: '' 
+                                }));
+                              }}
+                            >
+                              <option value="" disabled className="bg-[#111] text-gray-400">Select Shoot Type</option>
+                              {availableSubServices.map((sub, idx) => (
+                                <option key={idx} value={sub.name} className="bg-[#111] text-white">
+                                  {sub.serviceName && sub.serviceName !== sub.name ? `${sub.name} (${sub.serviceName})` : sub.name}
+                                </option>
+                              ))}
+                              {editingBooking.shootType && !availableSubServices.some(s => s.name === editingBooking.shootType) && (
+                                <option value={editingBooking.shootType} className="bg-[#111] text-white">{editingBooking.shootType}</option>
+                              )}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[11px] uppercase text-gray-500 mb-2">Package</label>
+                            <select 
+                              className={`${glassInput} [&>option]:bg-[#111] [&>option]:text-white ${!editingBooking.shootType ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              required 
+                              disabled={!editingBooking.shootType}
+                              value={editingBooking.package || ''} 
+                              onChange={e => setEditingBooking(prev => ({ ...prev, package: e.target.value }))}
+                            >
+                              <option value="" disabled className="bg-[#111] text-gray-400">
+                                {editingBooking.shootType ? "Select Package" : "Select Shoot Type First"}
+                              </option>
+                              {currentPackages.map((pkgName, idx) => (
+                                <option key={idx} value={pkgName} className="bg-[#111] text-white">{pkgName}</option>
+                              ))}
+                              {editingBooking.package && !currentPackages.includes(editingBooking.package) && (
+                                <option value={editingBooking.package} className="bg-[#111] text-white">{editingBooking.package}</option>
+                              )}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[11px] uppercase text-gray-500 mb-2">Date</label>
+                            <input 
+                              type="date" 
+                              className={`${glassInput} [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:brightness-[10]`} 
+                              required 
+                              value={editingBooking.date || ''} 
+                              onChange={e => setEditingBooking({...editingBooking, date: e.target.value})} 
+                            />
+                          </div>
+                        </>
+                      );
+                    })()}
                     <div>
                       <label className="block text-[11px] uppercase text-gray-500 mb-2">Time Slot</label>
                       <select className={`${glassInput} [&>option]:bg-[#111] [&>option]:text-white`} required value={editingBooking.slot || ''} onChange={e => setEditingBooking({...editingBooking, slot: e.target.value})}>
@@ -5278,12 +5466,14 @@ const AdminDashboard = () => {
                         <option value="Pending" className="bg-[#111] text-yellow-500">Pending</option>
                         <option value="Contacted" className="bg-[#111] text-orange-400">Contacted</option>
                         <option value="Confirmed" className="bg-[#111] text-green-500">Confirmed</option>
+                        <option value="Shoot Done" className="bg-[#111] text-purple-400">Shoot Done</option>
+                        <option value="Editing In Process" className="bg-[#111] text-cyan-400">Editing In Process</option>
                         <option value="Finished" className="bg-[#111] text-blue-500">Finished</option>
                         <option value="Cancelled" className="bg-[#111] text-red-500">Cancelled</option>
                       </select>
                     </div>
 
-                    {['Confirmed', 'Finished'].includes(editingBooking.status) && editingBooking.bookingType !== 'Studio' && (
+                    {['Confirmed', 'Finished', 'Shoot Done', 'Editing In Process'].includes(editingBooking.status) && editingBooking.bookingType !== 'Studio' && (
                       <div className="md:col-span-2 bg-black/40 border border-white/5 rounded-xl p-4 mt-2">
                         <label className="block text-[11px] uppercase text-gray-500 mb-4">Progress Tracking</label>
                         <div className="flex gap-6">

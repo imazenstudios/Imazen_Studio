@@ -8,7 +8,7 @@ const inquirySchema = new mongoose.Schema({
   message: { type: String, required: true },
   status: { 
     type: String, 
-    enum: ['Pending', 'Contacted', 'Converted', 'Lost'], 
+    enum: ['New', 'Contacted', 'Pending', 'Negotiation', 'Confirmed', 'Cancelled', 'Junk Lead', 'Converted', 'Lost', 'new', 'contacted', 'pending', 'negotiation', 'confirmed', 'cancelled', 'junk lead'], 
     default: 'Pending' 
   },
   // Follow-ups

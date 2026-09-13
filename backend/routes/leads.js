@@ -6,6 +6,7 @@ const __dirnamePath = path.dirname(__filenamePath);
 const logoPath = path.join(__dirnamePath, '../../frontend/public/images/logo.png');
 
 import Lead from '../models/Lead.js';
+import Booking from '../models/Booking.js';
 import { getMailer } from '../mailer.js';
 
 const router = express.Router();
@@ -109,8 +110,41 @@ router.put('/:id', async (req, res) => {
     if (notes !== undefined) updateData.notes = notes;
 
     const lead = await Lead.findByIdAndUpdate(req.params.id, updateData, { returnDocument: 'after' });
+    
+    // Whenever status updated to confirmed in leads, ensure it displays in studio bookings
+    if (lead && status && status.toLowerCase() === 'confirmed') {
+      const shootDate = lead.eventDate 
+        ? new Date(lead.eventDate).toISOString().split('T')[0] 
+        : (lead.createdAt ? new Date(lead.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+      
+      const existingBooking = await Booking.findOne({
+        $or: [
+          { email: lead.email, date: shootDate },
+          { phone: lead.phone, date: shootDate },
+          { notes: { $regex: lead._id.toString() } }
+        ]
+      });
+
+      if (!existingBooking) {
+        const booking = new Booking({
+          name: lead.name,
+          email: lead.email,
+          phone: lead.phone,
+          bookingType: 'Client',
+          shootType: lead.interestedIn || 'General Shoot',
+          package: 'Standard Package',
+          date: shootDate,
+          slot: 'Morning',
+          status: 'Confirmed',
+          notes: `Confirmed Lead #${lead._id.toString().substring(lead._id.toString().length - 6).toUpperCase()} (${lead.landingPageSource || 'Landing Page'})`
+        });
+        await booking.save();
+      }
+    }
+
     res.json(lead);
   } catch (error) {
+    console.error('Error updating lead:', error);
     res.status(500).json({ error: 'Server error updating lead' });
   }
 });

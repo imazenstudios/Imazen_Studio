@@ -58,6 +58,32 @@ const settingsSchema = new mongoose.Schema({
       { name: 'Traditional videography', price: 10000 },
       { name: 'Drone', price: 15000 }
     ]
+  },
+  predefinedDeliverables: {
+    type: [String],
+    default: [
+      'Traditional Video',
+      'Traditional Photos',
+      'Candid Photos',
+      'Candid Video',
+      'Cinematic Wedding Film',
+      'Teaser / Highlights Video',
+      'Drone Footage',
+      'Premium Wedding Album',
+      'RAW Data Handover',
+      'Hard Drive Backup'
+    ]
+  },
+  predefinedComplimentries: {
+    type: [String],
+    default: [
+      'Free Photo Album (30 Pages)',
+      'Mini Photobook for Parents',
+      'Complimentary Pre-wedding Teaser',
+      'Framed Canvas Print (16x24)',
+      'Instagram Reels Edit (3 Reels)',
+      'Live Streaming Setup'
+    ]
   }
 }, { timestamps: true });
 

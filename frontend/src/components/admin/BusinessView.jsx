@@ -21,7 +21,11 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
   const [viewShootExpenses, setViewShootExpenses] = useState(null);
   const [downloadingPdfId, setDownloadingPdfId] = useState(null);
   const [predefinedServices, setPredefinedServices] = useState([]);
+  const [predefinedDeliverables, setPredefinedDeliverables] = useState([]);
+  const [predefinedComplimentries, setPredefinedComplimentries] = useState([]);
   const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
+  const [isDeliverablesModalOpen, setIsDeliverablesModalOpen] = useState(false);
+  const [isComplimentriesModalOpen, setIsComplimentriesModalOpen] = useState(false);
 
   useEffect(() => {
     fetchProps();
@@ -33,8 +37,38 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
   const fetchPredefinedServices = async () => {
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings`);
-      if (res.data && res.data.predefinedServices) {
-        setPredefinedServices(res.data.predefinedServices);
+      if (res.data) {
+        if (res.data.predefinedServices) {
+          setPredefinedServices(res.data.predefinedServices);
+        }
+        if (res.data.predefinedDeliverables && res.data.predefinedDeliverables.length > 0) {
+          setPredefinedDeliverables(res.data.predefinedDeliverables);
+        } else {
+          setPredefinedDeliverables([
+            'Traditional Video',
+            'Traditional Photos',
+            'Candid Photos',
+            'Candid Video',
+            'Cinematic Wedding Film',
+            'Teaser / Highlights Video',
+            'Drone Footage',
+            'Premium Wedding Album',
+            'RAW Data Handover',
+            'Hard Drive Backup'
+          ]);
+        }
+        if (res.data.predefinedComplimentries && res.data.predefinedComplimentries.length > 0) {
+          setPredefinedComplimentries(res.data.predefinedComplimentries);
+        } else {
+          setPredefinedComplimentries([
+            'Free Photo Album (30 Pages)',
+            'Mini Photobook for Parents',
+            'Complimentary Pre-wedding Teaser',
+            'Framed Canvas Print (16x24)',
+            'Instagram Reels Edit (3 Reels)',
+            'Live Streaming Setup'
+          ]);
+        }
       }
     } catch (error) {
       console.error(error);
@@ -48,6 +82,26 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
     } catch (error) {
       console.error(error);
       alert('Failed to save predefined services');
+    }
+  };
+
+  const handleSavePredefinedDeliverables = async (updatedDeliverables) => {
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings/predefined-options`, { predefinedDeliverables: updatedDeliverables });
+      setPredefinedDeliverables(updatedDeliverables);
+    } catch (error) {
+      console.error(error);
+      alert('Failed to save predefined deliverables');
+    }
+  };
+
+  const handleSavePredefinedComplimentries = async (updatedComplimentries) => {
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings/predefined-options`, { predefinedComplimentries: updatedComplimentries });
+      setPredefinedComplimentries(updatedComplimentries);
+    } catch (error) {
+      console.error(error);
+      alert('Failed to save predefined complimentries');
     }
   };
 
@@ -769,8 +823,6 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
 
       {viewMode === 'props' && (
         <div className="space-y-8">
-          {renderPartnerProfits()}
-
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h3 className="text-sm font-bold uppercase tracking-widest text-white/70">Prop Rentals Details</h3>
@@ -971,11 +1023,17 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="text-sm uppercase tracking-widest text-white/70">Events ({filteredEvents.length})</h3>
-            <div className="flex gap-2">
-              <button onClick={() => setIsServicesModalOpen(true)} className="px-4 py-2 border border-white/20 text-white hover:bg-white/10 uppercase tracking-widest text-xs font-bold rounded transition-colors">
-                Manage Services
+            <div className="flex gap-2 flex-wrap">
+              <button onClick={() => setIsServicesModalOpen(true)} className="px-3 py-1.5 border border-white/20 text-white hover:bg-white/10 uppercase tracking-widest text-xs font-bold rounded transition-colors">
+                Services
               </button>
-              <button onClick={() => setEditingEvent({name: '', services: [], paidAmount: 0, status: 'Scheduled'})} className="px-4 py-2 bg-white text-black hover:bg-white/90 uppercase tracking-widest text-xs font-bold rounded transition-colors">
+              <button onClick={() => setIsDeliverablesModalOpen(true)} className="px-3 py-1.5 border border-white/20 text-white hover:bg-white/10 uppercase tracking-widest text-xs font-bold rounded transition-colors">
+                Deliverables
+              </button>
+              <button onClick={() => setIsComplimentriesModalOpen(true)} className="px-3 py-1.5 border border-white/20 text-white hover:bg-white/10 uppercase tracking-widest text-xs font-bold rounded transition-colors">
+                Complimentries
+              </button>
+              <button onClick={() => setEditingEvent({name: '', services: [], deliverables: [], complimentries: [], paidAmount: 0, status: 'Scheduled'})} className="px-4 py-1.5 bg-white text-black hover:bg-white/90 uppercase tracking-widest text-xs font-bold rounded transition-colors">
                 + New Event
               </button>
             </div>
@@ -1034,16 +1092,75 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                     </div>
 
                     <div>
-                      <p className="text-[11px] uppercase tracking-widest text-white/40 mb-1">Services</p>
-                      <div className="space-y-1">
-                        {(event.subEventList && event.subEventList.length > 0 ? event.subEventList.flatMap(sub => sub.services || []) : event.services || []).map((item, idx) => (
-                          <div key={idx} className="flex justify-between text-xs text-white/70 bg-white/5 px-2 py-1 rounded">
-                            <span>{item.name}</span>
-                            <span>₹{item.price}</span>
-                          </div>
-                        ))}
-                      </div>
+                      <p className="text-[11px] uppercase tracking-widest text-white/40 mb-2">Events & Services</p>
+                      {event.subEventList && event.subEventList.length > 0 ? (
+                        <div className="space-y-2">
+                          {event.subEventList.map((sub, sIdx) => (
+                            <div key={sIdx} className="bg-white/[0.03] p-2.5 rounded-lg border border-white/5">
+                              <div className="flex justify-between items-center mb-1.5 pb-1 border-b border-white/5">
+                                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wide">
+                                  ✦ {sub.name || `Event ${sIdx + 1}`}
+                                </span>
+                                {sub.services && sub.services.length > 0 && (
+                                  <span className="text-[11px] text-white/50 font-mono">
+                                    ₹{sub.services.reduce((sum, s) => sum + (Number(s.price) || 0), 0).toLocaleString()}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="space-y-1 pl-2">
+                                {(sub.services || []).map((item, idx) => (
+                                  <div key={idx} className="flex justify-between text-xs text-white/70 bg-black/40 px-2 py-1 rounded">
+                                    <span>{item.name}</span>
+                                    <span>₹{item.price?.toLocaleString()}</span>
+                                  </div>
+                                ))}
+                                {(!sub.services || sub.services.length === 0) && (
+                                  <p className="text-[10px] text-white/30 italic">No services</p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          {(event.services || []).map((item, idx) => (
+                            <div key={idx} className="flex justify-between text-xs text-white/70 bg-white/5 px-2 py-1 rounded">
+                              <span>{item.name}</span>
+                              <span>₹{item.price?.toLocaleString()}</span>
+                            </div>
+                          ))}
+                          {(!event.services || event.services.length === 0) && (
+                            <p className="text-xs text-white/30 italic">No services listed.</p>
+                          )}
+                        </div>
+                      )}
                     </div>
+
+                    {event.deliverables && event.deliverables.filter(Boolean).length > 0 && (
+                      <div>
+                        <p className="text-[11px] uppercase tracking-widest text-white/40 mb-1">Deliverables</p>
+                        <div className="flex flex-wrap gap-1">
+                          {event.deliverables.filter(Boolean).map((del, dIdx) => (
+                            <span key={dIdx} className="text-[10px] bg-blue-500/10 text-blue-300 border border-blue-500/20 px-1.5 py-0.5 rounded">
+                              {del}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {event.complimentries && event.complimentries.filter(Boolean).length > 0 && (
+                      <div>
+                        <p className="text-[11px] uppercase tracking-widest text-white/40 mb-1">Complimentries</p>
+                        <div className="flex flex-wrap gap-1">
+                          {event.complimentries.filter(Boolean).map((comp, cIdx) => (
+                            <span key={cIdx} className="text-[10px] bg-purple-500/10 text-purple-300 border border-purple-500/20 px-1.5 py-0.5 rounded">
+                              {comp}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     
                     {eventExpenses.length > 0 && (
                       <div>
@@ -1302,31 +1419,55 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                   <div className="pt-4 border-t border-white/10 mt-4">
                     <div className="flex justify-between items-center mb-3">
                       <label className="block text-xs uppercase tracking-widest text-white/50">Deliverables</label>
-                      <button type="button" onClick={() => setEditingEvent({
-                        ...editingEvent, 
-                        deliverables: [...(editingEvent.deliverables || []), '']
-                      })} className="text-xs text-white/50 hover:text-white border border-white/10 px-2 py-1 rounded">+ Add Deliverable</button>
+                      <div className="flex gap-2">
+                        <button 
+                          type="button" 
+                          onClick={() => setIsDeliverablesModalOpen(true)} 
+                          className="text-[11px] text-emerald-400 hover:text-emerald-300 border border-emerald-500/20 px-2 py-1 rounded"
+                        >
+                          ⚙️ Manage Options
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => setEditingEvent({
+                            ...editingEvent, 
+                            deliverables: [...(editingEvent.deliverables || []), predefinedDeliverables[0] || '']
+                          })} 
+                          className="text-xs text-white/50 hover:text-white border border-white/10 px-2 py-1 rounded"
+                        >
+                          + Add Deliverable
+                        </button>
+                      </div>
                     </div>
                     <div className="space-y-2">
                       {(editingEvent.deliverables || []).map((del, dIdx) => (
-                        <div key={dIdx} className="flex gap-2">
-                          <input 
-                            type="text" 
-                            placeholder="Deliverable Name (e.g., Candid Video)" 
+                        <div key={dIdx} className="flex gap-2 items-center">
+                          <select 
                             value={del}
                             onChange={e => {
                               const newList = [...(editingEvent.deliverables || [])];
                               newList[dIdx] = e.target.value;
                               setEditingEvent({...editingEvent, deliverables: newList});
                             }}
-                            className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-sm text-white"
-                          />
+                            className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-2 text-sm text-white [&>option]:bg-[#111]"
+                          >
+                            <option value="">-- Select Deliverable --</option>
+                            {predefinedDeliverables.map((dOpt, i) => (
+                              <option key={i} value={dOpt}>{dOpt}</option>
+                            ))}
+                            {del && !predefinedDeliverables.includes(del) && (
+                              <option value={del}>{del}</option>
+                            )}
+                          </select>
                           <button type="button" onClick={() => {
                             const newList = editingEvent.deliverables.filter((_, i) => i !== dIdx);
                             setEditingEvent({...editingEvent, deliverables: newList});
-                          }} className="text-red-500 hover:text-red-400">✕</button>
+                          }} className="text-red-500 hover:text-red-400 px-2 py-1">✕</button>
                         </div>
                       ))}
+                      {(!editingEvent.deliverables || editingEvent.deliverables.length === 0) && (
+                        <p className="text-xs text-white/30 italic">No deliverables added. Click + Add Deliverable.</p>
+                      )}
                     </div>
                   </div>
 
@@ -1334,31 +1475,55 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                   <div className="pt-4 border-t border-white/10 mt-4">
                     <div className="flex justify-between items-center mb-3">
                       <label className="block text-xs uppercase tracking-widest text-white/50">Complimentries</label>
-                      <button type="button" onClick={() => setEditingEvent({
-                        ...editingEvent, 
-                        complimentries: [...(editingEvent.complimentries || []), '']
-                      })} className="text-xs text-white/50 hover:text-white border border-white/10 px-2 py-1 rounded">+ Add Complimentry</button>
+                      <div className="flex gap-2">
+                        <button 
+                          type="button" 
+                          onClick={() => setIsComplimentriesModalOpen(true)} 
+                          className="text-[11px] text-purple-400 hover:text-purple-300 border border-purple-500/20 px-2 py-1 rounded"
+                        >
+                          ⚙️ Manage Options
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => setEditingEvent({
+                            ...editingEvent, 
+                            complimentries: [...(editingEvent.complimentries || []), predefinedComplimentries[0] || '']
+                          })} 
+                          className="text-xs text-white/50 hover:text-white border border-white/10 px-2 py-1 rounded"
+                        >
+                          + Add Complimentry
+                        </button>
+                      </div>
                     </div>
                     <div className="space-y-2">
                       {(editingEvent.complimentries || []).map((comp, cIdx) => (
-                        <div key={cIdx} className="flex gap-2">
-                          <input 
-                            type="text" 
-                            placeholder="Complimentry (e.g., Free Album)" 
+                        <div key={cIdx} className="flex gap-2 items-center">
+                          <select 
                             value={comp}
                             onChange={e => {
                               const newList = [...(editingEvent.complimentries || [])];
                               newList[cIdx] = e.target.value;
                               setEditingEvent({...editingEvent, complimentries: newList});
                             }}
-                            className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-sm text-white"
-                          />
+                            className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-2 text-sm text-white [&>option]:bg-[#111]"
+                          >
+                            <option value="">-- Select Complimentry --</option>
+                            {predefinedComplimentries.map((cOpt, i) => (
+                              <option key={i} value={cOpt}>{cOpt}</option>
+                            ))}
+                            {comp && !predefinedComplimentries.includes(comp) && (
+                              <option value={comp}>{comp}</option>
+                            )}
+                          </select>
                           <button type="button" onClick={() => {
                             const newList = editingEvent.complimentries.filter((_, i) => i !== cIdx);
                             setEditingEvent({...editingEvent, complimentries: newList});
-                          }} className="text-red-500 hover:text-red-400">✕</button>
+                          }} className="text-red-500 hover:text-red-400 px-2 py-1">✕</button>
                         </div>
                       ))}
+                      {(!editingEvent.complimentries || editingEvent.complimentries.length === 0) && (
+                        <p className="text-xs text-white/30 italic">No complimentries added. Click + Add Complimentry.</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1514,6 +1679,92 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                 setIsServicesModalOpen(false);
               }} className="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded">
                 Save Services
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Deliverables Management Modal */}
+      {isDeliverablesModalOpen && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111] border border-white/10 rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-playfair text-xl text-white">Manage Deliverables</h3>
+              <button onClick={() => setIsDeliverablesModalOpen(false)} className="text-white/50 hover:text-white">✕</button>
+            </div>
+            <div className="space-y-3">
+              {predefinedDeliverables.map((del, idx) => (
+                <div key={idx} className="flex gap-2 items-center">
+                  <input 
+                    type="text" 
+                    value={del} 
+                    onChange={e => {
+                      const newDel = [...predefinedDeliverables];
+                      newDel[idx] = e.target.value;
+                      setPredefinedDeliverables(newDel);
+                    }} 
+                    className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm"
+                    placeholder="Deliverable Name (e.g., Candid Video)"
+                  />
+                  <button onClick={() => {
+                    const newDel = predefinedDeliverables.filter((_, i) => i !== idx);
+                    setPredefinedDeliverables(newDel);
+                  }} className="text-red-500 hover:text-red-400 p-2">✕</button>
+                </div>
+              ))}
+              <button onClick={() => setPredefinedDeliverables([...predefinedDeliverables, ''])} className="w-full py-2 border border-white/10 text-white/70 hover:text-white rounded text-sm">+ Add Deliverable Option</button>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button onClick={() => {
+                const cleaned = predefinedDeliverables.filter(d => d.trim() !== '');
+                handleSavePredefinedDeliverables(cleaned);
+                setIsDeliverablesModalOpen(false);
+              }} className="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded">
+                Save Deliverables
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Complimentries Management Modal */}
+      {isComplimentriesModalOpen && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111] border border-white/10 rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-playfair text-xl text-white">Manage Complimentries</h3>
+              <button onClick={() => setIsComplimentriesModalOpen(false)} className="text-white/50 hover:text-white">✕</button>
+            </div>
+            <div className="space-y-3">
+              {predefinedComplimentries.map((comp, idx) => (
+                <div key={idx} className="flex gap-2 items-center">
+                  <input 
+                    type="text" 
+                    value={comp} 
+                    onChange={e => {
+                      const newComp = [...predefinedComplimentries];
+                      newComp[idx] = e.target.value;
+                      setPredefinedComplimentries(newComp);
+                    }} 
+                    className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm"
+                    placeholder="Complimentry Name (e.g., Free Album)"
+                  />
+                  <button onClick={() => {
+                    const newComp = predefinedComplimentries.filter((_, i) => i !== idx);
+                    setPredefinedComplimentries(newComp);
+                  }} className="text-red-500 hover:text-red-400 p-2">✕</button>
+                </div>
+              ))}
+              <button onClick={() => setPredefinedComplimentries([...predefinedComplimentries, ''])} className="w-full py-2 border border-white/10 text-white/70 hover:text-white rounded text-sm">+ Add Complimentry Option</button>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button onClick={() => {
+                const cleaned = predefinedComplimentries.filter(c => c.trim() !== '');
+                handleSavePredefinedComplimentries(cleaned);
+                setIsComplimentriesModalOpen(false);
+              }} className="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded">
+                Save Complimentries
               </button>
             </div>
           </div>

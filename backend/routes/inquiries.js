@@ -6,6 +6,7 @@ const __dirnamePath = path.dirname(__filenamePath);
 const logoPath = path.join(__dirnamePath, '../../frontend/public/images/logo.png');
 
 import Inquiry from '../models/Inquiry.js';
+import Booking from '../models/Booking.js';
 import { getMailer } from '../mailer.js';
 
 const router = express.Router();
@@ -80,8 +81,38 @@ router.put('/:id', async (req, res) => {
   try {
     const { status } = req.body;
     const inquiry = await Inquiry.findByIdAndUpdate(req.params.id, { status }, { returnDocument: 'after' });
+
+    // Whenever status updated to confirmed in inquiries, ensure it displays in studio bookings
+    if (inquiry && status && (status.toLowerCase() === 'confirmed' || status.toLowerCase() === 'converted')) {
+      const todayDate = inquiry.createdAt ? new Date(inquiry.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+      const existingBooking = await Booking.findOne({
+        $or: [
+          { email: inquiry.email, date: todayDate },
+          { phone: inquiry.phone, date: todayDate },
+          { notes: { $regex: inquiry._id.toString() } }
+        ]
+      });
+
+      if (!existingBooking) {
+        const booking = new Booking({
+          name: inquiry.name,
+          email: inquiry.email,
+          phone: inquiry.phone,
+          bookingType: 'Client',
+          shootType: inquiry.subject || 'General Inquiry Shoot',
+          package: 'Standard Package',
+          date: todayDate,
+          slot: 'Morning',
+          status: 'Confirmed',
+          notes: `Confirmed Inquiry #${inquiry._id.toString().substring(inquiry._id.toString().length - 6).toUpperCase()} (${inquiry.subject}: ${inquiry.message?.substring(0, 80)}...)`
+        });
+        await booking.save();
+      }
+    }
+
     res.json(inquiry);
   } catch (error) {
+    console.error('Error updating inquiry:', error);
     res.status(500).json({ error: 'Server error updating inquiry' });
   }
 });

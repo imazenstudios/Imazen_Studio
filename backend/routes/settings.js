@@ -163,19 +163,41 @@ router.put('/whatwedo', async (req, res) => {
 // Update predefined services
 router.put('/predefined-services', async (req, res) => {
   try {
-    const { predefinedServices } = req.body;
+    const { predefinedServices, predefinedDeliverables, predefinedComplimentries } = req.body;
     let settings = await Settings.findOne();
     
     if (!settings) {
-      settings = new Settings({ predefinedServices });
+      settings = new Settings({ predefinedServices, predefinedDeliverables, predefinedComplimentries });
     } else {
       if (predefinedServices !== undefined) settings.predefinedServices = predefinedServices;
+      if (predefinedDeliverables !== undefined) settings.predefinedDeliverables = predefinedDeliverables;
+      if (predefinedComplimentries !== undefined) settings.predefinedComplimentries = predefinedComplimentries;
     }
     
     await settings.save();
     res.json(settings);
   } catch (error) {
     res.status(500).json({ error: 'Server error updating predefined services' });
+  }
+});
+
+// Update predefined options (deliverables and complimentries)
+router.put('/predefined-options', async (req, res) => {
+  try {
+    const { predefinedDeliverables, predefinedComplimentries } = req.body;
+    let settings = await Settings.findOne();
+    
+    if (!settings) {
+      settings = new Settings({ predefinedDeliverables, predefinedComplimentries });
+    } else {
+      if (predefinedDeliverables !== undefined) settings.predefinedDeliverables = predefinedDeliverables;
+      if (predefinedComplimentries !== undefined) settings.predefinedComplimentries = predefinedComplimentries;
+    }
+    
+    await settings.save();
+    res.json(settings);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error updating predefined options' });
   }
 });
 

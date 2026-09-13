@@ -7,7 +7,7 @@ const subscriptionSchema = new mongoose.Schema({
   duration: { type: Number, required: true },
   status: {
     type: String,
-    enum: ['Pending', 'Contacted', 'Confirmed', 'Finished', 'Cancelled'],
+    enum: ['Pending', 'Contacted', 'Confirmed', 'Shoot Done', 'Editing In Process', 'Finished', 'Cancelled'],
     default: 'Pending'
   },
   bookings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Booking' }]

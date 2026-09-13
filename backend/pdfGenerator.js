@@ -179,29 +179,35 @@ export const generateEventPdf = (event, discount = 0) => {
             doc.y += 20;
           }
 
-          const deliverables = (event.deliverables || []).filter(d => d.trim() !== '');
+          const deliverables = (event.deliverables || []).filter(d => d && d.trim() !== '');
           if (deliverables.length > 0) {
-            checkPageBreak(120);
-            doc.y += 10;
-            doc.font(mainHeadingFont).fontSize(11).fillColor(whiteColor).text('DELIVERABLES', 50, doc.y);
+            checkPageBreak(80);
             doc.y += 15;
+            const delivTop = doc.y;
+            doc.rect(50, delivTop, doc.page.width - 100, 25).fillColor('#1a1a1a').fill();
+            doc.font(mainHeadingFont).fontSize(10).fillColor(grayColor)
+               .text('DELIVERABLES', 65, delivTop + 8);
+            doc.y = delivTop + 35;
             doc.font(bodyFont).fontSize(10).fillColor(lightGrayColor);
             deliverables.forEach(del => {
-              checkPageBreak(25);
+              checkPageBreak(20);
               doc.text(`- ${del}`, 65, doc.y);
               doc.y += 15;
             });
           }
 
-          const complimentries = (event.complimentries || []).filter(c => c.trim() !== '');
+          const complimentries = (event.complimentries || []).filter(c => c && c.trim() !== '');
           if (complimentries.length > 0) {
-            checkPageBreak(120);
-            doc.y += 10;
-            doc.font(mainHeadingFont).fontSize(11).fillColor(whiteColor).text('COMPLIMENTARIES', 50, doc.y);
+            checkPageBreak(80);
             doc.y += 15;
+            const compTop = doc.y;
+            doc.rect(50, compTop, doc.page.width - 100, 25).fillColor('#1a1a1a').fill();
+            doc.font(mainHeadingFont).fontSize(10).fillColor(grayColor)
+               .text('COMPLIMENTARIES', 65, compTop + 8);
+            doc.y = compTop + 35;
             doc.font(bodyFont).fontSize(10).fillColor(lightGrayColor);
             complimentries.forEach(comp => {
-              checkPageBreak(25);
+              checkPageBreak(20);
               doc.text(`- ${comp}`, 65, doc.y);
               doc.y += 15;
             });
@@ -242,15 +248,15 @@ export const generateEventPdf = (event, discount = 0) => {
 
           // --- PAGE: Terms & Conditions ---
           doc.addPage();
-          doc.y = 50;
+          doc.y = 45;
           
-          doc.font(mainHeadingFont).fontSize(28).fillColor(whiteColor).text('Terms and Conditions', { align: 'center' });
-          doc.moveDown(1.5);
+          doc.font(mainHeadingFont).fontSize(22).fillColor(whiteColor).text('Terms and Conditions', { align: 'center' });
+          doc.y += 12;
           
-          doc.font(mainHeadingFont).fontSize(18).fillColor(whiteColor).text('Our Shooting Approach', { align: 'center' });
-          doc.y += 15;
+          doc.font(mainHeadingFont).fontSize(14).fillColor(whiteColor).text('Our Shooting Approach', { align: 'center' });
+          doc.y += 8;
           
-          doc.font(bodyFont).fontSize(12).fillColor(lightGrayColor);
+          doc.font(bodyFont).fontSize(9.5).fillColor(lightGrayColor);
           const approachTexts = [
             `We follow a storytelling style approach that focuses on real emotions, natural moments and ritual depth.`,
             `Our photography captures genuine expressions and family reactions with clean and timeless framing.`,
@@ -259,22 +265,19 @@ export const generateEventPdf = (event, discount = 0) => {
           ];
           
           approachTexts.forEach(text => {
-             doc.text(text, 50, doc.y, { width: doc.page.width - 100, align: 'center' });
-             doc.y += 8; // Reduce gap slightly
+             doc.text(text, 50, doc.y, { width: doc.page.width - 100, align: 'center', lineGap: 1 });
+             doc.y += 4;
           });
           
-          doc.y += 15;
-          doc.font(mainHeadingFont).fontSize(18).fillColor(whiteColor).text('Kindly Note', { align: 'center' });
-          doc.y += 20;
-          doc.font(bodyFont).fontSize(12).fillColor(lightGrayColor);
-          doc.text(`We truly look forward to being part of your special celebration.\nTo ensure everything goes smoothly, we kindly request your support on the following:`, 50, doc.y, { width: doc.page.width - 100, align: 'center' });
-          doc.y += 15;
+          doc.y += 10;
+          doc.font(mainHeadingFont).fontSize(14).fillColor(whiteColor).text('Kindly Note', { align: 'center' });
+          doc.y += 8;
+          doc.font(bodyFont).fontSize(9.5).fillColor(lightGrayColor);
+          doc.text(`We truly look forward to being part of your special celebration.\nTo ensure everything goes smoothly, we kindly request your support on the following:`, 50, doc.y, { width: doc.page.width - 100, align: 'center', lineGap: 1 });
+          doc.y += 8;
           
           const terms = [
-            `For complete RAW and edited footage handover, we kindly request you to provide two new external hard disks.
-This is purely for safety purposes. Since electronic devices can sometimes fail unexpectedly, we prefer maintaining a backup copy to ensure your wedding memories remain completely secure.
-Your wedding emotions and once-in-a-lifetime moments are priceless, and we believe taking this extra precaution is the best way to protect them for years to come.
-All data will be carefully transferred and handed over safely to you.`,
+            `For complete RAW and edited footage handover, we kindly request you to provide two new external hard disks. This is purely for safety purposes. Since electronic devices can sometimes fail unexpectedly, we prefer maintaining a backup copy to ensure your memories remain secure. All data will be carefully transferred and handed over safely to you.`,
             `To confirm the booking and block our team's dates, a 20% advance of the total budget is required. This helps us dedicate our complete availability exclusively for your event.`,
             `After the pre-wedding shoot, 20% of the remaining payment will be cleared.`,
             `Another 40% will be paid after the completion of all events.`,
@@ -284,17 +287,17 @@ All data will be carefully transferred and handed over safely to you.`,
           
           terms.forEach(term => {
              const termText = `- ${term}`;
-             doc.text(termText, 50, doc.y, { width: doc.page.width - 100, align: 'center' });
-             doc.y += 8; // Reduce gap slightly
+             doc.text(termText, 50, doc.y, { width: doc.page.width - 100, align: 'center', lineGap: 1 });
+             doc.y += 4;
           });
           
-          doc.y += 10;
+          doc.y += 6;
           const conclusion = `Our goal is to deliver your memories with care, clarity and commitment.\nWe appreciate your understanding and cooperation in making this journey smooth and memorable for both of us.`;
-          doc.text(conclusion, 50, doc.y, { width: doc.page.width - 100, align: 'center' });
+          doc.text(conclusion, 50, doc.y, { width: doc.page.width - 100, align: 'center', lineGap: 1 });
           
-          doc.y += 35; // Natural flow instead of fixed bottom
+          doc.y += 15;
           
-          doc.font(bodyFont).fontSize(12).fillColor(whiteColor).text(`With gratitude,\nTeam\nImaZen studios`, 50, doc.y, { align: 'right', width: doc.page.width - 100 });
+          doc.font(bodyFont).fontSize(10).fillColor(whiteColor).text(`With gratitude,\nTeam ImaZen studios`, 50, doc.y, { align: 'right', width: doc.page.width - 100 });
 
 
           // --- FINAL PAGE: Contact Details (Like 3rd image) ---
