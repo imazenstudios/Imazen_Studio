@@ -983,8 +983,8 @@ const AdminDashboard = () => {
          alert('Please select who received the payment.');
          return;
       }
-      if ((method === 'UPI' || method === 'Studio QR') && !utrNumber) {
-         alert('Please enter UTR number for UPI/Studio QR payment.');
+      if (method === 'UPI' && !utrNumber) {
+         alert('Please enter UTR number for UPI payment.');
          return;
       }
       
@@ -3564,6 +3564,7 @@ const AdminDashboard = () => {
                                     </span>
                                   </div>
                                   <div className="bg-black/30 rounded-lg p-3 grid grid-cols-2 gap-2 text-xs mb-4 border border-white/5 flex-1">
+                                    <div className="col-span-2"><span className="text-gray-500 uppercase text-[9px] block">Event / Shoot Name</span><span className="text-white font-bold tracking-wider">{booking.bookingType === 'Studio' ? booking.studioName : booking.shootType}</span></div>
                                     <div><span className="text-gray-500 uppercase text-[9px] block">Package</span><span className="text-white">{booking.package}</span></div>
                                     <div><span className="text-gray-500 uppercase text-[9px] block">Shoot Date</span><span className="text-emerald-400">{booking.date}</span></div>
                                     <div><span className="text-gray-500 uppercase text-[9px] block">Booking Date</span><span className="text-white">{new Date(booking.createdAt || booking.date).toLocaleDateString()}</span></div>
@@ -3707,14 +3708,27 @@ const AdminDashboard = () => {
                                 </div>
                                 <div className="col-span-6">
                                   <label className="block text-[9px] uppercase text-white mb-1">Method</label>
-                                  <select name="newPaymentMethod" className={`${glassInput} w-full py-1.5 px-2 text-xs`} onChange={(e) => {
+                                  <select name="newPaymentMethod" id="newPaymentMethod" className={`${glassInput} w-full py-1.5 px-2 text-xs`} onChange={(e) => {
                                     const utrContainer = e.target.closest('form').querySelector('.utr-container');
-                                    if(e.target.value === 'UPI' || e.target.value === 'Studio QR') utrContainer.classList.remove('hidden');
+                                    if(e.target.value === 'UPI') utrContainer.classList.remove('hidden');
                                     else utrContainer.classList.add('hidden');
+                                    
+                                    // Trigger re-render of received by options if we needed react state, 
+                                    // but since it's uncontrolled in a map, let's just use DOM manipulation or state.
+                                    // Actually, we can use standard React state for this, but since it's within a mapped item, 
+                                    // let's just toggle visibility of Studio QR option.
+                                    const studioQrOption = e.target.closest('form').querySelector('.studio-qr-option');
+                                    if(studioQrOption) {
+                                      if(e.target.value === 'UPI') studioQrOption.classList.remove('hidden');
+                                      else {
+                                        studioQrOption.classList.add('hidden');
+                                        const receivedBySelect = e.target.closest('form').querySelector('[name="newPaymentReceivedBy"]');
+                                        if(receivedBySelect.value === 'Studio QR') receivedBySelect.value = '';
+                                      }
+                                    }
                                   }}>
                                     <option value="Cash" className="bg-[#111]">Cash</option>
                                     <option value="UPI" className="bg-[#111]">UPI</option>
-                                    <option value="Studio QR" className="bg-[#111]">Studio QR</option>
                                   </select>
                                 </div>
                                 <div className="col-span-6 utr-container hidden">
@@ -3725,6 +3739,7 @@ const AdminDashboard = () => {
                                   <label className="block text-[9px] uppercase text-white mb-1">Received By</label>
                                   <select name="newPaymentReceivedBy" className={`${glassInput} w-full py-1.5 px-2 text-xs`}>
                                     <option value="" className="bg-[#111]">Select Member</option>
+                                    <option value="Studio QR" className="bg-[#111] studio-qr-option hidden">Studio QR</option>
                                     {teamMembers.map(tm => (
                                       <option key={tm._id} value={tm._id} className="bg-[#111] text-white">{tm.name}</option>
                                     ))}
