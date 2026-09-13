@@ -3564,7 +3564,11 @@ const AdminDashboard = () => {
                                     </span>
                                   </div>
                                   <div className="bg-black/30 rounded-lg p-3 grid grid-cols-2 gap-2 text-xs mb-4 border border-white/5 flex-1">
-                                    <div className="col-span-2"><span className="text-gray-500 uppercase text-[9px] block">Event / Shoot Name</span><span className="text-white font-bold tracking-wider">{booking.bookingType === 'Studio' ? booking.studioName : booking.shootType}</span></div>
+                                    <div className="col-span-2"><span className="text-gray-500 uppercase text-[9px] block">Event / Shoot Name</span><span className="text-white font-bold tracking-wider">{(() => {
+                                      if (booking.bookingType === 'Studio') return booking.studioName;
+                                      const parentService = services.find(s => s.subServices && s.subServices.some(sub => sub.name === booking.shootType));
+                                      return parentService ? `${parentService.name} - ${booking.shootType}` : booking.shootType;
+                                    })()}</span></div>
                                     <div><span className="text-gray-500 uppercase text-[9px] block">Package</span><span className="text-white">{booking.package}</span></div>
                                     <div><span className="text-gray-500 uppercase text-[9px] block">Shoot Date</span><span className="text-emerald-400">{booking.date}</span></div>
                                     <div><span className="text-gray-500 uppercase text-[9px] block">Booking Date</span><span className="text-white">{new Date(booking.createdAt || booking.date).toLocaleDateString()}</span></div>
@@ -3626,7 +3630,11 @@ const AdminDashboard = () => {
                               <div className="grid grid-cols-2 gap-2">
                                 <div>
                                   <span className="block text-[9px] text-gray-500 uppercase">Shoot</span>
-                                  <span className="text-xs text-white">{booking.bookingType === 'Studio' ? booking.studioName : booking.shootType}</span>
+                                  <span className="text-xs text-white">{(() => {
+                                    if (booking.bookingType === 'Studio') return booking.studioName;
+                                    const parentService = services.find(s => s.subServices && s.subServices.some(sub => sub.name === booking.shootType));
+                                    return parentService ? `${parentService.name} - ${booking.shootType}` : booking.shootType;
+                                  })()}</span>
                                 </div>
                                 <div>
                                   <span className="block text-[9px] text-gray-500 uppercase">Package</span>
