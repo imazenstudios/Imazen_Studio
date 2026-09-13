@@ -983,8 +983,8 @@ const AdminDashboard = () => {
          alert('Please select who received the payment.');
          return;
       }
-      if (method === 'UPI' && !utrNumber) {
-         alert('Please enter UTR number for UPI payment.');
+      if ((method === 'UPI' || method === 'Studio QR') && !utrNumber) {
+         alert('Please enter UTR number for UPI/Studio QR payment.');
          return;
       }
       
@@ -3709,16 +3709,17 @@ const AdminDashboard = () => {
                                   <label className="block text-[9px] uppercase text-white mb-1">Method</label>
                                   <select name="newPaymentMethod" className={`${glassInput} w-full py-1.5 px-2 text-xs`} onChange={(e) => {
                                     const utrContainer = e.target.closest('form').querySelector('.utr-container');
-                                    if(e.target.value === 'UPI') utrContainer.classList.remove('hidden');
+                                    if(e.target.value === 'UPI' || e.target.value === 'Studio QR') utrContainer.classList.remove('hidden');
                                     else utrContainer.classList.add('hidden');
                                   }}>
                                     <option value="Cash" className="bg-[#111]">Cash</option>
                                     <option value="UPI" className="bg-[#111]">UPI</option>
+                                    <option value="Studio QR" className="bg-[#111]">Studio QR</option>
                                   </select>
                                 </div>
                                 <div className="col-span-6 utr-container hidden">
                                   <label className="block text-[9px] uppercase text-white mb-1">UTR Number</label>
-                                  <input type="text" name="newPaymentUTR" placeholder="UTR (If UPI)" className={`${glassInput} w-full py-1.5 px-2 text-xs`} />
+                                  <input type="text" name="newPaymentUTR" placeholder="UTR (If UPI/Studio QR)" className={`${glassInput} w-full py-1.5 px-2 text-xs`} />
                                 </div>
                                 <div className="col-span-6">
                                   <label className="block text-[9px] uppercase text-white mb-1">Received By</label>
@@ -4259,6 +4260,7 @@ const AdminDashboard = () => {
                               <h3 className="text-sm text-white font-oswald uppercase tracking-widest truncate">{inq.name}</h3>
                               <p className="text-[11px] text-gray-400 font-sans tracking-wider truncate">{inq.email}</p>
                               <p className="text-[11px] text-gray-400 font-sans tracking-wider">{inq.phone}</p>
+                              {inq.createdAt && <p className="text-[10px] text-gray-600 font-sans tracking-wider mt-0.5">Submitted: {new Date(inq.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>}
                             </div>
 
                             {/* Subject */}
@@ -4272,19 +4274,28 @@ const AdminDashboard = () => {
                             </div>
 
                             {/* Status */}
-                            <div className="w-32 flex flex-col gap-2">
+                            <div className="w-36 flex flex-col gap-2">
                               <select 
-                                className="bg-black/40 border border-white/10 rounded-lg px-2 py-2 text-[11px] text-white outline-none tracking-widest uppercase cursor-pointer focus:border-white transition-colors"
+                                className={`border rounded-lg px-2 py-2 text-[11px] outline-none tracking-widest uppercase cursor-pointer transition-colors font-bold ${
+                                  (inq.status || '').toLowerCase() === 'new' ? 'bg-sky-500/10 border-sky-500/40 text-sky-400' :
+                                  (inq.status || '').toLowerCase() === 'contacted' ? 'bg-blue-500/10 border-blue-500/40 text-blue-400' :
+                                  (inq.status || '').toLowerCase() === 'pending' ? 'bg-amber-500/10 border-amber-500/40 text-amber-400' :
+                                  (inq.status || '').toLowerCase() === 'negotiation' ? 'bg-orange-500/10 border-orange-500/40 text-orange-400' :
+                                  ['confirmed','converted'].includes((inq.status || '').toLowerCase()) ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400' :
+                                  ['cancelled','lost'].includes((inq.status || '').toLowerCase()) ? 'bg-rose-500/10 border-rose-500/40 text-rose-400' :
+                                  (inq.status || '').toLowerCase() === 'junk lead' ? 'bg-gray-500/10 border-gray-500/40 text-gray-400' :
+                                  'bg-black/40 border-white/10 text-white'
+                                }`}
                                 value={inq.status}
                                 onChange={(e) => handleUpdateInquiryStatus(inq._id, e.target.value)}
                               >
-                                <option value="New">New</option>
-                                <option value="Contacted">Contacted</option>
-                                <option value="Pending">Pending</option>
-                                <option value="Negotiation">Negotiation</option>
-                                <option value="Confirmed">Confirmed</option>
-                                <option value="Cancelled">Cancelled</option>
-                                <option value="Junk Lead">Junk Lead</option>
+                                <option value="New" className="bg-[#111] text-white">New</option>
+                                <option value="Contacted" className="bg-[#111] text-white">Contacted</option>
+                                <option value="Pending" className="bg-[#111] text-white">Pending</option>
+                                <option value="Negotiation" className="bg-[#111] text-white">Negotiation</option>
+                                <option value="Confirmed" className="bg-[#111] text-white">Confirmed</option>
+                                <option value="Cancelled" className="bg-[#111] text-white">Cancelled</option>
+                                <option value="Junk Lead" className="bg-[#111] text-white">Junk Lead</option>
                               </select>
                               <button onClick={() => setFollowUpModal({ type: 'inquiry', id: inq._id })} className="text-[9px] text-green-400 hover:text-white uppercase tracking-widest transition-colors flex items-center justify-center border border-green-500/30 rounded py-1 bg-green-500/10 hover:bg-green-500/30">
                                 📋 Notes ({inq.followUps?.length || 0})
@@ -4367,80 +4378,101 @@ const AdminDashboard = () => {
                         <p className="text-2xl font-bold font-oswald text-purple-500">{leads.filter(l => (l.status || '').toLowerCase() === 'confirmed').length}</p>
                       </div>
                     </div>
-                    <div className="bg-black/40 rounded-2xl border border-white/5 overflow-hidden shadow-2xl">
-                      <div className="overflow-x-auto custom-scrollbar">
-                        <table className="w-full text-left text-sm text-gray-300">
-                          <thead className="bg-white/5 text-xs uppercase font-oswald tracking-[0.1em] text-gray-400">
-                            <tr>
-                              <th className="px-6 py-4">Date</th>
-                              <th className="px-6 py-4">Source</th>
-                              <th className="px-6 py-4">Name</th>
-                              <th className="px-6 py-4">Contact</th>
-                              <th className="px-6 py-4">Event Date</th>
-                              <th className="px-6 py-4">Status</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-white/5">
-                            {leads.filter(l => {
-                              const matchesSearch = leadSearch.trim() === '' || [l.name, l.email, l.phone].some(val => val && String(val).toLowerCase().includes(leadSearch.toLowerCase()));
-                              const matchesStatus = leadFilter === 'All' || l.status === leadFilter;
-                              return matchesSearch && matchesStatus;
-                            }).map((lead) => (
-                              <tr key={lead._id} className="hover:bg-white/5 transition-colors">
-                                <td className="px-6 py-4 whitespace-nowrap">{new Date(lead.createdAt).toLocaleDateString()}</td>
-                                <td className="px-6 py-4"><span className="bg-white/10 px-3 py-1 rounded-full text-xs">{lead.landingPageSource}</span></td>
-                                <td className="px-6 py-4 font-bold text-white">{lead.name}</td>
-                                <td className="px-6 py-4">
-                                  <div>{lead.email}</div>
-                                  <div className="text-gray-500 text-xs">{lead.phone}</div>
-                                </td>
-                                <td className="px-6 py-4 text-emerald-400">{new Date(lead.eventDate).toLocaleDateString()}</td>
-                                <td className="px-6 py-4">
-                                  <select 
-                                    className="bg-[#1a1a1a] text-white border border-white/20 rounded px-3 py-1 text-xs uppercase cursor-pointer"
-                                    value={lead.status || 'new'}
-                                    onChange={async (e) => {
-                                      try {
-                                        await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/leads/${lead._id}`, { status: e.target.value });
-                                        fetchData();
-                                      } catch(err) { console.error(err); }
-                                    }}
-                                  >
-                                    <option className="bg-[#1a1a1a] text-white" value="new">New</option>
-                                    <option className="bg-[#1a1a1a] text-white" value="contacted">Contacted</option>
-                                    <option className="bg-[#1a1a1a] text-white" value="pending">Pending</option>
-                                    <option className="bg-[#1a1a1a] text-white" value="negotiation">Negotiation</option>
-                                    <option className="bg-[#1a1a1a] text-white" value="confirmed">Confirmed</option>
-                                    <option className="bg-[#1a1a1a] text-white" value="cancelled">Cancelled</option>
-                                    <option className="bg-[#1a1a1a] text-white" value="junk lead">Junk Lead</option>
-                                  </select>
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                  <button 
-                                    onClick={async () => {
-                                      if(window.confirm('Are you sure you want to delete this lead?')) {
-                                        try {
-                                          await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/leads/${lead._id}`);
-                                          fetchData();
-                                        } catch(err) { console.error(err); }
-                                      }
-                                    }}
-                                    className="text-red-500 hover:text-red-400 text-xs uppercase tracking-widest"
-                                  >
-                                    Delete
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                            {leads.length === 0 && (
-                              <tr>
-                                <td colSpan="6" className="px-6 py-8 text-center text-gray-500 italic">No leads found yet.</td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
+                    {leads.filter(l => {
+                      const matchesSearch = leadSearch.trim() === '' || [l.name, l.email, l.phone].some(val => val && String(val).toLowerCase().includes(leadSearch.toLowerCase()));
+                      const matchesStatus = leadFilter === 'All' || l.status === leadFilter;
+                      return matchesSearch && matchesStatus;
+                    }).length === 0 ? (
+                      <div className="flex items-center justify-center h-48">
+                        <p className="text-gray-500 text-sm tracking-[0.3em] uppercase">No leads found.</p>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="flex flex-col gap-3">
+                        {/* Header Row */}
+                        <div className="hidden md:flex items-center px-6 py-3 border-b border-white/5 text-[11px] text-gray-500 uppercase tracking-widest font-bold">
+                          <div className="w-24">Lead ID</div>
+                          <div className="flex-1">Client Info</div>
+                          <div className="flex-[1.5]">Source</div>
+                          <div className="flex-[1.5]">Event Date</div>
+                          <div className="w-36">Status</div>
+                          <div className="w-16 text-right">Action</div>
+                        </div>
+                        {leads.filter(l => {
+                          const matchesSearch = leadSearch.trim() === '' || [l.name, l.email, l.phone].some(val => val && String(val).toLowerCase().includes(leadSearch.toLowerCase()));
+                          const matchesStatus = leadFilter === 'All' || l.status === leadFilter;
+                          return matchesSearch && matchesStatus;
+                        }).map((lead) => (
+                          <div key={lead._id} className={`${glassPanel} p-4 md:px-6 flex flex-col md:flex-row md:items-center gap-4 hover:bg-white/5 transition-colors`}>
+                            {/* Lead ID */}
+                            <div className="w-24 text-xs font-sans text-gray-500 tracking-widest hidden md:block">
+                              #{lead._id.substring(lead._id.length - 6).toUpperCase()}
+                            </div>
+                            {/* Client Info */}
+                            <div className="flex-1">
+                              <h3 className="text-sm text-white font-oswald uppercase tracking-widest truncate">{lead.name}</h3>
+                              <p className="text-[11px] text-gray-400 font-sans tracking-wider truncate">{lead.email}</p>
+                              <p className="text-[11px] text-gray-400 font-sans tracking-wider">{lead.phone}</p>
+                              {lead.createdAt && <p className="text-[10px] text-gray-600 font-sans tracking-wider mt-0.5">Submitted: {new Date(lead.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>}
+                            </div>
+                            {/* Source */}
+                            <div className="flex-[1.5]">
+                              {lead.landingPageSource && <span className="bg-white/10 px-3 py-1 rounded-full text-xs text-white/70">{lead.landingPageSource}</span>}
+                            </div>
+                            {/* Event Date */}
+                            <div className="flex-[1.5]">
+                              {lead.eventDate && <p className="text-xs text-emerald-400">{new Date(lead.eventDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>}
+                            </div>
+                            {/* Status */}
+                            <div className="w-36 flex flex-col gap-2">
+                              <select 
+                                className={`border rounded-lg px-2 py-2 text-[11px] outline-none tracking-widest uppercase cursor-pointer transition-colors font-bold ${
+                                  (lead.status || '').toLowerCase() === 'new' ? 'bg-sky-500/10 border-sky-500/40 text-sky-400' :
+                                  (lead.status || '').toLowerCase() === 'contacted' ? 'bg-blue-500/10 border-blue-500/40 text-blue-400' :
+                                  (lead.status || '').toLowerCase() === 'pending' ? 'bg-amber-500/10 border-amber-500/40 text-amber-400' :
+                                  (lead.status || '').toLowerCase() === 'negotiation' ? 'bg-orange-500/10 border-orange-500/40 text-orange-400' :
+                                  (lead.status || '').toLowerCase() === 'confirmed' ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400' :
+                                  (lead.status || '').toLowerCase() === 'cancelled' ? 'bg-rose-500/10 border-rose-500/40 text-rose-400' :
+                                  (lead.status || '').toLowerCase() === 'junk lead' ? 'bg-gray-500/10 border-gray-500/40 text-gray-400' :
+                                  'bg-black/40 border-white/10 text-white'
+                                }`}
+                                value={lead.status || 'new'}
+                                onChange={async (e) => {
+                                  try {
+                                    await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/leads/${lead._id}`, { status: e.target.value });
+                                    fetchData();
+                                  } catch(err) { console.error(err); }
+                                }}
+                              >
+                                <option className="bg-[#111] text-white" value="new">New</option>
+                                <option className="bg-[#111] text-white" value="contacted">Contacted</option>
+                                <option className="bg-[#111] text-white" value="pending">Pending</option>
+                                <option className="bg-[#111] text-white" value="negotiation">Negotiation</option>
+                                <option className="bg-[#111] text-white" value="confirmed">Confirmed</option>
+                                <option className="bg-[#111] text-white" value="cancelled">Cancelled</option>
+                                <option className="bg-[#111] text-white" value="junk lead">Junk Lead</option>
+                              </select>
+                            </div>
+                            {/* Action */}
+                            <div className="w-16 flex justify-end">
+                              <button 
+                                onClick={async () => {
+                                  if(window.confirm('Are you sure you want to delete this lead?')) {
+                                    try {
+                                      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/leads/${lead._id}`);
+                                      fetchData();
+                                    } catch(err) { console.error(err); }
+                                  }
+                                }}
+                                className="text-gray-500 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-500/10"
+                                title="Delete Lead"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 

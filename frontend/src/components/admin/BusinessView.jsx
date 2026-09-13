@@ -1115,6 +1115,15 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                         <h4 className="font-playfair text-white text-xl tracking-wide">{event.name}</h4>
                         <p className="text-xs text-white/50 uppercase tracking-widest mt-1">{event.status}</p>
                         {event.subEvents && <p className="text-xs text-emerald-400 mt-1">{event.subEvents}</p>}
+                        {event.subEventList && event.subEventList.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1.5">
+                            {event.subEventList.map((sub, si) => (
+                              <span key={si} className="text-[10px] bg-purple-500/10 text-purple-300 border border-purple-500/20 px-1.5 py-0.5 rounded uppercase tracking-wide">
+                                {sub.name || `Event ${si + 1}`}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div className="text-right">
                         <span className="text-xs text-white/40 uppercase tracking-widest block mb-1">Total</span>
