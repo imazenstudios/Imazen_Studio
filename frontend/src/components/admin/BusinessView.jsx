@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DragDropImageUploader from '../DragDropImageUploader';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers = [], highlightedBookingId, onAddPartner, onAddExpense, onEditPartner, onEditExpense, onDeletePartner, onDeleteExpense, defaultViewMode = 'overview', hideTabsAndOverview = false, userPermissions = [], isSuperAdmin = false }) => {
   const [filterType, setFilterType] = useState('all');
@@ -451,6 +451,12 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
   
       const profit = earnings - totalExpenses;
       
+      // Total Business = Amount Received + Pending Amount
+      const totalBusiness = earnings + pending;
+      
+      // Gross Amount = Total Business - Expenses
+      const grossAmount = totalBusiness - totalExpenses;
+      
       // Profit per category (approximate for overview breakdown)
       const profitShoots = shootEarnings - shootExpenses;
       const profitProps = propEarnings - propExpenses;
@@ -460,7 +466,8 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         earnings, shootEarnings, propEarnings, eventEarnings, 
         pending, pendingShoots, pendingProps, pendingEvents,
         studioExpenses, shootExpenses, propExpenses, eventExpenses, totalExpenses, 
-        profit, profitShoots, profitProps, profitEvents
+        profit, profitShoots, profitProps, profitEvents,
+        totalBusiness, grossAmount
       };
   };
 
@@ -502,6 +509,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
 
   const renderOverviewCards = () => {
     let pieData = [];
+    let barData = [];
     if (viewMode === 'overview') {
        pieData = [
          { name: 'Shoot Profits', value: Math.max(0, totals.profitShoots), color: '#10b981' },
@@ -511,18 +519,34 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
        ].filter(Boolean);
     } else {
        pieData = [
-         { name: 'Amount received', value: Math.max(0, totals.earnings), color: '#3b82f6' },
+         { name: 'Amount Received', value: Math.max(0, totals.earnings), color: '#3b82f6' },
          { name: 'Pending', value: Math.max(0, totals.pending), color: '#f59e0b' },
          { name: 'Total Expenses', value: Math.max(0, totals.totalExpenses), color: '#ef4444' },
          { name: 'Net Profit', value: Math.max(0, totals.profit), color: '#10b981' }
+       ];
+       // Bar chart data for studio_shoots
+       barData = [
+         { name: 'Total Business', value: Math.max(0, totals.totalBusiness), fill: '#8b5cf6' },
+         { name: 'Amount Received', value: Math.max(0, totals.earnings), fill: '#3b82f6' },
+         { name: 'Pending', value: Math.max(0, totals.pending), fill: '#f59e0b' },
+         { name: 'Expenses', value: Math.max(0, totals.totalExpenses), fill: '#ef4444' },
+         { name: 'Gross Amount', value: Math.max(0, totals.grossAmount), fill: '#06b6d4' },
+         { name: 'Net Profit', value: Math.max(0, totals.profit), fill: '#10b981' },
        ];
     }
     const filteredPieData = pieData.filter(d => d.value > 0);
 
     return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Total Business card */}
       <div className="bg-[#111] p-6 rounded-xl border border-white/5">
-        <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Amount received</p>
+        <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Total Business</p>
+        <p className="text-3xl font-light text-purple-400">₹{totals.totalBusiness.toLocaleString()}</p>
+        <p className="text-xs text-white/50 mt-2">Received + Pending</p>
+      </div>
+      {/* Amount Received card */}
+      <div className="bg-[#111] p-6 rounded-xl border border-white/5">
+        <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Amount Received</p>
         <p className="text-3xl font-light text-emerald-400">₹{totals.earnings.toLocaleString()}</p>
         <p className="text-xs text-white mt-2">
           {viewMode === 'overview' && (
@@ -537,6 +561,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
           {viewMode === 'events' && `Events: ₹${totals.eventEarnings}`}
         </p>
       </div>
+      {/* Pending Amount card */}
       <div className="bg-[#111] p-6 rounded-xl border border-white/5">
         <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Pending Amount</p>
         <p className="text-3xl font-light text-amber-500">₹{totals.pending.toLocaleString()}</p>
@@ -553,6 +578,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
           {viewMode === 'events' && `Events: ₹${totals.pendingEvents}`}
         </p>
       </div>
+      {/* Total Expenses card */}
       <div className="bg-[#111] p-6 rounded-xl border border-white/5">
         <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Total Expenses</p>
         <p className="text-3xl font-light text-red-400">₹{totals.totalExpenses.toLocaleString()}</p>
@@ -568,6 +594,13 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
           {viewMode === 'events' && `Events: ₹${totals.eventExpenses}`}
         </p>
       </div>
+      {/* Gross Amount card */}
+      <div className="bg-[#111] p-6 rounded-xl border border-white/5">
+        <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Gross Amount</p>
+        <p className="text-3xl font-light text-cyan-400">₹{totals.grossAmount.toLocaleString()}</p>
+        <p className="text-xs text-white/50 mt-2">Total Business − Expenses</p>
+      </div>
+      {/* Net Profit card */}
       <div className="bg-[#111] p-6 rounded-xl border border-white/5">
         <p className="text-xs text-white/50 uppercase tracking-wider mb-2">Net Profit</p>
         <p className="text-3xl font-light text-white">₹{totals.profit.toLocaleString()}</p>
@@ -585,20 +618,20 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         </p>
       </div>
 
-      {/* Pie Chart Section */}
-      <div className="col-span-1 md:col-span-4 bg-[#111] p-6 rounded-xl border border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
+      {/* Chart Section: Bar for studio_shoots, Pie for others */}
+      <div className="col-span-1 md:col-span-3 bg-[#111] p-6 rounded-xl border border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
         <div className="w-full md:w-1/3">
            <h4 className="text-sm uppercase tracking-widest text-white/70 mb-2">Financial Breakdown</h4>
            <p className="text-xs text-white/40 mb-6">Visual representation of earnings and expenses for the current view.</p>
            
            <div className="space-y-4">
              {(() => {
-               if (filteredPieData.length === 0) return <p className="text-xs text-white/30 italic">No financial data to display.</p>;
-               
-               return filteredPieData.map((d, i) => (
+               const legendData = viewMode === 'studio_shoots' ? barData : filteredPieData;
+               if (legendData.length === 0) return <p className="text-xs text-white/30 italic">No financial data to display.</p>;
+               return legendData.filter(d => d.value > 0).map((d, i) => (
                  <div key={i} className="flex justify-between items-center text-sm">
                    <div className="flex items-center gap-2">
-                     <span className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }}></span>
+                     <span className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color || d.fill }}></span>
                      <span className="text-white/70">{d.name}</span>
                    </div>
                    <span className="font-mono text-white">₹{d.value.toLocaleString()}</span>
@@ -608,6 +641,26 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
            </div>
         </div>
         <div className="w-full md:w-2/3 h-64">
+          {viewMode === 'studio_shoots' ? (
+           <ResponsiveContainer width="100%" height="100%">
+             <BarChart data={barData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+               <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} axisLine={false} tickLine={false} />
+               <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} />
+               <Tooltip
+                 formatter={(value) => `₹${value.toLocaleString()}`}
+                 contentStyle={{ backgroundColor: '#111', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                 itemStyle={{ color: '#fff' }}
+                 cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+               />
+               <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                 {barData.map((entry, index) => (
+                   <Cell key={`bar-cell-${index}`} fill={entry.fill} />
+                 ))}
+               </Bar>
+             </BarChart>
+           </ResponsiveContainer>
+          ) : (
            <ResponsiveContainer width="100%" height="100%">
              <PieChart>
                <Pie
@@ -631,6 +684,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '12px', opacity: 0.7 }} />
              </PieChart>
            </ResponsiveContainer>
+          )}
         </div>
       </div>
     </div>
