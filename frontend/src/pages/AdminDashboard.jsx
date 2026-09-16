@@ -6206,8 +6206,14 @@ const AdminDashboard = () => {
                                         src={`https://drive.google.com/thumbnail?id=${img.driveId}&sz=w200`}
                                         alt={img.name}
                                         className="w-full h-full object-cover"
-                                        loading="lazy"
-                                        onError={e => { e.target.style.display = 'none'; }}
+                                        onError={e => {
+                                          const proxyUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/client-gallery/image/${img.driveId}`;
+                                          if (e.target.src !== proxyUrl) {
+                                            e.target.src = proxyUrl;
+                                          } else {
+                                            e.target.style.display = 'none';
+                                          }
+                                        }}
                                       />
                                     </div>
                                     <p className={`text-[9px] truncate font-mono ${img.isSelected ? 'text-emerald-300 font-bold' : 'text-gray-400'}`}>

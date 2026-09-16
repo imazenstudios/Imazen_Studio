@@ -239,4 +239,28 @@ router.put('/:id/submit', async (req, res) => {
   }
 });
 
+// Image streaming proxy (allows displaying images even if folder is restricted)
+router.get('/image/:driveId', async (req, res) => {
+  try {
+    if (!drive) {
+      return res.status(500).send('Drive API not initialized');
+    }
+    const { driveId } = req.params;
+    const response = await drive.files.get(
+      { fileId: driveId, alt: 'media' },
+      { responseType: 'stream' }
+    );
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    if (response.headers && response.headers['content-type']) {
+      res.setHeader('Content-Type', response.headers['content-type']);
+    } else {
+      res.setHeader('Content-Type', 'image/jpeg');
+    }
+    response.data.pipe(res);
+  } catch (error) {
+    console.error('Proxy image error:', error.message);
+    res.status(404).send('Image not found');
+  }
+});
+
 export default router;

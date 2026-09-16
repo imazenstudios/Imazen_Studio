@@ -249,8 +249,13 @@ const ClientGalleryPage = () => {
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                           loading="lazy"
                           onError={e => {
-                            e.target.style.display = 'none';
-                            if (e.target.parentElement) e.target.parentElement.style.background = '#18181b';
+                            const proxyUrl = `${API}/client-gallery/image/${img.driveId}`;
+                            if (e.target.src !== proxyUrl) {
+                              e.target.src = proxyUrl;
+                            } else {
+                              e.target.style.display = 'none';
+                              if (e.target.parentElement) e.target.parentElement.style.background = '#18181b';
+                            }
                           }}
                         />
                       </div>
@@ -407,6 +412,12 @@ const ClientGalleryPage = () => {
                   src={getDriveThumbnail(activeImage.driveId, 'w1920')}
                   alt={activeImage.name}
                   className="max-w-full max-h-[82vh] object-contain rounded-lg shadow-2xl transition-all duration-150"
+                  onError={e => {
+                    const proxyUrl = `${API}/client-gallery/image/${activeImage.driveId}`;
+                    if (e.target.src !== proxyUrl) {
+                      e.target.src = proxyUrl;
+                    }
+                  }}
                 />
               </div>
 
