@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -23,29 +23,85 @@ const ClientGalleryPage = () => {
   // Lightbox Modal state: { galleryId: string, index: number } | null
   const [lightbox, setLightbox] = useState(null);
 
-  const handleVerify = async (e) => {
-    e.preventDefault();
+  // Touch gesture support for mobile swipe in lightbox
+  const touchStartX = useRef(null);
+  const touchEndX = useRef(null);
+
+  // Auto-login from localStorage on initial page load
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('clientGalleryEmail');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      verifyEmail(savedEmail);
+    }
+  }, []);
+
+  const verifyEmail = async (emailToVerify) => {
+    const cleanEmail = emailToVerify.toLowerCase().trim();
+    if (!cleanEmail) return;
+
     setVerifyError('');
     setIsVerifying(true);
     try {
-      const res = await axios.post(`${API}/client-gallery/verify`, { email });
+      const res = await axios.post(`${API}/client-gallery/verify`, { email: cleanEmail });
       setGalleries(res.data);
-      // Initialize selections from existing isSelected flags
+      
+      // Save email in localStorage for persistent session
+      localStorage.setItem('clientGalleryEmail', cleanEmail);
+
+      // Initialize selections, checking localStorage drafts first
       const initial = {};
-      res.data.forEach(g => {
-        initial[g._id] = new Set(g.images.filter(i => i.isSelected).map(i => i.driveId));
-      });
-      setSelections(initial);
-      // Mark already-submitted galleries
       const sub = {};
-      res.data.forEach(g => { if (g.status === 'Submitted') sub[g._id] = true; });
+
+      res.data.forEach(g => {
+        const isSub = g.status === 'Submitted';
+        if (isSub) sub[g._id] = true;
+
+        // Try restoring local draft selections if not yet submitted
+        let restoredIds = [];
+        if (!isSub) {
+          try {
+            const savedDraft = localStorage.getItem(`gallerySelections_${g._id}`);
+            if (savedDraft) {
+              restoredIds = JSON.parse(savedDraft);
+            }
+          } catch (e) {
+            console.error('Failed to parse draft selections', e);
+          }
+        }
+
+        // If no draft in localStorage, fallback to server selections
+        if (!restoredIds || restoredIds.length === 0) {
+          restoredIds = g.images.filter(i => i.isSelected).map(i => i.driveId);
+        }
+
+        initial[g._id] = new Set(restoredIds);
+      });
+
+      setSelections(initial);
       setSubmitted(sub);
       setVerified(true);
     } catch (err) {
       setVerifyError(err.response?.data?.error || 'No galleries found for this email.');
+      // If verification failed on stored email, clear it
+      localStorage.removeItem('clientGalleryEmail');
+      setVerified(false);
     } finally {
       setIsVerifying(false);
     }
+  };
+
+  const handleVerifySubmit = (e) => {
+    e.preventDefault();
+    verifyEmail(email);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('clientGalleryEmail');
+    setVerified(false);
+    setGalleries([]);
+    setSelections({});
+    setEmail('');
   };
 
   const toggleImage = useCallback((galleryId, driveId) => {
@@ -57,6 +113,14 @@ const ClientGalleryPage = () => {
       } else {
         next.add(driveId);
       }
+      
+      // Persist draft selections to localStorage immediately
+      try {
+        localStorage.setItem(`gallerySelections_${galleryId}`, JSON.stringify(Array.from(next)));
+      } catch (e) {
+        console.error('Failed to persist selection draft', e);
+      }
+
       return { ...prev, [galleryId]: next };
     });
   }, [submitted]);
@@ -77,6 +141,8 @@ const ClientGalleryPage = () => {
       await axios.put(`${API}/client-gallery/${galleryId}/submit`, { selectedDriveIds });
       setSubmitted(prev => ({ ...prev, [galleryId]: true }));
       setGalleries(prev => prev.map(g => g._id === galleryId ? { ...g, status: 'Submitted' } : g));
+      // Remove draft from storage once submitted
+      localStorage.removeItem(`gallerySelections_${galleryId}`);
       if (lightbox && lightbox.galleryId === galleryId) {
         setLightbox(null);
       }
@@ -116,7 +182,34 @@ const ClientGalleryPage = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [lightbox, galleries, toggleImage]);
 
-  // Find active image for lightbox
+  // Touch gesture handlers for mobile swipe in lightbox
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current || !lightbox) return;
+    const diff = touchStartX.current - touchEndX.current;
+    const currentGallery = galleries.find(g => g._id === lightbox.galleryId);
+    if (!currentGallery) return;
+
+    const images = currentGallery.images;
+    if (diff > 50) {
+      // Swiped left -> next photo
+      setLightbox(prev => prev ? { ...prev, index: (prev.index + 1) % images.length } : null);
+    } else if (diff < -50) {
+      // Swiped right -> prev photo
+      setLightbox(prev => prev ? { ...prev, index: (prev.index - 1 + images.length) % images.length } : null);
+    }
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
+
+  // Active image for lightbox
   const activeGallery = lightbox ? galleries.find(g => g._id === lightbox.galleryId) : null;
   const activeImage = (activeGallery && lightbox) ? activeGallery.images[lightbox.index] : null;
   const isImageSelected = (activeGallery && activeImage)
@@ -124,29 +217,43 @@ const ClientGalleryPage = () => {
     : false;
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white selection:bg-white/20">
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-white/20 pb-24 md:pb-16">
       {/* Background ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-purple-900/20 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-blue-900/20 blur-[120px]" />
+        <div className="absolute top-[-20%] left-[-10%] w-[80vw] md:w-[60vw] h-[80vw] md:h-[60vw] rounded-full bg-purple-900/20 blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[70vw] md:w-[50vw] h-[70vw] md:h-[50vw] rounded-full bg-blue-900/20 blur-[120px]" />
       </div>
 
-      <div className="relative z-10 px-4 py-16 md:py-24 max-w-6xl mx-auto">
+      <div className="relative z-10 px-3 sm:px-6 py-8 md:py-16 max-w-6xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
-          <img src="/images/logo.png" alt="Imazen Studios" className="h-10 mx-auto mb-6 opacity-80" />
-          <h1 className="text-3xl md:text-5xl font-oswald font-bold uppercase tracking-widest text-white mb-3">
+        <div className="text-center mb-8 md:mb-12">
+          <img src="/images/logo.png" alt="Imazen Studios" className="h-8 md:h-10 mx-auto mb-4 md:mb-6 opacity-90" />
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-oswald font-bold uppercase tracking-widest text-white mb-2 md:mb-3">
             Client Photo Gallery
           </h1>
-          <p className="text-gray-400 text-sm tracking-wider max-w-lg mx-auto">
+          <p className="text-gray-400 text-xs sm:text-sm tracking-wider max-w-lg mx-auto px-4">
             Enter your email to view your photos, open any photo to inspect in full resolution, and choose your selections.
           </p>
+
+          {verified && (
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <span className="text-[11px] text-gray-400 font-mono bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+                👤 {email}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="text-[10px] uppercase tracking-widest text-gray-400 hover:text-white underline underline-offset-4 transition-colors"
+              >
+                Change Email
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Email Verification */}
+        {/* Email Verification Card */}
         {!verified && (
-          <div className="max-w-md mx-auto">
-            <form onSubmit={handleVerify} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+          <div className="max-w-md mx-auto px-2">
+            <form onSubmit={handleVerifySubmit} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
               <label className="block text-[10px] uppercase tracking-widest text-gray-400 mb-2">Your Email Address</label>
               <input
                 type="email"
@@ -154,15 +261,15 @@ const ClientGalleryPage = () => {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:border-white/30 focus:outline-none transition-all mb-4"
+                className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3.5 text-sm text-white placeholder-gray-600 focus:border-white/40 focus:outline-none transition-all mb-4"
               />
               {verifyError && (
-                <p className="text-red-400 text-xs mb-4 tracking-wider">{verifyError}</p>
+                <p className="text-red-400 text-xs mb-4 tracking-wider leading-relaxed">{verifyError}</p>
               )}
               <button
                 type="submit"
                 disabled={isVerifying}
-                className="w-full py-3 bg-white text-black font-bold text-xs uppercase tracking-[0.2em] rounded-xl hover:bg-gray-100 transition-all disabled:opacity-50"
+                className="w-full py-3.5 bg-white text-black font-bold text-xs uppercase tracking-[0.2em] rounded-xl hover:bg-gray-200 active:scale-[0.99] transition-all disabled:opacity-50 shadow-lg"
               >
                 {isVerifying ? 'Verifying...' : 'Access My Gallery →'}
               </button>
@@ -178,54 +285,58 @@ const ClientGalleryPage = () => {
           const selectedCount = gallerySelections.size;
 
           return (
-            <div key={gallery._id} className="mb-16">
-              {/* Gallery Header */}
-              <div className="flex flex-wrap items-end justify-between gap-4 mb-6 pb-4 border-b border-white/10">
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest text-gray-500 mb-1">Gallery Collection</p>
-                  <h2 className="text-2xl md:text-3xl font-oswald font-bold uppercase tracking-widest text-white">
-                    {gallery.eventName}
-                  </h2>
-                  <p className="text-sm text-gray-400 mt-1">{gallery.clientName}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  {isSubmitted ? (
-                    <span className="px-4 py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full text-xs uppercase tracking-widest font-bold flex items-center gap-1.5">
-                      <span>✓</span> Selections Submitted ({selectedCount} photos)
-                    </span>
-                  ) : (
-                    <>
-                      <span className="text-xs text-gray-400 tracking-wider">
-                        <strong className="text-white font-semibold">{selectedCount}</strong> of {gallery.images.length} selected
+            <div key={gallery._id} className="mb-12 md:mb-16">
+              {/* Gallery Header Card */}
+              <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 md:p-6 mb-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <span className="text-[10px] uppercase tracking-widest text-gray-500 block mb-1">Gallery Collection</span>
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-oswald font-bold uppercase tracking-widest text-white">
+                      {gallery.eventName}
+                    </h2>
+                    <p className="text-xs sm:text-sm text-gray-400 mt-0.5">{gallery.clientName}</p>
+                  </div>
+
+                  {/* Desktop Action Buttons */}
+                  <div className="hidden md:flex items-center gap-3">
+                    {isSubmitted ? (
+                      <span className="px-4 py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full text-xs uppercase tracking-widest font-bold flex items-center gap-1.5">
+                        <span>✓</span> Selections Submitted ({selectedCount} photos)
                       </span>
-                      <button
-                        onClick={() => handleSubmit(gallery._id)}
-                        disabled={isSubmittingThis || selectedCount === 0}
-                        className="px-6 py-2.5 bg-white text-black font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-gray-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg"
-                      >
-                        {isSubmittingThis ? 'Submitting...' : `Submit Selection (${selectedCount})`}
-                      </button>
-                    </>
-                  )}
+                    ) : (
+                      <>
+                        <span className="text-xs text-gray-400 tracking-wider">
+                          <strong className="text-white font-semibold">{selectedCount}</strong> of {gallery.images.length} selected
+                        </span>
+                        <button
+                          onClick={() => handleSubmit(gallery._id)}
+                          disabled={isSubmittingThis || selectedCount === 0}
+                          className="px-6 py-2.5 bg-white text-black font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-gray-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg"
+                        >
+                          {isSubmittingThis ? 'Submitting...' : `Submit Selection (${selectedCount})`}
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
+
+                {isSubmitted && (
+                  <div className="mt-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center">
+                    <p className="text-emerald-400 text-xs sm:text-sm tracking-wider">
+                      ✓ Your selection of {selectedCount} images has been submitted to the studio!
+                    </p>
+                  </div>
+                )}
               </div>
 
-              {isSubmitted && (
-                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 mb-6 text-center">
-                  <p className="text-emerald-400 text-sm tracking-wider">
-                    ✓ Your selection of {selectedCount} images has been submitted to the studio!
-                  </p>
-                </div>
-              )}
-
-              {/* Instructions badge */}
-              <div className="flex items-center justify-between text-[11px] text-gray-400 mb-4 px-1">
-                <span>💡 Click any photo to view full size. Click the checkmark to select.</span>
-                <span>Total: {gallery.images.length} Photos</span>
+              {/* Instructions Bar */}
+              <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] sm:text-[11px] text-gray-400 mb-3 px-1">
+                <span>💡 Tap any photo to view full size. Tap circle to select.</span>
+                <span className="font-mono">{gallery.images.length} Photos</span>
               </div>
 
-              {/* Image Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              {/* Responsive Image Grid (2 cols on mobile, 3 sm, 4 md, 5 lg) */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
                 {gallery.images.map((img, idx) => {
                   const isSelected = gallerySelections.has(img.driveId);
                   return (
@@ -233,8 +344,8 @@ const ClientGalleryPage = () => {
                       key={img.driveId}
                       className={`relative group rounded-xl overflow-hidden aspect-square border-2 transition-all duration-200 bg-neutral-900 select-none ${
                         isSelected
-                          ? 'border-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.3)] ring-1 ring-emerald-400'
-                          : 'border-white/10 hover:border-white/40'
+                          ? 'border-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.3)] ring-1 ring-emerald-400'
+                          : 'border-white/10 hover:border-white/30'
                       }`}
                     >
                       {/* Clickable Image Thumbnail to open Lightbox */}
@@ -260,15 +371,15 @@ const ClientGalleryPage = () => {
                         />
                       </div>
 
-                      {/* Overlay gradient on hover */}
+                      {/* Overlay gradient */}
                       <div
                         onClick={() => setLightbox({ galleryId: gallery._id, index: idx })}
                         className={`absolute inset-0 pointer-events-none transition-all duration-200 ${
-                          isSelected ? 'bg-emerald-950/20' : 'bg-black/20 group-hover:bg-black/40'
+                          isSelected ? 'bg-emerald-950/20' : 'bg-black/20 group-hover:bg-black/30'
                         }`}
                       />
 
-                      {/* Checkbox Button (Top Right) */}
+                      {/* Selection Button (Top Right, touch-friendly 36px) */}
                       {!isSubmitted && (
                         <button
                           type="button"
@@ -276,40 +387,40 @@ const ClientGalleryPage = () => {
                             e.stopPropagation();
                             toggleImage(gallery._id, img.driveId);
                           }}
-                          className={`absolute top-2.5 right-2.5 w-7 h-7 rounded-full flex items-center justify-center transition-all z-20 shadow-md ${
+                          className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all z-20 shadow-lg active:scale-90 ${
                             isSelected
-                              ? 'bg-emerald-500 text-black scale-105 ring-2 ring-white/50'
-                              : 'bg-black/60 text-white/60 hover:bg-black/90 hover:text-white border border-white/20'
+                              ? 'bg-emerald-500 text-black ring-2 ring-white/60'
+                              : 'bg-black/70 text-white/70 hover:bg-black hover:text-white border border-white/30'
                           }`}
                           title={isSelected ? 'Deselect photo' : 'Select photo'}
                         >
                           {isSelected ? (
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <svg className="w-4 h-4 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
                           ) : (
-                            <div className="w-3 h-3 rounded-full border border-white/50" />
+                            <div className="w-3.5 h-3.5 rounded-full border-2 border-white/60" />
                           )}
                         </button>
                       )}
 
                       {/* Submitted checkmark indicator */}
                       {isSubmitted && isSelected && (
-                        <div className="absolute top-2.5 right-2.5 w-7 h-7 bg-emerald-500 text-black rounded-full flex items-center justify-center z-20 shadow-md">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <div className="absolute top-2 right-2 w-7 h-7 bg-emerald-500 text-black rounded-full flex items-center justify-center z-20 shadow-md">
+                          <svg className="w-4 h-4 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
                       )}
 
-                      {/* Image Name Tooltip & Expand Hint (Bottom) */}
+                      {/* Image Filename (Bottom) */}
                       <div
                         onClick={() => setLightbox({ galleryId: gallery._id, index: idx })}
-                        className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-2.5 py-2 cursor-pointer flex items-center justify-between"
+                        className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-2 py-1.5 cursor-pointer flex items-center justify-between"
                       >
-                        <p className="text-[10px] text-white/90 truncate font-mono">{img.name}</p>
-                        <span className="text-[9px] text-white/50 opacity-0 group-hover:opacity-100 transition-opacity ml-1 flex-shrink-0">
-                          🔍 Open
+                        <p className="text-[9px] sm:text-[10px] text-white/90 truncate font-mono">{img.name}</p>
+                        <span className="text-[8px] text-white/50 opacity-0 group-hover:opacity-100 transition-opacity ml-1 flex-shrink-0">
+                          🔍
                         </span>
                       </div>
                     </div>
@@ -321,18 +432,23 @@ const ClientGalleryPage = () => {
                 <p className="text-gray-600 text-sm text-center py-12">No images found in this gallery folder.</p>
               )}
 
-              {/* Bottom Submit Bar */}
-              {!isSubmitted && gallery.images.length > 8 && (
-                <div className="mt-8 flex items-center justify-center gap-4 border-t border-white/10 pt-6">
-                  <span className="text-sm text-gray-400">
-                    <strong className="text-white">{selectedCount}</strong> photos selected
-                  </span>
+              {/* Mobile Floating Bottom Bar for Easy Submission */}
+              {!isSubmitted && (
+                <div className="md:hidden fixed bottom-4 left-3 right-3 z-40 bg-black/85 backdrop-blur-xl border border-white/20 rounded-2xl p-3 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.8)]">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-white tracking-wider">
+                      {selectedCount} Selected
+                    </span>
+                    <span className="text-[9px] text-gray-400">
+                      of {gallery.images.length} photos
+                    </span>
+                  </div>
                   <button
                     onClick={() => handleSubmit(gallery._id)}
                     disabled={isSubmittingThis || selectedCount === 0}
-                    className="px-8 py-3 bg-white text-black font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-gray-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-xl"
+                    className="px-5 py-2.5 bg-white text-black font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-gray-200 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
                   >
-                    {isSubmittingThis ? 'Submitting...' : `Submit My Selections (${selectedCount})`}
+                    {isSubmittingThis ? 'Submitting...' : 'Submit Choice'}
                   </button>
                 </div>
               )}
@@ -340,13 +456,18 @@ const ClientGalleryPage = () => {
           );
         })}
 
-        {/* LIGHTBOX MODAL */}
+        {/* FULL-SCREEN LIGHTBOX MODAL */}
         {lightbox && activeGallery && activeImage && (
-          <div className="fixed inset-0 z-50 flex flex-col bg-black/95 backdrop-blur-xl animate-fade-in select-none">
+          <div
+            className="fixed inset-0 z-50 flex flex-col bg-black/95 backdrop-blur-2xl animate-fade-in select-none"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             {/* Top Toolbar */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-black/40">
-              <div className="flex items-center gap-4">
-                <span className="text-xs uppercase tracking-widest text-gray-400">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10 bg-black/60">
+              <div className="flex items-center gap-3">
+                <span className="text-xs uppercase tracking-widest text-gray-400 font-mono">
                   {lightbox.index + 1} / {activeGallery.images.length}
                 </span>
                 <span className="text-xs text-white/80 font-mono hidden sm:inline max-w-xs truncate">
@@ -354,12 +475,12 @@ const ClientGalleryPage = () => {
                 </span>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 {/* Select / Deselect Button in Lightbox */}
                 {!submitted[activeGallery._id] && (
                   <button
                     onClick={() => toggleImage(activeGallery._id, activeImage.driveId)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs uppercase tracking-widest font-bold transition-all ${
+                    className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs uppercase tracking-wider font-bold transition-all ${
                       isImageSelected
                         ? 'bg-emerald-500 text-black shadow-[0_0_15px_rgba(52,211,153,0.5)]'
                         : 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
@@ -367,15 +488,15 @@ const ClientGalleryPage = () => {
                   >
                     {isImageSelected ? (
                       <>
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <svg className="w-4 h-4 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                         <span>Selected</span>
                       </>
                     ) : (
                       <>
-                        <div className="w-3.5 h-3.5 rounded-full border border-white/60" />
-                        <span>Select Photo</span>
+                        <div className="w-3 h-3 rounded-full border border-white/60" />
+                        <span>Select</span>
                       </>
                     )}
                   </button>
@@ -384,7 +505,7 @@ const ClientGalleryPage = () => {
                 {/* Close Button */}
                 <button
                   onClick={() => setLightbox(null)}
-                  className="p-2 text-gray-400 hover:text-white rounded-xl hover:bg-white/10 transition-all text-xl px-3"
+                  className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-white rounded-xl hover:bg-white/10 transition-all text-xl"
                   title="Close (Esc)"
                 >
                   ✕
@@ -393,25 +514,25 @@ const ClientGalleryPage = () => {
             </div>
 
             {/* Main Image Viewer Area */}
-            <div className="relative flex-1 flex items-center justify-center p-4 md:p-8 overflow-hidden">
-              {/* Previous Image Button */}
+            <div className="relative flex-1 flex items-center justify-center p-2 sm:p-4 md:p-8 overflow-hidden">
+              {/* Previous Image Button (Desktop) */}
               <button
                 onClick={() => setLightbox(prev => ({
                   ...prev,
                   index: (prev.index - 1 + activeGallery.images.length) % activeGallery.images.length
                 }))}
-                className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/60 hover:bg-white text-white hover:text-black border border-white/20 flex items-center justify-center transition-all shadow-xl"
+                className="hidden sm:flex absolute left-3 md:left-8 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/60 hover:bg-white text-white hover:text-black border border-white/20 items-center justify-center transition-all shadow-xl"
                 title="Previous Photo (Left Arrow)"
               >
                 ◀
               </button>
 
               {/* Full-res Photo */}
-              <div className="max-w-full max-h-[82vh] flex items-center justify-center">
+              <div className="max-w-full max-h-[75vh] sm:max-h-[82vh] flex items-center justify-center">
                 <img
                   src={getDriveThumbnail(activeImage.driveId, 'w1920')}
                   alt={activeImage.name}
-                  className="max-w-full max-h-[82vh] object-contain rounded-lg shadow-2xl transition-all duration-150"
+                  className="max-w-full max-h-[75vh] sm:max-h-[82vh] object-contain rounded-lg shadow-2xl transition-all duration-150"
                   onError={e => {
                     const proxyUrl = `${API}/client-gallery/image/${activeImage.driveId}`;
                     if (e.target.src !== proxyUrl) {
@@ -421,23 +542,50 @@ const ClientGalleryPage = () => {
                 />
               </div>
 
-              {/* Next Image Button */}
+              {/* Next Image Button (Desktop) */}
               <button
                 onClick={() => setLightbox(prev => ({
                   ...prev,
                   index: (prev.index + 1) % activeGallery.images.length
                 }))}
-                className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/60 hover:bg-white text-white hover:text-black border border-white/20 flex items-center justify-center transition-all shadow-xl"
+                className="hidden sm:flex absolute right-3 md:right-8 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/60 hover:bg-white text-white hover:text-black border border-white/20 items-center justify-center transition-all shadow-xl"
                 title="Next Photo (Right Arrow)"
               >
                 ▶
               </button>
             </div>
 
-            {/* Bottom Info & Shortcuts Bar */}
-            <div className="px-6 py-3 border-t border-white/10 bg-black/60 flex items-center justify-between text-[11px] text-gray-400">
+            {/* Mobile Bottom Navigation Bar in Lightbox */}
+            <div className="sm:hidden px-4 py-3 border-t border-white/10 bg-black/80 flex items-center justify-between">
+              <button
+                onClick={() => setLightbox(prev => ({
+                  ...prev,
+                  index: (prev.index - 1 + activeGallery.images.length) % activeGallery.images.length
+                }))}
+                className="px-4 py-2 bg-white/10 rounded-xl text-xs uppercase font-bold text-white active:bg-white/20"
+              >
+                ◀ Prev
+              </button>
+
+              <span className="text-[10px] text-gray-400 font-mono truncate max-w-[140px]">
+                {activeImage.name}
+              </span>
+
+              <button
+                onClick={() => setLightbox(prev => ({
+                  ...prev,
+                  index: (prev.index + 1) % activeGallery.images.length
+                }))}
+                className="px-4 py-2 bg-white/10 rounded-xl text-xs uppercase font-bold text-white active:bg-white/20"
+              >
+                Next ▶
+              </button>
+            </div>
+
+            {/* Desktop Bottom Info Bar */}
+            <div className="hidden sm:flex px-6 py-3 border-t border-white/10 bg-black/60 items-center justify-between text-[11px] text-gray-400">
               <span className="font-mono text-white/70 truncate">{activeImage.name}</span>
-              <div className="hidden sm:flex items-center gap-4 text-[10px] uppercase tracking-wider text-gray-500">
+              <div className="flex items-center gap-4 text-[10px] uppercase tracking-wider text-gray-500">
                 <span>Navigate: <strong>← →</strong></span>
                 <span>Select: <strong>Space</strong></span>
                 <span>Close: <strong>Esc</strong></span>
@@ -447,7 +595,7 @@ const ClientGalleryPage = () => {
         )}
 
         {/* Footer */}
-        <div className="text-center mt-16 text-gray-600 text-[10px] uppercase tracking-widest">
+        <div className="text-center mt-12 md:mt-16 text-gray-600 text-[10px] uppercase tracking-widest">
           © {new Date().getFullYear()} Imazen Studios · All Rights Reserved
         </div>
       </div>
