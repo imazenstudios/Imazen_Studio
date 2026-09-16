@@ -127,6 +127,57 @@ router.get('/:id/export', async (req, res) => {
   }
 });
 
+// Admin: Sync images from Google Drive for an existing gallery
+router.put('/:id/sync', async (req, res) => {
+  try {
+    if (!drive) {
+      return res.status(500).json({ error: 'Google Drive API is not configured on the server.' });
+    }
+
+    const gallery = await ClientGallery.findById(req.params.id);
+    if (!gallery) return res.status(404).json({ error: 'Gallery not found' });
+
+    // Optional folderLink override if admin provided a new one
+    const folderLink = req.body.folderLink || gallery.folderLink;
+    const folderId = extractFolderId(folderLink);
+    if (!folderId) {
+      return res.status(400).json({ error: 'Invalid Google Drive folder link.' });
+    }
+
+    const response = await drive.files.list({
+      q: `'${folderId}' in parents and mimeType contains 'image/' and trashed = false`,
+      fields: 'files(id, name)',
+      pageSize: 1000,
+    });
+
+    const driveFiles = response.data.files || [];
+    if (driveFiles.length === 0) {
+      return res.status(400).json({ error: 'No images found in the folder or Service Account lacks access.' });
+    }
+
+    // Preserve existing isSelected states
+    const existingMap = new Map();
+    gallery.images.forEach(img => {
+      existingMap.set(img.driveId, img.isSelected);
+    });
+
+    const updatedImages = driveFiles.map(file => ({
+      name: file.name,
+      driveId: file.id,
+      isSelected: existingMap.has(file.id) ? existingMap.get(file.id) : false,
+    }));
+
+    gallery.folderLink = folderLink;
+    gallery.images = updatedImages;
+    await gallery.save();
+
+    res.json({ message: `Successfully synced ${updatedImages.length} images!`, gallery });
+  } catch (error) {
+    console.error('Sync error:', error);
+    res.status(500).json({ error: 'Failed to sync images from Google Drive folder.' });
+  }
+});
+
 // Admin: Delete gallery
 router.delete('/:id', async (req, res) => {
   try {

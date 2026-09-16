@@ -210,6 +210,7 @@ const AdminDashboard = () => {
   const [galleryCreateError, setGalleryCreateError] = useState('');
   const [galleryCreateSuccess, setGalleryCreateSuccess] = useState('');
   const [expandedGalleryId, setExpandedGalleryId] = useState(null);
+  const [syncingGalleryId, setSyncingGalleryId] = useState(null);
 
   const getMonthDateString = (monthsOffset) => {
     const d = new Date();
@@ -642,6 +643,19 @@ const AdminDashboard = () => {
       link.remove();
     } catch (err) {
       alert('No selected images to export, or export failed.');
+    }
+  };
+
+  const handleSyncGallery = async (id) => {
+    setSyncingGalleryId(id);
+    try {
+      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/client-gallery/${id}/sync`);
+      alert(res.data.message || 'Gallery successfully synced from Google Drive!');
+      fetchClientGalleries();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to sync gallery from Drive.');
+    } finally {
+      setSyncingGalleryId(null);
     }
   };
 
@@ -6143,7 +6157,17 @@ const AdminDashboard = () => {
                             <span className={`text-[9px] px-2 py-1 rounded-full uppercase tracking-widest font-bold border ${gallery.status === 'Submitted' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'}`}>
                               {gallery.status}
                             </span>
-                            <span className="text-[9px] text-gray-500">{gallery.images.length} images</span>
+                            <span className="text-[9px] text-gray-400">
+                              {gallery.images.length} images {gallery.images.filter(i => i.isSelected).length > 0 && `(${gallery.images.filter(i => i.isSelected).length} selected)`}
+                            </span>
+                            <button
+                              onClick={e => { e.stopPropagation(); handleSyncGallery(gallery._id); }}
+                              disabled={syncingGalleryId === gallery._id}
+                              className="text-[10px] px-3 py-1 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg uppercase tracking-widest transition-all disabled:opacity-50"
+                              title="Re-read photos from Google Drive folder"
+                            >
+                              {syncingGalleryId === gallery._id ? 'Syncing...' : '↻ Sync Drive'}
+                            </button>
                             {gallery.status === 'Submitted' && (
                               <button
                                 onClick={e => { e.stopPropagation(); handleExportGalleryCSV(gallery._id, gallery.clientName, gallery.eventName); }}
@@ -6163,17 +6187,32 @@ const AdminDashboard = () => {
                         </div>
                         {expandedGalleryId === gallery._id && (
                           <div className="px-5 py-4 bg-black/20 border-t border-white/5">
-                            <p className="text-[10px] uppercase text-gray-500 tracking-widest mb-3">
-                              Drive Folder: <a href={gallery.folderLink} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline normal-case">{gallery.folderLink.length > 60 ? gallery.folderLink.substring(0, 60) + '...' : gallery.folderLink}</a>
-                            </p>
+                            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                              <p className="text-[10px] uppercase text-gray-500 tracking-widest">
+                                Drive Folder: <a href={gallery.folderLink} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline normal-case">{gallery.folderLink.length > 55 ? gallery.folderLink.substring(0, 55) + '...' : gallery.folderLink}</a>
+                              </p>
+                              <span className="text-[10px] text-gray-400 tracking-wider">
+                                {gallery.images.filter(i => i.isSelected).length} of {gallery.images.length} selected by client
+                              </span>
+                            </div>
                             {gallery.images.length === 0 ? (
                               <p className="text-gray-600 text-xs">No images found.</p>
                             ) : (
-                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto custom-scrollbar pr-1">
+                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 max-h-72 overflow-y-auto custom-scrollbar pr-1">
                                 {gallery.images.map((img, idx) => (
-                                  <div key={idx} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-[10px] border ${img.isSelected ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-white/5 border-white/5 text-gray-400'}`}>
-                                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${img.isSelected ? 'bg-emerald-400' : 'bg-white/20'}`}></span>
-                                    <span className="truncate">{img.name}</span>
+                                  <div key={idx} className={`relative rounded-lg overflow-hidden border p-1 transition-all ${img.isSelected ? 'bg-emerald-950/30 border-emerald-500/50' : 'bg-white/5 border-white/5'}`}>
+                                    <div className="aspect-square rounded overflow-hidden mb-1 bg-black/40">
+                                      <img
+                                        src={`https://drive.google.com/thumbnail?id=${img.driveId}&sz=w200`}
+                                        alt={img.name}
+                                        className="w-full h-full object-cover"
+                                        loading="lazy"
+                                        onError={e => { e.target.style.display = 'none'; }}
+                                      />
+                                    </div>
+                                    <p className={`text-[9px] truncate font-mono ${img.isSelected ? 'text-emerald-300 font-bold' : 'text-gray-400'}`}>
+                                      {img.isSelected ? '✓ ' : ''}{img.name}
+                                    </p>
                                   </div>
                                 ))}
                               </div>
