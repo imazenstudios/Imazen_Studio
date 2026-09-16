@@ -27,9 +27,11 @@ const ClientGalleryPage = () => {
   const touchStartX = useRef(null);
   const touchEndX = useRef(null);
 
-  // Auto-login from localStorage on initial page load
+  // Auto-login from URL query parameter (?email=...) or localStorage on initial page load
   useEffect(() => {
-    const savedEmail = localStorage.getItem('clientGalleryEmail');
+    const params = new URLSearchParams(window.location.search);
+    const emailParam = params.get('email');
+    const savedEmail = emailParam || localStorage.getItem('clientGalleryEmail');
     if (savedEmail) {
       setEmail(savedEmail);
       verifyEmail(savedEmail);

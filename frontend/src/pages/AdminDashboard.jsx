@@ -6168,6 +6168,18 @@ const AdminDashboard = () => {
                             >
                               {syncingGalleryId === gallery._id ? 'Syncing...' : '↻ Sync Drive'}
                             </button>
+                            <button
+                              onClick={e => {
+                                e.stopPropagation();
+                                const link = `${window.location.origin}/my-gallery?email=${encodeURIComponent(gallery.clientEmail)}`;
+                                navigator.clipboard.writeText(link);
+                                alert(`Client link copied to clipboard!\n\n${link}`);
+                              }}
+                              className="text-[10px] px-3 py-1 bg-white/10 text-white hover:bg-white/20 border border-white/20 rounded-lg uppercase tracking-widest transition-all"
+                              title="Copy direct shareable link for this client"
+                            >
+                              📋 Copy Link
+                            </button>
                             {gallery.status === 'Submitted' && (
                               <button
                                 onClick={e => { e.stopPropagation(); handleExportGalleryCSV(gallery._id, gallery.clientName, gallery.eventName); }}
