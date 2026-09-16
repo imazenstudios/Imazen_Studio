@@ -22,8 +22,19 @@ if (fs.existsSync(KEYFILEPATH)) {
     scopes: SCOPES,
   });
   drive = google.drive({ version: 'v3', auth: driveAuth });
+} else if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+  try {
+    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+    driveAuth = new google.auth.GoogleAuth({
+      credentials,
+      scopes: SCOPES,
+    });
+    drive = google.drive({ version: 'v3', auth: driveAuth });
+  } catch (e) {
+    console.error('Failed to parse GOOGLE_SERVICE_ACCOUNT_JSON:', e);
+  }
 } else {
-  console.warn('google-credentials.json not found! Google Drive API will not work.');
+  console.warn('google-credentials.json or GOOGLE_SERVICE_ACCOUNT_JSON env var not found! Google Drive API will not work.');
 }
 
 function extractFolderId(link) {
