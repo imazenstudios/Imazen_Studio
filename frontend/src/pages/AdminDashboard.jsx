@@ -556,10 +556,14 @@ const AdminDashboard = () => {
   const handleSaveBookingDetails = async (e) => {
     e.preventDefault();
     try {
+      const payload = { ...editingBooking };
+      if (payload.shootType === 'Custom') payload.shootType = payload.customShootTypeValue;
+      if (payload.package === 'Custom') payload.package = payload.customPackageValue;
+
       if (editingBooking._id) {
-        await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${editingBooking._id}/details`, editingBooking);
+        await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${editingBooking._id}/details`, payload);
       } else {
-        await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings`, editingBooking);
+        await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings`, payload);
       }
       fetchData();
       setEditingBooking(null);
@@ -5468,10 +5472,21 @@ const AdminDashboard = () => {
                                   {sub.serviceName && sub.serviceName !== sub.name ? `${sub.name} (${sub.serviceName})` : sub.name}
                                 </option>
                               ))}
-                              {editingBooking.shootType && !availableSubServices.some(s => s.name === editingBooking.shootType) && (
+                              {editingBooking.shootType && editingBooking.shootType !== 'Custom' && !availableSubServices.some(s => s.name === editingBooking.shootType) && (
                                 <option value={editingBooking.shootType} className="bg-[#111] text-white">{editingBooking.shootType}</option>
                               )}
+                              <option value="Custom" className="bg-[#111] text-white">Custom</option>
                             </select>
+                            {editingBooking.shootType === 'Custom' && (
+                              <input 
+                                type="text"
+                                placeholder="Enter custom shoot type"
+                                className={`${glassInput} mt-2 w-full`}
+                                required
+                                value={editingBooking.customShootTypeValue || ''}
+                                onChange={e => setEditingBooking(prev => ({...prev, customShootTypeValue: e.target.value}))}
+                              />
+                            )}
                           </div>
                           <div>
                             <label className="block text-[11px] uppercase text-gray-500 mb-2">Package</label>
@@ -5488,19 +5503,39 @@ const AdminDashboard = () => {
                               {currentPackages.map((pkgName, idx) => (
                                 <option key={idx} value={pkgName} className="bg-[#111] text-white">{pkgName}</option>
                               ))}
-                              {editingBooking.package && !currentPackages.includes(editingBooking.package) && (
+                              {editingBooking.package && editingBooking.package !== 'Custom' && !currentPackages.includes(editingBooking.package) && (
                                 <option value={editingBooking.package} className="bg-[#111] text-white">{editingBooking.package}</option>
                               )}
+                              <option value="Custom" className="bg-[#111] text-white">Custom</option>
                             </select>
+                            {editingBooking.package === 'Custom' && (
+                              <input 
+                                type="text"
+                                placeholder="Enter custom package"
+                                className={`${glassInput} mt-2 w-full`}
+                                required
+                                value={editingBooking.customPackageValue || ''}
+                                onChange={e => setEditingBooking(prev => ({...prev, customPackageValue: e.target.value}))}
+                              />
+                            )}
                           </div>
                           <div>
-                            <label className="block text-[11px] uppercase text-gray-500 mb-2">Date</label>
+                            <label className="block text-[11px] uppercase text-gray-500 mb-2">Shoot Date</label>
                             <input 
                               type="date" 
                               className={`${glassInput} [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:brightness-[10]`} 
                               required 
                               value={editingBooking.date || ''} 
                               onChange={e => setEditingBooking({...editingBooking, date: e.target.value})} 
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] uppercase text-gray-500 mb-2">Booking Date</label>
+                            <input 
+                              type="date" 
+                              className={`${glassInput} [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:brightness-[10]`} 
+                              value={editingBooking.createdAt ? new Date(editingBooking.createdAt).toISOString().split('T')[0] : ''} 
+                              onChange={e => setEditingBooking({...editingBooking, createdAt: e.target.value})} 
                             />
                           </div>
                         </>
