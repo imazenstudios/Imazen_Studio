@@ -28,6 +28,7 @@ import Maintenance from './pages/Maintenance';
 import ThankYou from './pages/ThankYou';
 import ReferenceLandingPage from './pages/ReferenceLandingPage';
 import Wedding from './pages/Wedding';
+import ClientGalleryPage from './pages/ClientGalleryPage';
 
 import ScrollToTopButton from './components/ScrollToTopButton';
 
@@ -227,6 +228,7 @@ function App() {
               <Route path="/testimonials" element={<Layout><TestimonialsPage /></Layout>} />
               <Route path="/reference" element={<ReferenceLandingPage />} />
               <Route path="/wedding" element={<Layout><Wedding /></Layout>} />
+              <Route path="/my-gallery" element={<ClientGalleryPage />} />
               <Route path="/:slug" element={<LandingPage />} />
 
               {/* Catch-all for 404 Not Found */}

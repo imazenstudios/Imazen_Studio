@@ -9,3 +9,6 @@ yarn-error.log*
 
 .vercel
 .env*
+
+google-credentials.json
+backend/google-credentials.json

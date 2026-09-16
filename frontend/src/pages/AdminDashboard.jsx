@@ -35,7 +35,7 @@ const AdminDashboard = () => {
   const storedUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
   const userPermissions = storedUser.permissions || [];
   const isSuperAdmin = storedUser.isSuperAdmin === true || storedUser.email === 'ssaiprasanth333@gmail.com' || localStorage.getItem('adminBypass') === 'true';
-  const allTabs = ['dashboard', 'leads', 'inquiries', 'studio bookings', 'props rentals', 'events', 'calendar', 'slots', 'business', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options'];
+  const allTabs = ['dashboard', 'leads', 'inquiries', 'studio bookings', 'props rentals', 'events', 'calendar', 'slots', 'business', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'client gallery', 'permissions', 'developer options'];
   const allowedTabs = isSuperAdmin ? allTabs : allTabs.filter(tab => userPermissions.includes(tab));
   const initialTab = allowedTabs.includes('dashboard') ? 'dashboard' : (allowedTabs[0] || 'dashboard');
 
@@ -202,6 +202,15 @@ const AdminDashboard = () => {
   const [testEmailAddress, setTestEmailAddress] = useState('');
   const [testEmailStatus, setTestEmailStatus] = useState('');
 
+  // Client Gallery State
+  const [clientGalleries, setClientGalleries] = useState([]);
+  const [isLoadingClientGalleries, setIsLoadingClientGalleries] = useState(false);
+  const [newGalleryForm, setNewGalleryForm] = useState({ clientEmail: '', clientName: '', eventName: '', folderLink: '' });
+  const [isCreatingGallery, setIsCreatingGallery] = useState(false);
+  const [galleryCreateError, setGalleryCreateError] = useState('');
+  const [galleryCreateSuccess, setGalleryCreateSuccess] = useState('');
+  const [expandedGalleryId, setExpandedGalleryId] = useState(null);
+
   const getMonthDateString = (monthsOffset) => {
     const d = new Date();
     d.setMonth(d.getMonth() + monthsOffset);
@@ -277,6 +286,12 @@ const AdminDashboard = () => {
   useEffect(() => {
     if (activeTab === 'permissions') {
       fetchAdminUsers();
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === 'client gallery') {
+      fetchClientGalleries();
     }
   }, [activeTab]);
   
@@ -570,6 +585,63 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error(error);
       alert(error.response?.data?.error || 'Failed to save booking');
+    }
+  };
+
+  // Client Gallery Handlers
+  const fetchClientGalleries = async () => {
+    setIsLoadingClientGalleries(true);
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/client-gallery`);
+      setClientGalleries(res.data);
+    } catch (err) {
+      console.error('Failed to fetch client galleries', err);
+    } finally {
+      setIsLoadingClientGalleries(false);
+    }
+  };
+
+  const handleCreateGallery = async (e) => {
+    e.preventDefault();
+    setGalleryCreateError('');
+    setGalleryCreateSuccess('');
+    setIsCreatingGallery(true);
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/client-gallery`, newGalleryForm);
+      setGalleryCreateSuccess('Gallery created successfully!');
+      setNewGalleryForm({ clientEmail: '', clientName: '', eventName: '', folderLink: '' });
+      fetchClientGalleries();
+    } catch (err) {
+      setGalleryCreateError(err.response?.data?.error || 'Failed to create gallery.');
+    } finally {
+      setIsCreatingGallery(false);
+    }
+  };
+
+  const handleDeleteGallery = async (id) => {
+    if (!window.confirm('Delete this client gallery? This cannot be undone.')) return;
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/client-gallery/${id}`);
+      fetchClientGalleries();
+    } catch (err) {
+      alert('Failed to delete gallery.');
+    }
+  };
+
+  const handleExportGalleryCSV = async (id, clientName, eventName) => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/client-gallery/${id}/export`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      const safeName = (clientName || 'client').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const safeEvent = (eventName || 'event').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      link.setAttribute('download', `${safeName}_${safeEvent}_selections.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      alert('No selected images to export, or export failed.');
     }
   };
 
@@ -6008,7 +6080,130 @@ const AdminDashboard = () => {
               </div>
             )}
 
+          {/* ─── CLIENT GALLERY TAB ─── */}
+          {activeTab === 'client gallery' && (
+            <motion.div key="client-gallery" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="p-6 md:p-10 max-w-5xl">
+              <h2 className="text-2xl font-oswald text-white uppercase tracking-widest mb-2 border-b border-white/10 pb-4">
+                Client Image Galleries
+              </h2>
+              <p className="text-xs text-gray-500 tracking-wider mb-8">
+                Share a Google Drive folder link and assign it to a client email. Clients visit <span className="text-white/70">/my-gallery</span> and enter their email to browse and select images. You receive the selections as a CSV.
+              </p>
+
+              {/* CREATE GALLERY FORM */}
+              <div className={`${glassPanel} p-6 mb-8`}>
+                <h3 className="text-sm font-oswald text-white uppercase tracking-widest mb-6">Add New Client Gallery</h3>
+                <form onSubmit={handleCreateGallery} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] uppercase text-gray-500 mb-2 tracking-widest">Client Name</label>
+                    <input className={glassInput} placeholder="e.g. Ravi &amp; Priya" value={newGalleryForm.clientName} onChange={e => setNewGalleryForm({...newGalleryForm, clientName: e.target.value})} required />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase text-gray-500 mb-2 tracking-widest">Client Email *</label>
+                    <input className={glassInput} type="email" placeholder="client@example.com" value={newGalleryForm.clientEmail} onChange={e => setNewGalleryForm({...newGalleryForm, clientEmail: e.target.value})} required />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase text-gray-500 mb-2 tracking-widest">Event Name *</label>
+                    <input className={glassInput} placeholder="e.g. Wedding Reception" value={newGalleryForm.eventName} onChange={e => setNewGalleryForm({...newGalleryForm, eventName: e.target.value})} required />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase text-gray-500 mb-2 tracking-widest">Google Drive Folder Link *</label>
+                    <input className={glassInput} placeholder="https://drive.google.com/drive/folders/..." value={newGalleryForm.folderLink} onChange={e => setNewGalleryForm({...newGalleryForm, folderLink: e.target.value})} required />
+                  </div>
+                  <div className="md:col-span-2 flex flex-col gap-2">
+                    {galleryCreateError && <p className="text-red-400 text-xs tracking-wider">{galleryCreateError}</p>}
+                    {galleryCreateSuccess && <p className="text-emerald-400 text-xs tracking-wider">{galleryCreateSuccess}</p>}
+                    <button type="submit" disabled={isCreatingGallery} className="px-6 py-3 bg-white text-black text-xs uppercase tracking-widest font-bold rounded-xl hover:bg-gray-200 transition-all disabled:opacity-50 w-fit">
+                      {isCreatingGallery ? 'Creating...' : '+ Create Gallery'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* GALLERIES LIST */}
+              <div className={`${glassPanel} p-6`}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-oswald text-white uppercase tracking-widest">All Client Galleries</h3>
+                  <button onClick={fetchClientGalleries} className="text-[10px] uppercase text-gray-400 hover:text-white tracking-widest border border-white/10 px-3 py-1 rounded-lg transition-all">Refresh</button>
+                </div>
+                {isLoadingClientGalleries ? (
+                  <p className="text-gray-500 text-xs tracking-wider py-6">Loading galleries...</p>
+                ) : clientGalleries.length === 0 ? (
+                  <p className="text-gray-500 text-xs tracking-wider py-6">No galleries created yet.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {clientGalleries.map(gallery => (
+                      <div key={gallery._id} className="border border-white/10 rounded-xl overflow-hidden">
+                        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 bg-white/5 hover:bg-white/[0.08] transition-all cursor-pointer" onClick={() => setExpandedGalleryId(expandedGalleryId === gallery._id ? null : gallery._id)}>
+                          <div className="flex flex-col">
+                            <span className="text-[11px] font-bold text-white uppercase tracking-wider">{gallery.clientName || '—'} — {gallery.eventName}</span>
+                            <span className="text-[10px] text-gray-500 mt-0.5">{gallery.clientEmail}</span>
+                          </div>
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <span className={`text-[9px] px-2 py-1 rounded-full uppercase tracking-widest font-bold border ${gallery.status === 'Submitted' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'}`}>
+                              {gallery.status}
+                            </span>
+                            <span className="text-[9px] text-gray-500">{gallery.images.length} images</span>
+                            {gallery.status === 'Submitted' && (
+                              <button
+                                onClick={e => { e.stopPropagation(); handleExportGalleryCSV(gallery._id, gallery.clientName, gallery.eventName); }}
+                                className="text-[10px] px-3 py-1 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 border border-emerald-500/30 rounded-lg uppercase tracking-widest transition-all"
+                              >
+                                Export CSV
+                              </button>
+                            )}
+                            <button
+                              onClick={e => { e.stopPropagation(); handleDeleteGallery(gallery._id); }}
+                              className="text-[10px] px-3 py-1 bg-red-500/10 text-red-400 hover:bg-red-500/30 border border-red-500/20 rounded-lg uppercase tracking-widest transition-all"
+                            >
+                              Delete
+                            </button>
+                            <span className="text-gray-500 text-xs">{expandedGalleryId === gallery._id ? '▲' : '▼'}</span>
+                          </div>
+                        </div>
+                        {expandedGalleryId === gallery._id && (
+                          <div className="px-5 py-4 bg-black/20 border-t border-white/5">
+                            <p className="text-[10px] uppercase text-gray-500 tracking-widest mb-3">
+                              Drive Folder: <a href={gallery.folderLink} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline normal-case">{gallery.folderLink.length > 60 ? gallery.folderLink.substring(0, 60) + '...' : gallery.folderLink}</a>
+                            </p>
+                            {gallery.images.length === 0 ? (
+                              <p className="text-gray-600 text-xs">No images found.</p>
+                            ) : (
+                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto custom-scrollbar pr-1">
+                                {gallery.images.map((img, idx) => (
+                                  <div key={idx} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-[10px] border ${img.isSelected ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-white/5 border-white/5 text-gray-400'}`}>
+                                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${img.isSelected ? 'bg-emerald-400' : 'bg-white/20'}`}></span>
+                                    <span className="truncate">{img.name}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {gallery.submittedAt && (
+                              <p className="text-[10px] text-gray-500 mt-3">Submitted: {new Date(gallery.submittedAt).toLocaleString()}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
+                <p className="text-[10px] uppercase tracking-widest text-blue-400 font-bold mb-2">How it works for clients</p>
+                <ol className="text-xs text-gray-400 space-y-1 list-decimal list-inside leading-relaxed">
+                  <li>Share the link <span className="text-white/70">yourdomain.com/my-gallery</span> with your client</li>
+                  <li>Client enters their email address to access their assigned galleries</li>
+                  <li>Client views all images, clicks to select, then submits</li>
+                  <li>Gallery status changes to "Submitted" — click <strong className="text-white">Export CSV</strong> above to download their choices</li>
+                </ol>
+                <p className="text-[10px] text-yellow-400/70 mt-3 tracking-wider">⚠️ Make sure you have shared the Google Drive folder with your Service Account email as a Viewer.</p>
+              </div>
+            </motion.div>
+          )}
+
           </AnimatePresence>
+
         </main>
       </div>
     </div>
