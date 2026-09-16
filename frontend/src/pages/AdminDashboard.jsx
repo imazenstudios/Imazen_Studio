@@ -6171,7 +6171,7 @@ const AdminDashboard = () => {
                             <button
                               onClick={e => {
                                 e.stopPropagation();
-                                const link = `${window.location.origin}/my-gallery?email=${encodeURIComponent(gallery.clientEmail)}`;
+                                const link = `${window.location.origin}/my-gallery?email=${encodeURIComponent(gallery.clientEmail)}&galleryId=${gallery._id}`;
                                 navigator.clipboard.writeText(link);
                                 alert(`Client link copied to clipboard!\n\n${link}`);
                               }}

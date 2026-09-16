@@ -14,6 +14,9 @@ const ClientGalleryPage = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [verified, setVerified] = useState(false);
 
+  // Active Event Tab for clients with multiple shoots (e.g. 'all' or specific galleryId)
+  const [activeEventTab, setActiveEventTab] = useState('all');
+
   // Per-gallery selection state: { [galleryId]: Set<driveId> }
   const [selections, setSelections] = useState({});
   // Per-gallery submission state
@@ -27,18 +30,20 @@ const ClientGalleryPage = () => {
   const touchStartX = useRef(null);
   const touchEndX = useRef(null);
 
-  // Auto-login from URL query parameter (?email=...) or localStorage on initial page load
+  // Auto-login from URL query parameter (?email=...&galleryId=...) or localStorage on initial page load
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const emailParam = params.get('email');
+    const galleryIdParam = params.get('galleryId');
     const savedEmail = emailParam || localStorage.getItem('clientGalleryEmail');
+
     if (savedEmail) {
       setEmail(savedEmail);
-      verifyEmail(savedEmail);
+      verifyEmail(savedEmail, galleryIdParam);
     }
   }, []);
 
-  const verifyEmail = async (emailToVerify) => {
+  const verifyEmail = async (emailToVerify, targetGalleryId = null) => {
     const cleanEmail = emailToVerify.toLowerCase().trim();
     if (!cleanEmail) return;
 
@@ -46,16 +51,27 @@ const ClientGalleryPage = () => {
     setIsVerifying(true);
     try {
       const res = await axios.post(`${API}/client-gallery/verify`, { email: cleanEmail });
-      setGalleries(res.data);
+      const fetchedGalleries = res.data;
+      setGalleries(fetchedGalleries);
       
       // Save email in localStorage for persistent session
       localStorage.setItem('clientGalleryEmail', cleanEmail);
+
+      // If a specific galleryId was requested in URL, activate that tab
+      const requestedGalleryId = targetGalleryId || new URLSearchParams(window.location.search).get('galleryId');
+      if (requestedGalleryId && fetchedGalleries.some(g => g._id === requestedGalleryId)) {
+        setActiveEventTab(requestedGalleryId);
+      } else if (fetchedGalleries.length === 1) {
+        setActiveEventTab(fetchedGalleries[0]._id);
+      } else {
+        setActiveEventTab('all');
+      }
 
       // Initialize selections, checking localStorage drafts first
       const initial = {};
       const sub = {};
 
-      res.data.forEach(g => {
+      fetchedGalleries.forEach(g => {
         const isSub = g.status === 'Submitted';
         if (isSub) sub[g._id] = true;
 
@@ -85,7 +101,6 @@ const ClientGalleryPage = () => {
       setVerified(true);
     } catch (err) {
       setVerifyError(err.response?.data?.error || 'No galleries found for this email.');
-      // If verification failed on stored email, clear it
       localStorage.removeItem('clientGalleryEmail');
       setVerified(false);
     } finally {
@@ -104,6 +119,7 @@ const ClientGalleryPage = () => {
     setGalleries([]);
     setSelections({});
     setEmail('');
+    setActiveEventTab('all');
   };
 
   const toggleImage = useCallback((galleryId, driveId) => {
@@ -143,7 +159,6 @@ const ClientGalleryPage = () => {
       await axios.put(`${API}/client-gallery/${galleryId}/submit`, { selectedDriveIds });
       setSubmitted(prev => ({ ...prev, [galleryId]: true }));
       setGalleries(prev => prev.map(g => g._id === galleryId ? { ...g, status: 'Submitted' } : g));
-      // Remove draft from storage once submitted
       localStorage.removeItem(`gallerySelections_${galleryId}`);
       if (lightbox && lightbox.galleryId === galleryId) {
         setLightbox(null);
@@ -201,10 +216,8 @@ const ClientGalleryPage = () => {
 
     const images = currentGallery.images;
     if (diff > 50) {
-      // Swiped left -> next photo
       setLightbox(prev => prev ? { ...prev, index: (prev.index + 1) % images.length } : null);
     } else if (diff < -50) {
-      // Swiped right -> prev photo
       setLightbox(prev => prev ? { ...prev, index: (prev.index - 1 + images.length) % images.length } : null);
     }
     touchStartX.current = null;
@@ -218,8 +231,13 @@ const ClientGalleryPage = () => {
     ? (selections[activeGallery._id] || new Set()).has(activeImage.driveId)
     : false;
 
+  // Filter galleries by active tab
+  const displayedGalleries = activeEventTab === 'all'
+    ? galleries
+    : galleries.filter(g => g._id === activeEventTab);
+
   return (
-    <div className="min-h-screen bg-[#050505] text-white selection:bg-white/20 pb-24 md:pb-16">
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-white/20 pb-28 md:pb-16">
       {/* Background ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-20%] left-[-10%] w-[80vw] md:w-[60vw] h-[80vw] md:h-[60vw] rounded-full bg-purple-900/20 blur-[120px]" />
@@ -228,18 +246,18 @@ const ClientGalleryPage = () => {
 
       <div className="relative z-10 px-3 sm:px-6 py-8 md:py-16 max-w-6xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8 md:mb-12">
+        <div className="text-center mb-6 md:mb-10">
           <img src="/images/logo.png" alt="Imazen Studios" className="h-8 md:h-10 mx-auto mb-4 md:mb-6 opacity-90" />
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-oswald font-bold uppercase tracking-widest text-white mb-2 md:mb-3">
             Client Photo Gallery
           </h1>
           <p className="text-gray-400 text-xs sm:text-sm tracking-wider max-w-lg mx-auto px-4">
-            Enter your email to view your photos, open any photo to inspect in full resolution, and choose your selections.
+            Select your favourite images and submit them to the studio.
           </p>
 
           {verified && (
             <div className="mt-4 flex items-center justify-center gap-3">
-              <span className="text-[11px] text-gray-400 font-mono bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+              <span className="text-[11px] text-gray-300 font-mono bg-white/5 border border-white/10 px-3 py-1 rounded-full">
                 👤 {email}
               </span>
               <button
@@ -279,8 +297,43 @@ const ClientGalleryPage = () => {
           </div>
         )}
 
-        {/* Galleries */}
-        {verified && galleries.map(gallery => {
+        {/* Multiple Events Navigation Tabs */}
+        {verified && galleries.length > 1 && (
+          <div className="flex items-center justify-start md:justify-center gap-2 mb-8 overflow-x-auto pb-2 custom-scrollbar px-1">
+            <button
+              onClick={() => setActiveEventTab('all')}
+              className={`px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider font-bold transition-all whitespace-nowrap ${
+                activeEventTab === 'all'
+                  ? 'bg-white text-black shadow-lg scale-105'
+                  : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'
+              }`}
+            >
+              All Events ({galleries.length})
+            </button>
+            {galleries.map(g => (
+              <button
+                key={g._id}
+                onClick={() => setActiveEventTab(g._id)}
+                className={`px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
+                  activeEventTab === g._id
+                    ? 'bg-white text-black shadow-lg scale-105'
+                    : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'
+                }`}
+              >
+                <span>{g.eventName}</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono ${
+                  activeEventTab === g._id ? 'bg-black/15 text-black font-bold' : 'bg-white/10 text-gray-300'
+                }`}>
+                  {g.images.length}
+                </span>
+                {submitted[g._id] && <span className="text-emerald-500 font-bold">✓</span>}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Galleries List */}
+        {verified && displayedGalleries.map(gallery => {
           const gallerySelections = selections[gallery._id] || new Set();
           const isSubmitted = submitted[gallery._id];
           const isSubmittingThis = submitting[gallery._id];
@@ -292,7 +345,9 @@ const ClientGalleryPage = () => {
               <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 md:p-6 mb-6">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
-                    <span className="text-[10px] uppercase tracking-widest text-gray-500 block mb-1">Gallery Collection</span>
+                    <span className="text-[10px] uppercase tracking-widest text-gray-500 block mb-1">
+                      Event Gallery {galleries.length > 1 && `(${galleries.indexOf(gallery) + 1} of ${galleries.length})`}
+                    </span>
                     <h2 className="text-xl sm:text-2xl md:text-3xl font-oswald font-bold uppercase tracking-widest text-white">
                       {gallery.eventName}
                     </h2>
@@ -325,7 +380,7 @@ const ClientGalleryPage = () => {
                 {isSubmitted && (
                   <div className="mt-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center">
                     <p className="text-emerald-400 text-xs sm:text-sm tracking-wider">
-                      ✓ Your selection of {selectedCount} images has been submitted to the studio!
+                      ✓ Your selection of {selectedCount} images for <strong className="text-white">{gallery.eventName}</strong> has been submitted to the studio!
                     </p>
                   </div>
                 )}
@@ -434,15 +489,15 @@ const ClientGalleryPage = () => {
                 <p className="text-gray-600 text-sm text-center py-12">No images found in this gallery folder.</p>
               )}
 
-              {/* Mobile Floating Bottom Bar for Easy Submission */}
-              {!isSubmitted && (
+              {/* Mobile Floating Bottom Bar for Single Active Gallery */}
+              {!isSubmitted && (activeEventTab === gallery._id || (activeEventTab === 'all' && displayedGalleries.length === 1)) && (
                 <div className="md:hidden fixed bottom-4 left-3 right-3 z-40 bg-black/85 backdrop-blur-xl border border-white/20 rounded-2xl p-3 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.8)]">
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-white tracking-wider">
                       {selectedCount} Selected
                     </span>
-                    <span className="text-[9px] text-gray-400">
-                      of {gallery.images.length} photos
+                    <span className="text-[9px] text-gray-400 truncate max-w-[150px]">
+                      {gallery.eventName}
                     </span>
                   </div>
                   <button
