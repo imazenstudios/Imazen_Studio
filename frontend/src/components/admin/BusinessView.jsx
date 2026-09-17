@@ -1661,11 +1661,11 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                             <input 
                               type="number" 
                               placeholder="Qty" 
-                              value={svc.quantity || 1}
+                              value={svc.quantity === undefined ? 1 : svc.quantity}
                               min="1"
                               onChange={e => {
                                 const newList = [...(editingEvent.subEventList || [])];
-                                newList[sIdx].services[svcIdx].quantity = Number(e.target.value);
+                                newList[sIdx].services[svcIdx].quantity = e.target.value === '' ? '' : Number(e.target.value);
                                 setEditingEvent({...editingEvent, subEventList: newList});
                               }}
                               className="w-16 bg-black/50 border border-white/10 rounded px-2 py-1.5 text-xs text-white"
