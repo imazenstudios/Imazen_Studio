@@ -130,13 +130,17 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     if (highlightedItemId) {
-      setTimeout(() => {
+      let attempts = 0;
+      const tryScroll = setInterval(() => {
         const el = document.getElementById(`row-${highlightedItemId}`);
         if (el) {
           el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          clearInterval(tryScroll);
           setTimeout(() => setHighlightedItemId(null), 5000);
         }
-      }, 300);
+        attempts++;
+        if (attempts > 20) clearInterval(tryScroll); // Stop after 2 seconds
+      }, 100);
     }
   }, [highlightedItemId, activeTab]);
   
