@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { parse } from 'json2csv';
+import archiver from 'archiver';
 import ClientGallery from '../models/ClientGallery.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -135,6 +136,184 @@ router.get('/:id/export', async (req, res) => {
   } catch (error) {
     console.error('CSV Export Error:', error);
     res.status(500).json({ error: 'Failed to generate CSV' });
+  }
+});
+
+// Admin: Download ZIP of all selected images grouped by email
+router.get('/download-all-selections', async (req, res) => {
+  try {
+    if (!drive) {
+      return res.status(500).json({ error: 'Google Drive API is not configured on the server.' });
+    }
+
+    const galleries = await ClientGallery.find({ status: 'Submitted' });
+    
+    // Find all selected images across all galleries
+    let hasImages = false;
+    for (const g of galleries) {
+      if (g.images.some(img => img.isSelected)) {
+        hasImages = true;
+        break;
+      }
+    }
+
+    if (!hasImages) {
+      return res.status(400).json({ error: 'No selected images found across any galleries.' });
+    }
+
+    res.header('Content-Type', 'application/zip');
+    res.attachment('all_client_selections.zip');
+
+    const archive = archiver('zip', {
+      zlib: { level: 9 } // max compression
+    });
+
+    archive.on('error', function(err) {
+      throw err;
+    });
+
+    archive.pipe(res);
+
+    for (const gallery of galleries) {
+      const selectedImages = gallery.images.filter(img => img.isSelected);
+      const safeEmail = gallery.clientEmail.replace(/[^a-zA-Z0-9@.-]/g, '_');
+      const safeEvent = (gallery.eventName || 'event').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+      for (const img of selectedImages) {
+        try {
+          const driveResponse = await drive.files.get(
+            { fileId: img.driveId, alt: 'media' },
+            { responseType: 'stream' }
+          );
+          
+          archive.append(driveResponse.data, { name: `${safeEvent}/${img.name}` });
+        } catch (driveErr) {
+          console.error(`Failed to fetch image ${img.name} (${img.driveId}) from drive:`, driveErr.message);
+        }
+      }
+    }
+
+    await archive.finalize();
+  } catch (error) {
+    console.error('ZIP Export Error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Failed to generate ZIP' });
+    }
+  }
+});
+
+// Admin: Download ZIP of selected images for a specific email
+router.get('/download-email/:email', async (req, res) => {
+  try {
+    if (!drive) {
+      return res.status(500).json({ error: 'Google Drive API is not configured on the server.' });
+    }
+
+    const email = req.params.email.toLowerCase().trim();
+    const galleries = await ClientGallery.find({ clientEmail: email, status: 'Submitted' });
+
+    let hasImages = false;
+    for (const g of galleries) {
+      if (g.images.some(img => img.isSelected)) {
+        hasImages = true;
+        break;
+      }
+    }
+
+    if (!hasImages) {
+      return res.status(400).json({ error: 'No selected images found for this email.' });
+    }
+
+    const safeEmail = email.replace(/[^a-zA-Z0-9@.-]/g, '_');
+    res.header('Content-Type', 'application/zip');
+    res.attachment(`${safeEmail}_selections.zip`);
+
+    const archive = archiver('zip', {
+      zlib: { level: 9 }
+    });
+
+    archive.on('error', function(err) {
+      throw err;
+    });
+
+    archive.pipe(res);
+
+    for (const gallery of galleries) {
+      const selectedImages = gallery.images.filter(img => img.isSelected);
+      const safeEvent = (gallery.eventName || 'event').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+      for (const img of selectedImages) {
+        try {
+          const driveResponse = await drive.files.get(
+            { fileId: img.driveId, alt: 'media' },
+            { responseType: 'stream' }
+          );
+          
+          archive.append(driveResponse.data, { name: `${safeEvent}/${img.name}` });
+        } catch (driveErr) {
+          console.error(`Failed to fetch image ${img.name} (${img.driveId}) from drive:`, driveErr.message);
+        }
+      }
+    }
+
+    await archive.finalize();
+  } catch (error) {
+    console.error('ZIP Export Error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Failed to generate ZIP' });
+    }
+  }
+});
+
+// Admin: Download ZIP of selected images for a single gallery
+router.get('/:id/download-selections', async (req, res) => {
+  try {
+    if (!drive) {
+      return res.status(500).json({ error: 'Google Drive API is not configured on the server.' });
+    }
+
+    const gallery = await ClientGallery.findById(req.params.id);
+    if (!gallery) return res.status(404).json({ error: 'Gallery not found' });
+
+    const selectedImages = gallery.images.filter(img => img.isSelected);
+    
+    if (selectedImages.length === 0) {
+      return res.status(400).json({ error: 'No images selected in this gallery' });
+    }
+
+    const safeEvent = (gallery.eventName || 'event').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    res.header('Content-Type', 'application/zip');
+    res.attachment(`${safeEvent}_selections.zip`);
+
+    const archive = archiver('zip', {
+      zlib: { level: 9 }
+    });
+
+    archive.on('error', function(err) {
+      throw err;
+    });
+
+    archive.pipe(res);
+
+    for (const img of selectedImages) {
+      try {
+        const driveResponse = await drive.files.get(
+          { fileId: img.driveId, alt: 'media' },
+          { responseType: 'stream' }
+        );
+        
+        archive.append(driveResponse.data, { name: `${safeEvent}/${img.name}` });
+      } catch (driveErr) {
+        console.error(`Failed to fetch image ${img.name} (${img.driveId}) from drive:`, driveErr.message);
+      }
+    }
+
+    await archive.finalize();
+  } catch (error) {
+    console.error('Single ZIP Export Error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Failed to generate ZIP' });
+    }
   }
 });
 

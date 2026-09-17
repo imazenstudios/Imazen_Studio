@@ -227,7 +227,7 @@ const AdminDashboard = () => {
   const [isCreatingGallery, setIsCreatingGallery] = useState(false);
   const [galleryCreateError, setGalleryCreateError] = useState('');
   const [galleryCreateSuccess, setGalleryCreateSuccess] = useState('');
-  const [expandedGalleryId, setExpandedGalleryId] = useState(null);
+  const [expandedEmail, setExpandedEmail] = useState(null);
   const [syncingGalleryId, setSyncingGalleryId] = useState(null);
 
   const getMonthDateString = (monthsOffset) => {
@@ -6212,7 +6212,10 @@ const AdminDashboard = () => {
               <div className={`${glassPanel} p-6`}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-oswald text-white uppercase tracking-widest">All Client Galleries</h3>
-                  <button onClick={fetchClientGalleries} className="text-[10px] uppercase text-gray-400 hover:text-white tracking-widest border border-white/10 px-3 py-1 rounded-lg transition-all">Refresh</button>
+                  <div className="flex gap-2">
+                    <button onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/client-gallery/download-all-selections`, '_blank')} className="text-[10px] uppercase bg-white text-black hover:bg-gray-200 font-bold tracking-widest px-4 py-2 rounded-lg transition-all">Download All Selections (ZIP)</button>
+                    <button onClick={fetchClientGalleries} className="text-[10px] uppercase text-gray-400 hover:text-white tracking-widest border border-white/10 px-3 py-2 rounded-lg transition-all">Refresh</button>
+                  </div>
                 </div>
                 {isLoadingClientGalleries ? (
                   <p className="text-gray-500 text-xs tracking-wider py-6">Loading galleries...</p>
@@ -6220,115 +6223,192 @@ const AdminDashboard = () => {
                   <p className="text-gray-500 text-xs tracking-wider py-6">No galleries created yet.</p>
                 ) : (
                   <div className="space-y-4">
-                    {clientGalleries.map(gallery => (
-                      <div key={gallery._id} className="border border-white/10 rounded-xl overflow-hidden">
-                        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 bg-white/5 hover:bg-white/[0.08] transition-all cursor-pointer" onClick={() => setExpandedGalleryId(expandedGalleryId === gallery._id ? null : gallery._id)}>
-                          <div className="flex flex-col">
-                            <span className="text-[11px] font-bold text-white uppercase tracking-wider">{gallery.clientName || '—'} — {gallery.eventName}</span>
-                            <span className="text-[10px] text-gray-500 mt-0.5">{gallery.clientEmail}</span>
-                          </div>
-                          <div className="flex items-center gap-3 flex-wrap">
-                            <span className={`text-[9px] px-2 py-1 rounded-full uppercase tracking-widest font-bold border ${gallery.status === 'Submitted' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'}`}>
-                              {gallery.status}
-                            </span>
-                            <span className="text-[9px] text-gray-400">
-                              {gallery.images.length} images {gallery.images.filter(i => i.isSelected).length > 0 && `(${gallery.images.filter(i => i.isSelected).length} selected)`}
-                            </span>
-                            <button
-                              onClick={e => { e.stopPropagation(); handleSyncGallery(gallery._id); }}
-                              disabled={syncingGalleryId === gallery._id}
-                              className="text-[10px] px-3 py-1 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg uppercase tracking-widest transition-all disabled:opacity-50"
-                              title="Re-read photos from Google Drive folder"
-                            >
-                              {syncingGalleryId === gallery._id ? 'Syncing...' : '↻ Sync Drive'}
-                            </button>
-                            <button
-                              onClick={e => {
-                                e.stopPropagation();
-                                const link = `${window.location.origin}/my-gallery?email=${encodeURIComponent(gallery.clientEmail)}&galleryId=${gallery._id}`;
-                                navigator.clipboard.writeText(link);
-                                alert(`Client link copied to clipboard!\n\n${link}`);
-                              }}
-                              className="text-[10px] px-3 py-1 bg-white/10 text-white hover:bg-white/20 border border-white/20 rounded-lg uppercase tracking-widest transition-all"
-                              title="Copy direct shareable link for this client"
-                            >
-                              📋 Copy Link
-                            </button>
-                            {gallery.status === 'Submitted' && (
-                              <button
-                                onClick={e => { e.stopPropagation(); handleExportGalleryCSV(gallery._id, gallery.clientName, gallery.eventName); }}
-                                className="text-[10px] px-3 py-1 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 border border-emerald-500/30 rounded-lg uppercase tracking-widest transition-all"
-                              >
-                                Export CSV
-                              </button>
-                            )}
-                            {gallery.status === 'Submitted' && (
+                    {Object.entries(
+                      clientGalleries.reduce((acc, gallery) => {
+                        const email = gallery.clientEmail;
+                        if (!acc[email]) acc[email] = { clientName: gallery.clientName, galleries: [] };
+                        acc[email].galleries.push(gallery);
+                        return acc;
+                      }, {})
+                    ).map(([email, data]) => {
+                      const hasSubmitted = data.galleries.some(g => g.status === 'Submitted');
+                      const allImages = data.galleries.flatMap(g => g.images.map(img => ({ ...img, eventName: g.eventName, galleryId: g._id })));
+                      const selectedImages = allImages.filter(i => i.isSelected);
+                      
+                      return (
+                        <div key={email} className="border border-white/10 rounded-xl overflow-hidden">
+                          {/* Email Group Header */}
+                          <div 
+                            className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 bg-white/5 hover:bg-white/[0.08] transition-all cursor-pointer"
+                            onClick={() => setExpandedEmail(expandedEmail === email ? null : email)}
+                          >
+                            <div className="flex flex-col">
+                              <span className="text-[11px] font-bold text-white uppercase tracking-wider">{data.clientName || '—'}</span>
+                              <span className="text-[10px] text-gray-500 mt-0.5">{email}</span>
+                            </div>
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <span className="text-[9px] text-gray-400">{data.galleries.length} Events</span>
+                              <span className="text-[9px] text-gray-400">
+                                {allImages.length} images {selectedImages.length > 0 && `(${selectedImages.length} selected)`}
+                              </span>
+                              
                               <button
                                 onClick={e => {
                                   e.stopPropagation();
-                                  if(window.confirm('Unlock this gallery to allow the client to edit their selection?')) {
-                                    handleUnlockGallery(gallery._id);
-                                  }
+                                  const link = `${window.location.origin}/my-gallery?email=${encodeURIComponent(email)}`;
+                                  navigator.clipboard.writeText(link);
+                                  alert(`Client link copied to clipboard!\n\n${link}`);
                                 }}
-                                className="text-[10px] px-3 py-1 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg uppercase tracking-widest transition-all"
+                                className="text-[10px] px-3 py-1 bg-white/10 text-white hover:bg-white/20 border border-white/20 rounded-lg uppercase tracking-widest transition-all"
+                                title="Copy direct shareable link for this client"
                               >
-                                Unlock for Edit
+                                📋 Copy Link
                               </button>
-                            )}
-                            <button
-                              onClick={e => { e.stopPropagation(); handleDeleteGallery(gallery._id); }}
-                              className="text-[10px] px-3 py-1 bg-red-500/10 text-red-400 hover:bg-red-500/30 border border-red-500/20 rounded-lg uppercase tracking-widest transition-all"
-                            >
-                              Delete
-                            </button>
-                            <span className="text-gray-500 text-xs">{expandedGalleryId === gallery._id ? '▲' : '▼'}</span>
-                          </div>
-                        </div>
-                        {expandedGalleryId === gallery._id && (
-                          <div className="px-5 py-4 bg-black/20 border-t border-white/5">
-                            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                              <p className="text-[10px] uppercase text-gray-500 tracking-widest">
-                                Drive Folder: <a href={gallery.folderLink} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline normal-case">{gallery.folderLink.length > 55 ? gallery.folderLink.substring(0, 55) + '...' : gallery.folderLink}</a>
-                              </p>
-                              <span className="text-[10px] text-gray-400 tracking-wider">
-                                {gallery.images.filter(i => i.isSelected).length} of {gallery.images.length} selected by client
-                              </span>
+                              
+                              {hasSubmitted && (
+                                <button
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/client-gallery/download-email/${encodeURIComponent(email)}`, '_blank');
+                                  }}
+                                  className="text-[10px] px-4 py-1 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 border border-emerald-500/30 rounded-lg uppercase tracking-widest transition-all font-bold"
+                                >
+                                  Download ZIP
+                                </button>
+                              )}
+                              
+                              <span className="text-gray-500 text-xs">{expandedEmail === email ? '▲' : '▼'}</span>
                             </div>
-                            {gallery.images.length === 0 ? (
-                              <p className="text-gray-600 text-xs">No images found.</p>
-                            ) : (
-                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 max-h-72 overflow-y-auto custom-scrollbar pr-1">
-                                {gallery.images.map((img, idx) => (
-                                  <div key={idx} className={`relative rounded-lg overflow-hidden border p-1 transition-all ${img.isSelected ? 'bg-emerald-950/30 border-emerald-500/50' : 'bg-white/5 border-white/5'}`}>
-                                    <div className="aspect-square rounded overflow-hidden mb-1 bg-black/40">
-                                      <img
-                                        src={`https://drive.google.com/thumbnail?id=${img.driveId}&sz=w200`}
-                                        alt={img.name}
-                                        className="w-full h-full object-cover"
-                                        onError={e => {
-                                          const proxyUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/client-gallery/image/${img.driveId}`;
-                                          if (e.target.src !== proxyUrl) {
-                                            e.target.src = proxyUrl;
-                                          } else {
-                                            e.target.style.display = 'none';
+                          </div>
+                          
+                          {/* Individual Galleries in this Email Group */}
+                          <div className="p-4 space-y-3">
+                            {data.galleries.map(gallery => (
+                              <div key={gallery._id} className="border border-white/10 rounded-xl overflow-hidden">
+                                <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 bg-white/5 hover:bg-white/[0.08] transition-all cursor-pointer" onClick={() => setExpandedEmail(expandedEmail === gallery._id ? null : gallery._id)}>
+                                  <div className="flex flex-col">
+                                    <span className="text-[11px] font-bold text-white uppercase tracking-wider">{gallery.clientName || '—'} — {gallery.eventName}</span>
+                                    <span className="text-[10px] text-gray-500 mt-0.5">{gallery.clientEmail}</span>
+                                  </div>
+                                  <div className="flex items-center gap-3 flex-wrap">
+                                    <span className={`text-[9px] px-2 py-1 rounded-full uppercase tracking-widest font-bold border ${gallery.status === 'Submitted' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'}`}>
+                                      {gallery.status}
+                                    </span>
+                                    <span className="text-[9px] text-gray-400">
+                                      {gallery.images.length} images {gallery.images.filter(i => i.isSelected).length > 0 && `(${gallery.images.filter(i => i.isSelected).length} selected)`}
+                                    </span>
+                                    <button
+                                      onClick={e => { e.stopPropagation(); handleSyncGallery(gallery._id); }}
+                                      disabled={syncingGalleryId === gallery._id}
+                                      className="text-[10px] px-3 py-1 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg uppercase tracking-widest transition-all disabled:opacity-50"
+                                      title="Re-read photos from Google Drive folder"
+                                    >
+                                      {syncingGalleryId === gallery._id ? 'Syncing...' : '↻ Sync Drive'}
+                                    </button>
+                                    <button
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        const link = `${window.location.origin}/my-gallery?email=${encodeURIComponent(gallery.clientEmail)}&galleryId=${gallery._id}`;
+                                        navigator.clipboard.writeText(link);
+                                        alert(`Client link copied to clipboard!\n\n${link}`);
+                                      }}
+                                      className="text-[10px] px-3 py-1 bg-white/10 text-white hover:bg-white/20 border border-white/20 rounded-lg uppercase tracking-widest transition-all"
+                                      title="Copy direct shareable link for this client"
+                                    >
+                                      📋 Copy Link
+                                    </button>
+                                    
+                                    {gallery.status === 'Submitted' && (
+                                      <button
+                                        onClick={e => {
+                                          e.stopPropagation();
+                                          window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/client-gallery/${gallery._id}/download-selections`, '_blank');
+                                        }}
+                                        className="text-[10px] px-3 py-1 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 border border-emerald-500/30 rounded-lg uppercase tracking-widest transition-all"
+                                      >
+                                        Download ZIP
+                                      </button>
+                                    )}
+
+                                    {gallery.status === 'Submitted' && (
+                                      <button
+                                        onClick={e => { e.stopPropagation(); handleExportGalleryCSV(gallery._id, gallery.clientName, gallery.eventName); }}
+                                        className="text-[10px] px-3 py-1 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 border border-emerald-500/30 rounded-lg uppercase tracking-widest transition-all"
+                                      >
+                                        Export CSV
+                                      </button>
+                                    )}
+                                    {gallery.status === 'Submitted' && (
+                                      <button
+                                        onClick={e => {
+                                          e.stopPropagation();
+                                          if(window.confirm('Unlock this gallery to allow the client to edit their selection?')) {
+                                            handleUnlockGallery(gallery._id);
                                           }
                                         }}
-                                      />
-                                    </div>
-                                    <p className={`text-[9px] truncate font-mono ${img.isSelected ? 'text-emerald-300 font-bold' : 'text-gray-400'}`}>
-                                      {img.isSelected ? '✓ ' : ''}{img.name}
-                                    </p>
+                                        className="text-[10px] px-3 py-1 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg uppercase tracking-widest transition-all"
+                                      >
+                                        Unlock for Edit
+                                      </button>
+                                    )}
+                                    <button
+                                      onClick={e => { e.stopPropagation(); handleDeleteGallery(gallery._id); }}
+                                      className="text-[10px] px-3 py-1 bg-red-500/10 text-red-400 hover:bg-red-500/30 border border-red-500/20 rounded-lg uppercase tracking-widest transition-all"
+                                    >
+                                      Delete
+                                    </button>
+                                    <span className="text-gray-500 text-xs">{expandedEmail === gallery._id ? '▲' : '▼'}</span>
                                   </div>
-                                ))}
+                                </div>
+                                {expandedEmail === gallery._id && (
+                                  <div className="px-5 py-4 bg-black/20 border-t border-white/5">
+                                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                                      <p className="text-[10px] uppercase text-gray-500 tracking-widest">
+                                        Drive Folder: <a href={gallery.folderLink} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline normal-case">{gallery.folderLink.length > 55 ? gallery.folderLink.substring(0, 55) + '...' : gallery.folderLink}</a>
+                                      </p>
+                                      <span className="text-[10px] text-gray-400 tracking-wider">
+                                        {gallery.images.filter(i => i.isSelected).length} of {gallery.images.length} selected by client
+                                      </span>
+                                    </div>
+                                    {gallery.images.length === 0 ? (
+                                      <p className="text-gray-600 text-xs">No images found.</p>
+                                    ) : (
+                                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 max-h-72 overflow-y-auto custom-scrollbar pr-1">
+                                        {gallery.images.map((img, idx) => (
+                                          <div key={idx} className={`relative rounded-lg overflow-hidden border p-1 transition-all ${img.isSelected ? 'bg-emerald-950/30 border-emerald-500/50' : 'bg-white/5 border-white/5'}`}>
+                                            <div className="aspect-square rounded overflow-hidden mb-1 bg-black/40">
+                                              <img
+                                                src={`https://drive.google.com/thumbnail?id=${img.driveId}&sz=w200`}
+                                                alt={img.name}
+                                                className="w-full h-full object-cover"
+                                                onError={e => {
+                                                  const proxyUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/client-gallery/image/${img.driveId}`;
+                                                  if (e.target.src !== proxyUrl) {
+                                                    e.target.src = proxyUrl;
+                                                  } else {
+                                                    e.target.style.display = 'none';
+                                                  }
+                                                }}
+                                              />
+                                            </div>
+                                            <p className={`text-[9px] truncate font-mono ${img.isSelected ? 'text-emerald-300 font-bold' : 'text-gray-400'}`}>
+                                              {img.isSelected ? '✓ ' : ''}{img.name}
+                                            </p>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                    {gallery.submittedAt && (
+                                      <p className="text-[10px] text-gray-500 mt-3">Submitted: {new Date(gallery.submittedAt).toLocaleString()}</p>
+                                    )}
+                                  </div>
+                                )}
                               </div>
-                            )}
-                            {gallery.submittedAt && (
-                              <p className="text-[10px] text-gray-500 mt-3">Submitted: {new Date(gallery.submittedAt).toLocaleString()}</p>
-                            )}
+                            ))}
                           </div>
-                        )}
-                      </div>
-                    ))}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
