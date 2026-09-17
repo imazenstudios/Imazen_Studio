@@ -1431,7 +1431,27 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
       })()}
 
       {/* Events Edit Modal */}
-      {editingEvent && (
+      {editingEvent && (() => {
+        const calculateEventTotal = (evt) => {
+          let sum = 0;
+          if (evt.subEventList && evt.subEventList.length > 0) {
+            evt.subEventList.forEach(sub => {
+              (sub.services || []).forEach(s => sum += (Number(s.price) || 0) * (Number(s.quantity) || 1));
+            });
+          } else if (evt.services && evt.services.length > 0) {
+            evt.services.forEach(s => sum += (Number(s.price) || 0) * (Number(s.quantity) || 1));
+          }
+          (evt.deliverables || []).forEach(d => sum += (Number(d.price) || 0) * (Number(d.quantity) || 1));
+          (evt.complimentries || []).forEach(c => sum += (Number(c.price) || 0) * (Number(c.quantity) || 1));
+          (evt.addOns || []).forEach(a => sum += (Number(a.price) || 0) * (Number(a.quantity) || 1));
+          if (evt.album && evt.album.enabled) {
+            sum += (Number(evt.album.sheets) || 0) * (Number(evt.album.pricePerSheet) || 500);
+          }
+          return sum;
+        };
+        const currentCalculatedTotal = calculateEventTotal(editingEvent);
+
+        return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="w-full max-w-lg bg-[#111] border border-white/10 p-6 shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
@@ -1482,9 +1502,9 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                   <input 
                     type="number" 
                     name="totalAmount" 
-                    value={editingEvent.totalAmount !== undefined ? editingEvent.totalAmount : ((editingEvent.subEventList && editingEvent.subEventList.length > 0) ? editingEvent.subEventList.reduce((sum, subEvent) => sum + (subEvent.services || []).reduce((s, item) => s + item.price, 0), 0) : (editingEvent.services || []).reduce((sum, item) => sum + item.price, 0))} 
-                    onChange={e => setEditingEvent({...editingEvent, totalAmount: Number(e.target.value)})}
-                    className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm" 
+                    value={currentCalculatedTotal} 
+                    readOnly
+                    className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm cursor-not-allowed opacity-70" 
                   />
                 </div>
                 <div>
@@ -1502,7 +1522,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                   <input 
                     type="number" 
                     name="pendingAmount" 
-                    value={(editingEvent.totalAmount !== undefined ? editingEvent.totalAmount : ((editingEvent.subEventList && editingEvent.subEventList.length > 0) ? editingEvent.subEventList.reduce((sum, subEvent) => sum + (subEvent.services || []).reduce((s, item) => s + item.price, 0), 0) : (editingEvent.services || []).reduce((sum, item) => sum + item.price, 0))) - (editingEvent.paidAmount || 0)} 
+                    value={currentCalculatedTotal - (editingEvent.paidAmount || 0)} 
                     readOnly
                     className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-amber-500 text-sm cursor-not-allowed opacity-50" 
                   />
@@ -1519,8 +1539,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                     value={editingEvent.discountPercentage || ''} 
                     onChange={e => {
                       const pct = Number(e.target.value);
-                      const total = editingEvent.totalAmount !== undefined ? editingEvent.totalAmount : ((editingEvent.subEventList && editingEvent.subEventList.length > 0) ? editingEvent.subEventList.reduce((sum, subEvent) => sum + (subEvent.services || []).reduce((s, item) => s + item.price, 0), 0) : (editingEvent.services || []).reduce((sum, item) => sum + item.price, 0));
-                      const flatDiscount = Math.round((pct / 100) * total);
+                      const flatDiscount = Math.round((pct / 100) * currentCalculatedTotal);
                       setEditingEvent({...editingEvent, discountPercentage: pct, discount: flatDiscount});
                     }}
                     placeholder="e.g. 10" 
@@ -1535,8 +1554,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                     value={editingEvent.discount || 0} 
                     onChange={e => {
                       const flatDiscount = Number(e.target.value);
-                      const total = editingEvent.totalAmount !== undefined ? editingEvent.totalAmount : ((editingEvent.subEventList && editingEvent.subEventList.length > 0) ? editingEvent.subEventList.reduce((sum, subEvent) => sum + (subEvent.services || []).reduce((s, item) => s + item.price, 0), 0) : (editingEvent.services || []).reduce((sum, item) => sum + item.price, 0));
-                      const pct = total > 0 ? Number(((flatDiscount / total) * 100).toFixed(2)) : 0;
+                      const pct = currentCalculatedTotal > 0 ? Number(((flatDiscount / currentCalculatedTotal) * 100).toFixed(2)) : 0;
                       setEditingEvent({...editingEvent, discount: flatDiscount, discountPercentage: pct});
                     }}
                     placeholder="0" 
@@ -1955,7 +1973,8 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
             </form>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {viewShootExpenses && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">

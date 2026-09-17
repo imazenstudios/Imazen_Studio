@@ -149,7 +149,7 @@ router.put('/:id/sync', async (req, res) => {
     if (!gallery) return res.status(404).json({ error: 'Gallery not found' });
 
     // Optional folderLink override if admin provided a new one
-    const folderLink = req.body.folderLink || gallery.folderLink;
+    const folderLink = req.body?.folderLink || gallery.folderLink;
     const folderId = extractFolderId(folderLink);
     if (!folderId) {
       return res.status(400).json({ error: 'Invalid Google Drive folder link.' });

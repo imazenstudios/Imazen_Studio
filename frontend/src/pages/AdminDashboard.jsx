@@ -660,6 +660,16 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUnlockGallery = async (id) => {
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/client-gallery/${id}`, { status: 'Draft' });
+      alert('Gallery unlocked! The client can now edit their selections.');
+      fetchClientGalleries();
+    } catch (err) {
+      alert('Failed to unlock gallery.');
+    }
+  };
+
   const handleUploadGalleryImage = async (urls) => {
     try {
       if (Array.isArray(urls)) {
@@ -6193,6 +6203,19 @@ const AdminDashboard = () => {
                                 className="text-[10px] px-3 py-1 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/40 border border-emerald-500/30 rounded-lg uppercase tracking-widest transition-all"
                               >
                                 Export CSV
+                              </button>
+                            )}
+                            {gallery.status === 'Submitted' && (
+                              <button
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  if(window.confirm('Unlock this gallery to allow the client to edit their selection?')) {
+                                    handleUnlockGallery(gallery._id);
+                                  }
+                                }}
+                                className="text-[10px] px-3 py-1 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg uppercase tracking-widest transition-all"
+                              >
+                                Unlock for Edit
                               </button>
                             )}
                             <button
