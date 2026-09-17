@@ -4,7 +4,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { parse } from 'json2csv';
-import archiver from 'archiver';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const archiver = require('archiver');
 import ClientGallery from '../models/ClientGallery.js';
 
 const __filename = fileURLToPath(import.meta.url);
