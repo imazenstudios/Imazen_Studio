@@ -205,6 +205,17 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// Admin: Update gallery
+router.put('/:id', async (req, res) => {
+  try {
+    const gallery = await ClientGallery.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!gallery) return res.status(404).json({ error: 'Gallery not found' });
+    res.json(gallery);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update gallery' });
+  }
+});
+
 // Client: Verify email and get assigned galleries
 router.post('/verify', async (req, res) => {
   try {

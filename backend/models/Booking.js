@@ -44,7 +44,7 @@ const bookingSchema = new mongoose.Schema({
     date: { type: Date, default: Date.now }
   }],
   assignedTeamMember: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamMember' },
-  shootStatus: { type: String, default: '' },
+  editAssignment: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamMember' },
   // Follow-ups
   followUps: [{
     date: { type: Date, default: Date.now },

@@ -3674,7 +3674,16 @@ const AdminDashboard = () => {
                                     <div><span className="text-gray-500 uppercase text-[9px] block">Shoot Date</span><span className="text-emerald-400">{booking.date}</span></div>
                                     <div><span className="text-gray-500 uppercase text-[9px] block">Booking Date</span><span className="text-white">{new Date(booking.createdAt || booking.date).toLocaleDateString()}</span></div>
                                     <div><span className="text-gray-500 uppercase text-[9px] block">Slot</span><span className="text-emerald-400">{booking.slots && booking.slots.length > 0 ? booking.slots.join(', ') : booking.slot}</span></div>
-                                    <div className="col-span-2 pt-2"><span className="text-gray-500 uppercase text-[9px] block">Pending Amount</span><span className="text-amber-500 font-bold">₹{((booking.totalAmount || 0) - ((booking.payments && booking.payments.length > 0) ? booking.payments.reduce((sum, p) => sum + p.amount, 0) : (booking.advanceAmount || 0))).toLocaleString()}</span></div>
+                                    <div className="col-span-2 pt-2 flex justify-between">
+                                      <div>
+                                        <span className="text-gray-500 uppercase text-[9px] block">Pending Amount</span>
+                                        <span className="text-amber-500 font-bold">₹{((booking.totalAmount || 0) - ((booking.payments && booking.payments.length > 0) ? booking.payments.reduce((sum, p) => sum + p.amount, 0) : (booking.advanceAmount || 0))).toLocaleString()}</span>
+                                      </div>
+                                      <div className="text-right">
+                                        <span className="text-gray-500 uppercase text-[9px] block">Total Amount</span>
+                                        <span className="text-white font-bold">₹{(booking.totalAmount || 0).toLocaleString()}</span>
+                                      </div>
+                                    </div>
                                     <div className="col-span-2 pt-1 border-t border-white/5 flex justify-between items-center">
                                       <span className="text-gray-500 uppercase text-[9px]">Status</span>
                                       <span className={`text-[10px] font-bold uppercase tracking-wider ${
@@ -3860,7 +3869,7 @@ const AdminDashboard = () => {
 
                             <div className="mb-4 grid grid-cols-2 gap-4">
                               <div className="bg-black/40 border border-white/5 rounded-xl p-3">
-                                <h4 className="text-[11px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Team Assignment</h4>
+                                <h4 className="text-[11px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Shoot Assignment</h4>
                                 <select 
                                   value={(booking.assignedTeamMember?._id || booking.assignedTeamMember) || ''} 
                                   onChange={(e) => handleUpdateBookingDetails(booking._id, { assignedTeamMember: e.target.value })}
@@ -3873,14 +3882,17 @@ const AdminDashboard = () => {
                                 </select>
                               </div>
                               <div className="bg-black/40 border border-white/5 rounded-xl p-3">
-                                <h4 className="text-[11px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Shoot Status (Manual)</h4>
-                                <input 
-                                  type="text" 
-                                  placeholder="e.g. Editing Completed"
-                                  value={booking.shootStatus || ''} 
-                                  onChange={(e) => handleUpdateBookingDetails(booking._id, { shootStatus: e.target.value })}
+                                <h4 className="text-[11px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Edit Assignment</h4>
+                                <select 
+                                  value={(booking.editAssignment?._id || booking.editAssignment) || ''} 
+                                  onChange={(e) => handleUpdateBookingDetails(booking._id, { editAssignment: e.target.value })}
                                   className={`${glassInput} w-full py-1.5 px-2 text-xs`}
-                                />
+                                >
+                                  <option value="" className="bg-[#111] text-white">-- Unassigned --</option>
+                                  {teamMembers.map(tm => (
+                                    <option key={tm._id} value={tm._id} className="bg-[#111] text-white">{tm.name}</option>
+                                  ))}
+                                </select>
                               </div>
                             </div>
 

@@ -414,6 +414,12 @@ router.put('/:id/details', async (req, res) => {
         updateData.assignedTeamMember = null;
       }
     }
+    
+    if (updateData.hasOwnProperty('editAssignment')) {
+      if (!updateData.editAssignment || String(updateData.editAssignment).trim() === '') {
+        updateData.editAssignment = null;
+      }
+    }
 
     // Handle Slot Capacity changes if date/slot is changed
     if (updateData.date && updateData.slot && 
