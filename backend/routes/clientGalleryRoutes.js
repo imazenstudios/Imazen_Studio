@@ -172,7 +172,7 @@ router.get('/download-all-selections', async (req, res) => {
     });
 
     archive.on('error', function(err) {
-      throw err;
+      console.error('Archive error:', err);
     });
 
     archive.pipe(res);
@@ -236,7 +236,7 @@ router.get('/download-email/:email', async (req, res) => {
     });
 
     archive.on('error', function(err) {
-      throw err;
+      console.error('Archive error:', err);
     });
 
     archive.pipe(res);
@@ -293,7 +293,7 @@ router.get('/:id/download-selections', async (req, res) => {
     });
 
     archive.on('error', function(err) {
-      throw err;
+      console.error('Archive error:', err);
     });
 
     archive.pipe(res);
