@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 
-const FollowUpsCalendar = ({ leads, inquiries, setActiveTab }) => {
+const FollowUpsCalendar = ({ leads, inquiries, setActiveTab, setLeadSearch, setLeadFilter, setInquirySearch, setInquiryFilter }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedFollowUp, setSelectedFollowUp] = useState(null);
   
   // Combine follow-ups
   const allFollowUps = [];
@@ -67,7 +68,7 @@ const FollowUpsCalendar = ({ leads, inquiries, setActiveTab }) => {
             {dayFollowUps.map((fu, idx) => (
               <div 
                 key={idx} 
-                onClick={() => setActiveTab(fu.parentType)}
+                onClick={() => setSelectedFollowUp(fu)}
                 className={`text-[10px] p-1.5 rounded cursor-pointer truncate transition-colors ${
                   fu.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' : 
                   'bg-orange-500/10 text-orange-400 hover:bg-orange-500/20'
@@ -116,6 +117,54 @@ const FollowUpsCalendar = ({ leads, inquiries, setActiveTab }) => {
         <div className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-emerald-500/20 border border-emerald-500/50"></span> Completed</div>
         <div className="flex items-center gap-2 ml-4"><span className="text-white/50">L = Lead, I = Inquiry</span></div>
       </div>
+      
+      {selectedFollowUp && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-[#111] border border-emerald-500/20 rounded-2xl p-6 w-full max-w-md relative shadow-[0_0_30px_rgba(16,185,129,0.1)]">
+            <button onClick={() => setSelectedFollowUp(null)} className="absolute top-4 right-4 text-gray-500 hover:text-white">&times;</button>
+            <h2 className="text-lg font-oswald text-white uppercase tracking-widest mb-4">Follow-up Details</h2>
+            
+            <div className="mb-6 bg-white/5 rounded-lg p-4 border border-white/5">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded uppercase tracking-widest">
+                  {selectedFollowUp.parentType === 'leads' ? 'Lead' : 'Inquiry'}
+                </span>
+              </div>
+              <p className="text-lg font-bold text-white uppercase tracking-widest mb-1">{selectedFollowUp.parentName}</p>
+              {selectedFollowUp.parentPhone && <p className="text-xs text-gray-400 mb-4">{selectedFollowUp.parentPhone}</p>}
+              
+              <div className="bg-black/50 rounded p-3 text-sm text-gray-300 border border-white/5 italic">
+                "{selectedFollowUp.note}"
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setSelectedFollowUp(null)}
+                className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded text-xs uppercase tracking-widest transition-colors"
+              >
+                Close
+              </button>
+              <button 
+                onClick={() => {
+                  if (selectedFollowUp.parentType === 'leads') {
+                    if (setLeadSearch) setLeadSearch(selectedFollowUp.parentName);
+                    if (setLeadFilter) setLeadFilter('All');
+                  } else {
+                    if (setInquirySearch) setInquirySearch(selectedFollowUp.parentName);
+                    if (setInquiryFilter) setInquiryFilter('All');
+                  }
+                  setActiveTab(selectedFollowUp.parentType);
+                  setSelectedFollowUp(null);
+                }}
+                className="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-black border border-emerald-500 rounded text-xs uppercase tracking-widest transition-colors font-bold shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+              >
+                Go to {selectedFollowUp.parentType === 'leads' ? 'Lead' : 'Inquiry'} →
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

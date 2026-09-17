@@ -4620,7 +4620,15 @@ const AdminDashboard = () => {
 
                 {/* FOLLOW UPS TAB */}
                 {activeTab === 'follow ups' && (
-                  <FollowUpsCalendar leads={leads} inquiries={inquiries} setActiveTab={setActiveTab} />
+                  <FollowUpsCalendar 
+                    leads={leads} 
+                    inquiries={inquiries} 
+                    setActiveTab={setActiveTab} 
+                    setLeadSearch={setLeadSearch}
+                    setLeadFilter={setLeadFilter}
+                    setInquirySearch={setInquirySearch}
+                    setInquiryFilter={setInquiryFilter}
+                  />
                 )}
 
                 {activeTab === 'customers' && (
