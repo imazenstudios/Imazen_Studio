@@ -159,4 +159,51 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// Admin: Add a follow-up note
+router.post('/:id/followup', async (req, res) => {
+  try {
+    const { note, scheduledDate } = req.body;
+    const lead = await Lead.findById(req.params.id);
+    if (!lead) return res.status(404).json({ error: 'Lead not found' });
+    
+    lead.followUps.push({ note, date: new Date(), scheduledDate });
+    await lead.save();
+    
+    res.json(lead);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error adding follow-up' });
+  }
+});
+
+// Admin: Update a follow-up note
+router.put('/:id/followups/:noteId', async (req, res) => {
+  try {
+    const { note } = req.body;
+    const lead = await Lead.findOneAndUpdate(
+      { _id: req.params.id, "followUps._id": req.params.noteId },
+      { $set: { "followUps.$.note": note } },
+      { returnDocument: 'after' }
+    );
+    if (!lead) return res.status(404).json({ error: 'Lead or note not found' });
+    res.json(lead);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error updating follow-up' });
+  }
+});
+
+// Admin: Delete a follow-up note
+router.delete('/:id/followups/:noteId', async (req, res) => {
+  try {
+    const lead = await Lead.findByIdAndUpdate(
+      req.params.id,
+      { $pull: { followUps: { _id: req.params.noteId } } },
+      { returnDocument: 'after' }
+    );
+    if (!lead) return res.status(404).json({ error: 'Lead not found' });
+    res.json(lead);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error deleting follow-up' });
+  }
+});
+
 export default router;
