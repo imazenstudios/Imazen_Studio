@@ -67,11 +67,9 @@ const ClientGalleryPage = () => {
       // We do NOT read galleryId from the URL here again — it was passed as targetGalleryId argument
       if (targetGalleryId && fetchedGalleries.some(g => g._id === targetGalleryId)) {
         setActiveEventTab(targetGalleryId);
-      } else if (fetchedGalleries.length === 1) {
-        setActiveEventTab(fetchedGalleries[0]._id);
       } else {
-        // Multiple galleries — show all by default so client sees every event
-        setActiveEventTab('all');
+        // Default to the first gallery tab (newest first from server)
+        setActiveEventTab(fetchedGalleries[0]._id);
       }
 
       // Initialize selections, checking localStorage drafts first
@@ -238,10 +236,8 @@ const ClientGalleryPage = () => {
     ? (selections[activeGallery._id] || new Set()).has(activeImage.driveId)
     : false;
 
-  // Filter galleries by active tab
-  const displayedGalleries = activeEventTab === 'all'
-    ? galleries
-    : galleries.filter(g => g._id === activeEventTab);
+  // Filter galleries by active tab (always shows one specific event)
+  const displayedGalleries = galleries.filter(g => g._id === activeEventTab);
 
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-white/20 pb-28 md:pb-16">
@@ -304,19 +300,9 @@ const ClientGalleryPage = () => {
           </div>
         )}
 
-        {/* Multiple Events Navigation Tabs */}
+        {/* Event Navigation Tabs — shown when client has multiple galleries */}
         {verified && galleries.length > 1 && (
           <div className="flex items-center justify-start md:justify-center gap-2 mb-8 overflow-x-auto pb-2 custom-scrollbar px-1">
-            <button
-              onClick={() => setActiveEventTab('all')}
-              className={`px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider font-bold transition-all whitespace-nowrap ${
-                activeEventTab === 'all'
-                  ? 'bg-white text-black shadow-lg scale-105'
-                  : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'
-              }`}
-            >
-              All Events ({galleries.length})
-            </button>
             {galleries.map(g => (
               <button
                 key={g._id}
