@@ -4400,7 +4400,7 @@ const AdminDashboard = () => {
 
                         {/* Data Rows */}
                         {filteredInquiries.map(inq => (
-                          <div id={`row-${inq._id}`} key={inq._id} className={`${glassPanel} p-4 md:px-6 flex flex-col md:flex-row md:items-center gap-4 transition-all duration-1000 ${highlightedItemId === inq._id ? 'bg-emerald-900/40 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'hover:bg-white/5'}`}>
+                          <div id={`row-${inq._id}`} key={inq._id} className={`${glassPanel} p-4 md:px-6 flex flex-col md:flex-row md:items-center gap-4 transition-all duration-1000 ${highlightedItemId === inq._id ? '!bg-emerald-900/40 !border-emerald-500 !shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'hover:bg-white/5'}`}>
                             {/* Lead ID */}
                             <div className="w-24 text-xs font-sans text-gray-500 tracking-widest hidden md:block">
                               #{inq._id.substring(inq._id.length - 6).toUpperCase()}
@@ -4553,7 +4553,7 @@ const AdminDashboard = () => {
                           const matchesStatus = leadFilter === 'All' || l.status === leadFilter;
                           return matchesSearch && matchesStatus;
                         }).map((lead) => (
-                          <div id={`row-${lead._id}`} key={lead._id} className={`${glassPanel} p-4 md:px-6 flex flex-col md:flex-row md:items-center gap-4 transition-all duration-1000 ${highlightedItemId === lead._id ? 'bg-emerald-900/40 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'hover:bg-white/5'}`}>
+                          <div id={`row-${lead._id}`} key={lead._id} className={`${glassPanel} p-4 md:px-6 flex flex-col md:flex-row md:items-center gap-4 transition-all duration-1000 ${highlightedItemId === lead._id ? '!bg-emerald-900/40 !border-emerald-500 !shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'hover:bg-white/5'}`}>
                             {/* Lead ID */}
                             <div className="w-24 text-xs font-sans text-gray-500 tracking-widest hidden md:block">
                               #{lead._id.substring(lead._id.length - 6).toUpperCase()}
