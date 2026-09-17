@@ -492,11 +492,11 @@ router.put('/:id/payment', async (req, res) => {
 // Admin: Add a follow-up note
 router.post('/:id/followup', async (req, res) => {
   try {
-    const { note } = req.body;
+    const { note, scheduledDate } = req.body;
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ error: 'Booking not found' });
     
-    booking.followUps.push({ note, date: new Date() });
+    booking.followUps.push({ note, date: new Date(), scheduledDate });
     await booking.save();
     
     res.json(booking);
@@ -508,7 +508,7 @@ router.post('/:id/followup', async (req, res) => {
 // Admin: Update a follow-up note
 router.put('/:id/followups/:noteId', async (req, res) => {
   try {
-    const { note } = req.body;
+    const { note, scheduledDate } = req.body;
     const booking = await Booking.findOneAndUpdate(
       { _id: req.params.id, "followUps._id": req.params.noteId },
       { $set: { "followUps.$.note": note } },

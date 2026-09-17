@@ -120,11 +120,11 @@ router.put('/:id', async (req, res) => {
 // Admin: Add a follow-up note
 router.post('/:id/followup', async (req, res) => {
   try {
-    const { note } = req.body;
+    const { note, scheduledDate } = req.body;
     const inquiry = await Inquiry.findById(req.params.id);
     if (!inquiry) return res.status(404).json({ error: 'Inquiry not found' });
     
-    inquiry.followUps.push({ note, date: new Date() });
+    inquiry.followUps.push({ note, date: new Date(), scheduledDate });
     await inquiry.save();
     
     res.json(inquiry);
