@@ -41,6 +41,12 @@ const ClientGalleryPage = () => {
       setEmail(savedEmail);
       verifyEmail(savedEmail, galleryIdParam);
     }
+
+    // Clean URL params after reading them so page refresh doesn't re-lock to a single gallery
+    if (emailParam || galleryIdParam) {
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, '', cleanUrl);
+    }
   }, []);
 
   const verifyEmail = async (emailToVerify, targetGalleryId = null) => {
@@ -57,13 +63,14 @@ const ClientGalleryPage = () => {
       // Save email in localStorage for persistent session
       localStorage.setItem('clientGalleryEmail', cleanEmail);
 
-      // If a specific galleryId was requested in URL, activate that tab
-      const requestedGalleryId = targetGalleryId || new URLSearchParams(window.location.search).get('galleryId');
-      if (requestedGalleryId && fetchedGalleries.some(g => g._id === requestedGalleryId)) {
-        setActiveEventTab(requestedGalleryId);
+      // If a specific galleryId was requested in URL, activate that tab (only for the initial deep-link)
+      // We do NOT read galleryId from the URL here again — it was passed as targetGalleryId argument
+      if (targetGalleryId && fetchedGalleries.some(g => g._id === targetGalleryId)) {
+        setActiveEventTab(targetGalleryId);
       } else if (fetchedGalleries.length === 1) {
         setActiveEventTab(fetchedGalleries[0]._id);
       } else {
+        // Multiple galleries — show all by default so client sees every event
         setActiveEventTab('all');
       }
 
