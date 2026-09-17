@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 
-const FollowUpsCalendar = ({ leads, inquiries, setActiveTab, setLeadSearch, setLeadFilter, setInquirySearch, setInquiryFilter }) => {
+const FollowUpsCalendar = ({ leads, inquiries, setActiveTab, setLeadSearch, setLeadFilter, setInquirySearch, setInquiryFilter, setHighlightedItemId }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedFollowUp, setSelectedFollowUp] = useState(null);
   
@@ -148,12 +148,13 @@ const FollowUpsCalendar = ({ leads, inquiries, setActiveTab, setLeadSearch, setL
               <button 
                 onClick={() => {
                   if (selectedFollowUp.parentType === 'leads') {
-                    if (setLeadSearch) setLeadSearch(selectedFollowUp.parentName);
+                    if (setLeadSearch) setLeadSearch('');
                     if (setLeadFilter) setLeadFilter('All');
                   } else {
-                    if (setInquirySearch) setInquirySearch(selectedFollowUp.parentName);
+                    if (setInquirySearch) setInquirySearch('');
                     if (setInquiryFilter) setInquiryFilter('All');
                   }
+                  if (setHighlightedItemId) setHighlightedItemId(selectedFollowUp.parentId);
                   setActiveTab(selectedFollowUp.parentType);
                   setSelectedFollowUp(null);
                 }}

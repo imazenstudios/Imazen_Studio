@@ -51,6 +51,7 @@ const AdminDashboard = () => {
   const [filterInquiries, setFilterInquiries] = useState('all');
   const [filterPending, setFilterPending] = useState('all');
   const [filterConfirmed, setFilterConfirmed] = useState('all');
+  const [highlightedItemId, setHighlightedItemId] = useState(null);
   const [highlightedBookingId, setHighlightedBookingId] = useState(null);
   const [viewingDetailsBookingId, setViewingDetailsBookingId] = useState(null);
 
@@ -127,6 +128,17 @@ const AdminDashboard = () => {
     })
     .slice(0, 10);
 
+  useEffect(() => {
+    if (highlightedItemId) {
+      setTimeout(() => {
+        const el = document.getElementById(`row-${highlightedItemId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => setHighlightedItemId(null), 5000);
+        }
+      }, 300);
+    }
+  }, [highlightedItemId, activeTab]);
   
   useEffect(() => {
     const reqInterceptor = axios.interceptors.request.use(config => {
@@ -4388,7 +4400,7 @@ const AdminDashboard = () => {
 
                         {/* Data Rows */}
                         {filteredInquiries.map(inq => (
-                          <div key={inq._id} className={`${glassPanel} p-4 md:px-6 flex flex-col md:flex-row md:items-center gap-4 hover:bg-white/5 transition-colors`}>
+                          <div id={`row-${inq._id}`} key={inq._id} className={`${glassPanel} p-4 md:px-6 flex flex-col md:flex-row md:items-center gap-4 transition-all duration-1000 ${highlightedItemId === inq._id ? 'bg-emerald-900/40 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'hover:bg-white/5'}`}>
                             {/* Lead ID */}
                             <div className="w-24 text-xs font-sans text-gray-500 tracking-widest hidden md:block">
                               #{inq._id.substring(inq._id.length - 6).toUpperCase()}
@@ -4541,7 +4553,7 @@ const AdminDashboard = () => {
                           const matchesStatus = leadFilter === 'All' || l.status === leadFilter;
                           return matchesSearch && matchesStatus;
                         }).map((lead) => (
-                          <div key={lead._id} className={`${glassPanel} p-4 md:px-6 flex flex-col md:flex-row md:items-center gap-4 hover:bg-white/5 transition-colors`}>
+                          <div id={`row-${lead._id}`} key={lead._id} className={`${glassPanel} p-4 md:px-6 flex flex-col md:flex-row md:items-center gap-4 transition-all duration-1000 ${highlightedItemId === lead._id ? 'bg-emerald-900/40 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'hover:bg-white/5'}`}>
                             {/* Lead ID */}
                             <div className="w-24 text-xs font-sans text-gray-500 tracking-widest hidden md:block">
                               #{lead._id.substring(lead._id.length - 6).toUpperCase()}
@@ -4628,6 +4640,7 @@ const AdminDashboard = () => {
                     setLeadFilter={setLeadFilter}
                     setInquirySearch={setInquirySearch}
                     setInquiryFilter={setInquiryFilter}
+                    setHighlightedItemId={setHighlightedItemId}
                   />
                 )}
 
