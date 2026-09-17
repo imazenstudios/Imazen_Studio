@@ -189,6 +189,60 @@ router.delete('/events/:id', async (req, res) => {
   }
 });
 
+// Event: Update payment tracking
+router.put('/events/:id/payment', async (req, res) => {
+  try {
+    const { totalAmount, paidAmount, pendingAmount, payments } = req.body;
+    const event = await Event.findByIdAndUpdate(
+      req.params.id,
+      { totalAmount, paidAmount, pendingAmount, payments },
+      { new: true }
+    );
+    res.json(event);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Event: Add a note
+router.post('/events/:id/followup', async (req, res) => {
+  try {
+    const { note } = req.body;
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ error: 'Event not found' });
+    event.followUps.push({ note, date: new Date() });
+    await event.save();
+    res.json(event);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Event: Delete a note
+router.delete('/events/:id/followups/:noteId', async (req, res) => {
+  try {
+    const event = await Event.findByIdAndUpdate(
+      req.params.id,
+      { $pull: { followUps: { _id: req.params.noteId } } },
+      { new: true }
+    );
+    if (!event) return res.status(404).json({ error: 'Event not found' });
+    res.json(event);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Event: Update details (status, team, album etc)
+router.put('/events/:id/details', async (req, res) => {
+  try {
+    const event = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(event);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.post('/events/:id/send-pdf', async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);

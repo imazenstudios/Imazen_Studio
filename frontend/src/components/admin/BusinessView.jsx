@@ -15,6 +15,9 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
   const [rentalItems, setRentalItems] = useState([]);
   const [editingProp, setEditingProp] = useState(null);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [viewingEventId, setViewingEventId] = useState(null);
+  const [eventNoteInput, setEventNoteInput] = useState('');
+  const [eventTeamMembers, setEventTeamMembers] = useState([]);
   const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
   const [editingInventoryItem, setEditingInventoryItem] = useState(null);
   const [inventoryImageUrl, setInventoryImageUrl] = useState('');
@@ -32,7 +35,17 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
     fetchEvents();
     fetchRentalItems();
     fetchPredefinedServices();
+    fetchEventTeamMembers();
   }, [defaultViewMode]);
+
+  const fetchEventTeamMembers = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/team`);
+      setEventTeamMembers(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const fetchPredefinedServices = async () => {
     try {
@@ -198,6 +211,9 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
     const totalAmount = Number(formData.get('totalAmount') || 0);
     const paidAmount = Number(formData.get('paidAmount') || 0);
     const pendingAmount = totalAmount - paidAmount;
+    const albumEnabled = editingEvent?.album?.enabled || false;
+    const albumSheets = Number(editingEvent?.album?.sheets || 0);
+    const albumCost = albumEnabled ? albumSheets * 500 : 0;
 
     const data = {
         name: formData.get('name'),
@@ -214,7 +230,12 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         services: editingEvent?.services || [],
         subEventList: editingEvent?.subEventList || [],
         deliverables: editingEvent?.deliverables || [],
-        complimentries: editingEvent?.complimentries || []
+        complimentries: editingEvent?.complimentries || [],
+        album: {
+          enabled: albumEnabled,
+          sheets: albumSheets,
+          pricePerSheet: 500
+        }
     };
     
     try {
@@ -228,6 +249,83 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
     } catch (error) {
       console.error(error);
       alert('Failed to save event: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
+  const handleEventPayment = async (eventId, e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const total = Number(formData.get('totalAmount'));
+    const newAmount = Number(formData.get('newPaymentAmount'));
+    const event = eventsData.find(ev => ev._id === eventId);
+    let updatedPayments = [...(event.payments || [])];
+    if (newAmount > 0) {
+      const method = formData.get('newPaymentMethod');
+      const receivedBy = formData.get('newPaymentReceivedBy');
+      updatedPayments.push({ amount: newAmount, method, receivedBy, date: new Date() });
+    }
+    const paid = updatedPayments.reduce((sum, p) => sum + p.amount, 0);
+    const payload = { totalAmount: total, paidAmount: paid, pendingAmount: total - paid, payments: updatedPayments };
+    try {
+      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${eventId}/payment`, payload);
+      setEventsData(prev => prev.map(ev => ev._id === eventId ? res.data : ev));
+      e.target.reset();
+      alert('Payment updated!');
+    } catch (error) {
+      alert('Error updating payment');
+    }
+  };
+
+  const handleDeleteEventInstallment = async (eventId, paymentId) => {
+    if (!window.confirm('Delete this installment?')) return;
+    const event = eventsData.find(ev => ev._id === eventId);
+    const updatedPayments = (event.payments || []).filter(p => p._id !== paymentId);
+    const paid = updatedPayments.reduce((sum, p) => sum + p.amount, 0);
+    const payload = { totalAmount: event.totalAmount, paidAmount: paid, pendingAmount: (event.totalAmount || 0) - paid, payments: updatedPayments };
+    try {
+      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${eventId}/payment`, payload);
+      setEventsData(prev => prev.map(ev => ev._id === eventId ? res.data : ev));
+    } catch (error) {
+      alert('Error deleting installment');
+    }
+  };
+
+  const handleAddEventNote = async (eventId) => {
+    if (!eventNoteInput.trim()) return;
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${eventId}/followup`, { note: eventNoteInput });
+      setEventsData(prev => prev.map(ev => ev._id === eventId ? res.data : ev));
+      setEventNoteInput('');
+    } catch (error) {
+      alert('Error adding note');
+    }
+  };
+
+  const handleDeleteEventNote = async (eventId, noteId) => {
+    if (!window.confirm('Delete this note?')) return;
+    try {
+      const res = await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${eventId}/followups/${noteId}`);
+      setEventsData(prev => prev.map(ev => ev._id === eventId ? res.data : ev));
+    } catch (error) {
+      alert('Error deleting note');
+    }
+  };
+
+  const handleUpdateEventStatus = async (eventId, status) => {
+    try {
+      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${eventId}`, { status });
+      setEventsData(prev => prev.map(ev => ev._id === eventId ? res.data : ev));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleUpdateEventTeam = async (eventId, memberId) => {
+    try {
+      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${eventId}`, { assignedTeamMember: memberId || null });
+      setEventsData(prev => prev.map(ev => ev._id === eventId ? res.data : ev));
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -1104,17 +1202,21 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                   (event.name && event.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
                   (event.clientName && event.clientName.toLowerCase().includes(searchQuery.toLowerCase())) ||
                   (event.phone && event.phone.includes(searchQuery)) ||
-                  (event.email && event.email.toLowerCase().includes(searchQuery.toLowerCase()))
-                );
-
-                return (
-                <div key={event._id} className={`bg-black/40 border ${isSearched ? 'border-emerald-500 bg-emerald-900/10' : 'border-white/5'} rounded-xl overflow-hidden group relative`}>
-                  <div className="p-4 space-y-3">
+                  (event                return (
+                <div key={event._id} className={`bg-black/40 border ${isSearched ? 'border-emerald-500 bg-emerald-900/10' : 'border-white/5'} rounded-xl overflow-hidden group relative flex flex-col`}>
+                  <div className="p-4 space-y-3 flex-1">
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="font-playfair text-white text-xl tracking-wide">{event.name}</h4>
-                        <p className="text-xs text-white/50 uppercase tracking-widest mt-1">{event.status}</p>
-                        {event.subEvents && <p className="text-xs text-emerald-400 mt-1">{event.subEvents}</p>}
+                        <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded mt-1 inline-block ${
+                          event.status === 'confirmed' ? 'bg-emerald-500/20 text-emerald-400' :
+                          event.status === 'shoot done' ? 'bg-purple-500/20 text-purple-400' :
+                          event.status === 'editing in progress' ? 'bg-cyan-500/20 text-cyan-400' :
+                          event.status === 'finished' ? 'bg-blue-500/20 text-blue-400' :
+                          event.status === 'cancelled' ? 'bg-red-500/20 text-red-400' :
+                          event.status === 'payment pending' ? 'bg-amber-500/20 text-amber-400' :
+                          'bg-white/10 text-white/50'
+                        }`}>{event.status || 'pending'}</span>
                         {event.subEventList && event.subEventList.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-1.5">
                             {event.subEventList.map((sub, si) => (
@@ -1126,8 +1228,11 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                         )}
                       </div>
                       <div className="text-right">
-                        <span className="text-xs text-white/40 uppercase tracking-widest block mb-1">Total</span>
-                        <span className="text-white font-bold">₹{event.totalAmount?.toLocaleString()}</span>
+                        <span className="text-xs text-white/40 uppercase tracking-widest block">Total</span>
+                        <span className="text-white font-bold">₹{(event.totalAmount || 0).toLocaleString()}</span>
+                        {(event.pendingAmount || 0) > 0 && (
+                          <span className="text-xs text-amber-400 block mt-0.5">Pending: ₹{(event.pendingAmount || 0).toLocaleString()}</span>
+                        )}
                       </div>
                     </div>
                     
@@ -1150,124 +1255,38 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                       </div>
                       <div>
                         <p className="text-[11px] text-white/40 uppercase tracking-widest">Pending</p>
-                        <p className="text-sm text-amber-500">₹{(event.pendingAmount || 0).toLocaleString()}</p>
+                        <p className="text-sm text-amber-500 font-bold">₹{(event.pendingAmount || 0).toLocaleString()}</p>
                       </div>
                     </div>
 
-                    <div>
-                      <p className="text-[11px] uppercase tracking-widest text-white/40 mb-2">Events & Services</p>
-                      {event.subEventList && event.subEventList.length > 0 ? (
-                        <div className="space-y-2">
-                          {event.subEventList.map((sub, sIdx) => (
-                            <div key={sIdx} className="bg-white/[0.03] p-2.5 rounded-lg border border-white/5">
-                              <div className="flex justify-between items-center mb-1.5 pb-1 border-b border-white/5">
-                                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wide">
-                                  ✦ {sub.name || `Event ${sIdx + 1}`}
-                                </span>
-                                {sub.services && sub.services.length > 0 && (
-                                  <span className="text-[11px] text-white/50 font-mono">
-                                    ₹{sub.services.reduce((sum, s) => sum + (Number(s.price) || 0), 0).toLocaleString()}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="space-y-1 pl-2">
-                                {(sub.services || []).map((item, idx) => (
-                                  <div key={idx} className="flex justify-between text-xs text-white/70 bg-black/40 px-2 py-1 rounded">
-                                    <span>{item.name}</span>
-                                    <span>₹{item.price?.toLocaleString()}</span>
-                                  </div>
-                                ))}
-                                {(!sub.services || sub.services.length === 0) && (
-                                  <p className="text-[10px] text-white/30 italic">No services</p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="space-y-1">
-                          {(event.services || []).map((item, idx) => (
-                            <div key={idx} className="flex justify-between text-xs text-white/70 bg-white/5 px-2 py-1 rounded">
-                              <span>{item.name}</span>
-                              <span>₹{item.price?.toLocaleString()}</span>
-                            </div>
-                          ))}
-                          {(!event.services || event.services.length === 0) && (
-                            <p className="text-xs text-white/30 italic">No services listed.</p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {event.deliverables && event.deliverables.filter(Boolean).length > 0 && (
-                      <div>
-                        <p className="text-[11px] uppercase tracking-widest text-white/40 mb-1">Deliverables</p>
-                        <div className="flex flex-wrap gap-1">
-                          {event.deliverables.filter(Boolean).map((del, dIdx) => (
-                            <span key={dIdx} className="text-[10px] bg-blue-500/10 text-blue-300 border border-blue-500/20 px-1.5 py-0.5 rounded">
-                              {del}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {event.complimentries && event.complimentries.filter(Boolean).length > 0 && (
-                      <div>
-                        <p className="text-[11px] uppercase tracking-widest text-white/40 mb-1">Complimentries</p>
-                        <div className="flex flex-wrap gap-1">
-                          {event.complimentries.filter(Boolean).map((comp, cIdx) => (
-                            <span key={cIdx} className="text-[10px] bg-purple-500/10 text-purple-300 border border-purple-500/20 px-1.5 py-0.5 rounded">
-                              {comp}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {eventExpenses.length > 0 && (
-                      <div>
-                        <p className="text-[11px] uppercase tracking-widest text-red-400/80 mb-1 flex justify-between">
-                          <span>Expenses</span>
-                          <span>₹{eventTotalExpenses.toLocaleString()}</span>
-                        </p>
-                        <div className="space-y-1">
-                          {eventExpenses.map((exp, idx) => (
-                            <div key={idx} className="flex justify-between items-center text-xs text-white/70 bg-red-500/5 px-2 py-1 rounded">
-                              <span className="truncate pr-2">{exp.description}</span>
-                              <div className="flex items-center gap-2">
-                                <span>₹{exp.amount}</span>
-                                <button onClick={() => onEditExpense(exp)} className="text-amber-500 hover:text-white">Edit</button>
-                                <button onClick={() => onDeleteExpense(exp._id)} className="text-red-500 hover:text-white">✕</button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                    {event.album?.enabled && (
+                      <div className="flex justify-between text-xs bg-yellow-500/10 border border-yellow-500/20 px-2 py-1.5 rounded">
+                        <span className="text-yellow-300 uppercase tracking-widest text-[10px]">📷 Album: {event.album.sheets} sheets</span>
+                        <span className="text-yellow-300 font-bold">₹{((event.album.sheets || 0) * 500).toLocaleString()}</span>
                       </div>
                     )}
                   </div>
-                  <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 backdrop-blur p-2 rounded">
-                    <button onClick={() => onAddExpense({
-                      date: event.date || new Date().toISOString().split('T')[0],
-                      items: [{description: `Expense for ${event.name}`, amount: 0}],
-                      type: 'Event',
-                      bookingId: event._id
-                    })} className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded">
-                      + Expense
-                    </button>
-                    <button 
-                      onClick={() => handleDownloadEventPdf(event._id)} 
-                      disabled={downloadingPdfId === event._id}
-                      className={`text-xs mr-2 ${downloadingPdfId === event._id ? 'text-gray-500 cursor-not-allowed' : 'text-blue-400 hover:text-white'}`}
+                  <div className="p-3 pt-0 space-y-2">
+                    <button
+                      onClick={() => setViewingEventId(event._id)}
+                      className="w-full py-2 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white rounded text-xs uppercase tracking-widest transition-colors border border-emerald-500/20 font-bold"
                     >
-                      {downloadingPdfId === event._id ? 'Downloading...' : 'Download PDF'}
+                      View Details
                     </button>
-                    <button onClick={() => handleSendEventPdf(event._id)} className="text-emerald-400 hover:text-white text-xs mr-2">Send PDF</button>
-                    <button onClick={() => setEditingEvent(event)} className="text-amber-500 hover:text-white text-xs">Edit</button>
-                    <button onClick={() => handleDeleteEvent(event._id)} className="text-red-500 hover:text-white text-xs">Delete</button>
+                    <div className="flex gap-2">
+                      <button onClick={() => onAddExpense({ date: event.date || new Date().toISOString().split('T')[0], items: [{description: `Expense for ${event.name}`, amount: 0}], type: 'Event', bookingId: event._id })} className="flex-1 text-xs bg-white/5 hover:bg-white/10 text-white/70 hover:text-white px-2 py-1.5 rounded border border-white/10 transition-colors">
+                        + Expense
+                      </button>
+                      <button onClick={() => handleDownloadEventPdf(event._id)} disabled={downloadingPdfId === event._id} className={`flex-1 text-xs px-2 py-1.5 rounded border transition-colors ${downloadingPdfId === event._id ? 'text-gray-500 border-white/10 cursor-not-allowed' : 'text-blue-400 border-blue-500/20 hover:bg-blue-500/20'}`}>
+                        {downloadingPdfId === event._id ? '...' : 'PDF'}
+                      </button>
+                      <button onClick={() => setEditingEvent(event)} className="flex-1 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 px-2 py-1.5 rounded border border-amber-500/20 transition-colors">Edit</button>
+                      <button onClick={() => handleDeleteEvent(event._id)} className="flex-1 text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 px-2 py-1.5 rounded border border-red-500/20 transition-colors">Delete</button>
+                    </div>
                   </div>
                 </div>
-              )})}
+              );
+              })}
               {filteredEvents.length === 0 && (
                 <div className="col-span-full py-12 text-center text-white/30 border border-white/5 rounded-xl border-dashed">
                   No events found.
@@ -1278,7 +1297,161 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         </div>
       )}
 
-      {/* Events Modal */}
+      {/* Event View Details Modal */}
+      {viewingEventId && (() => {
+        const event = eventsData.find(ev => ev._id === viewingEventId);
+        if (!event) return null;
+        const paid = (event.payments && event.payments.length > 0) ? event.payments.reduce((sum, p) => sum + p.amount, 0) : (event.paidAmount || 0);
+        const pending = (event.totalAmount || 0) - paid;
+        return (
+          <div className="fixed inset-0 z-[100] bg-black/95 overflow-y-auto flex justify-center items-start p-4 backdrop-blur-md">
+            <div className="w-full max-w-3xl bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 relative shadow-2xl mt-4 mb-10">
+              <button onClick={() => { setViewingEventId(null); setEventNoteInput(''); }} className="absolute top-4 right-4 text-gray-400 hover:text-white text-xl z-20 w-8 h-8 flex items-center justify-center bg-black/40 rounded-full">✕</button>
+              
+              <div className="mb-4">
+                <h2 className="text-xl font-oswald text-white uppercase tracking-widest">{event.name}</h2>
+                {event.clientName && <p className="text-sm text-gray-400 mt-1">{event.clientName} {event.phone && `· ${event.phone}`}</p>}
+                {event.date && <p className="text-xs text-emerald-400 mt-0.5">{event.date}</p>}
+              </div>
+
+              {/* Status & Team */}
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-black/40 border border-white/5 rounded-xl p-3">
+                  <h4 className="text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Status</h4>
+                  <select
+                    value={event.status || 'pending'}
+                    onChange={(e) => handleUpdateEventStatus(event._id, e.target.value)}
+                    className="w-full bg-black/60 border border-white/10 rounded px-2 py-1.5 text-xs text-white outline-none"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="converted">Converted</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="shoot done">Shoot Done</option>
+                    <option value="editing in progress">Editing In Progress</option>
+                    <option value="payment pending">Payment Pending</option>
+                    <option value="finished">Finished</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div className="bg-black/40 border border-white/5 rounded-xl p-3">
+                  <h4 className="text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Team Assignment</h4>
+                  <select
+                    value={(event.assignedTeamMember?._id || event.assignedTeamMember) || ''}
+                    onChange={(e) => handleUpdateEventTeam(event._id, e.target.value)}
+                    className="w-full bg-black/60 border border-white/10 rounded px-2 py-1.5 text-xs text-white outline-none"
+                  >
+                    <option value="">-- Unassigned --</option>
+                    {eventTeamMembers.map(tm => (
+                      <option key={tm._id} value={tm._id}>{tm.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Payment Tracking */}
+              <div className="mb-4 bg-black/40 border border-white/5 rounded-xl p-4">
+                <h4 className="text-sm font-oswald text-white uppercase tracking-widest mb-3">Payment Tracking</h4>
+                {event.payments && event.payments.length > 0 && (
+                  <div className="mb-3">
+                    <h5 className="text-[10px] uppercase text-gray-400 mb-2">Installments</h5>
+                    <div className="space-y-1">
+                      {event.payments.map((p, idx) => (
+                        <div key={idx} className="flex justify-between items-center bg-black/50 p-2 rounded text-xs text-gray-300">
+                          <span className="text-sm">{new Date(p.date).toLocaleDateString()} - {p.method} {p.receivedBy ? `(Rcvd by: ${eventTeamMembers.find(tm => tm._id === p.receivedBy)?.name || p.receivedBy})` : ''}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-emerald-400">₹{p.amount}</span>
+                            <button onClick={() => handleDeleteEventInstallment(event._id, p._id)} className="text-red-500 hover:text-red-400" title="Delete">✕</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="grid grid-cols-3 gap-3 mb-3">
+                  <div className="bg-black/60 p-2 rounded text-center">
+                    <p className="text-[10px] uppercase text-gray-500 mb-1">Total Amount</p>
+                    <p className="text-sm font-bold text-white">₹{(event.totalAmount || 0).toLocaleString()}</p>
+                  </div>
+                  <div className="bg-black/60 p-2 rounded text-center">
+                    <p className="text-[10px] uppercase text-gray-500 mb-1">Paid So Far</p>
+                    <p className="text-sm font-bold text-emerald-400">₹{paid.toLocaleString()}</p>
+                  </div>
+                  <div className="bg-black/60 p-2 rounded text-center">
+                    <p className="text-[10px] uppercase text-gray-500 mb-1">Pending</p>
+                    <p className="text-sm font-bold text-amber-400">₹{pending.toLocaleString()}</p>
+                  </div>
+                </div>
+                <form onSubmit={(e) => handleEventPayment(event._id, e)} className="space-y-2">
+                  <p className="text-[10px] uppercase text-gray-400 tracking-widest">Add Installment</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[9px] uppercase text-gray-500 block mb-1">Total Amount</label>
+                      <input type="number" name="totalAmount" defaultValue={event.totalAmount || 0} className="w-full bg-black/60 border border-white/10 rounded px-2 py-1.5 text-xs text-white outline-none" />
+                    </div>
+                    <div>
+                      <label className="text-[9px] uppercase text-gray-500 block mb-1">New Payment Amount</label>
+                      <input type="number" name="newPaymentAmount" placeholder="0" className="w-full bg-black/60 border border-white/10 rounded px-2 py-1.5 text-xs text-white outline-none" />
+                    </div>
+                    <div>
+                      <label className="text-[9px] uppercase text-gray-500 block mb-1">Method</label>
+                      <select name="newPaymentMethod" className="w-full bg-black/60 border border-white/10 rounded px-2 py-1.5 text-xs text-white outline-none">
+                        <option value="Cash">Cash</option>
+                        <option value="UPI">UPI</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[9px] uppercase text-gray-500 block mb-1">Received By</label>
+                      <select name="newPaymentReceivedBy" className="w-full bg-black/60 border border-white/10 rounded px-2 py-1.5 text-xs text-white outline-none">
+                        <option value="">Select Member</option>
+                        {eventTeamMembers.map(tm => <option key={tm._id} value={tm._id}>{tm.name}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <button type="submit" className="w-full py-2 bg-blue-600/30 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 rounded text-xs uppercase tracking-widest transition-colors font-bold">Update Payment</button>
+                </form>
+              </div>
+
+              {/* Notes — directly displayed */}
+              <div className="mb-4 bg-black/40 border border-white/5 rounded-xl p-4">
+                <h4 className="text-sm font-oswald text-white uppercase tracking-widest mb-3">Notes</h4>
+                {event.followUps && event.followUps.length > 0 ? (
+                  <div className="space-y-2 mb-3">
+                    {event.followUps.map((fu, idx) => (
+                      <div key={fu._id || idx} className="flex justify-between items-start bg-black/60 p-3 rounded border border-white/5">
+                        <div>
+                          <p className="text-xs text-white">{fu.note}</p>
+                          <p className="text-[10px] text-gray-500 mt-1">{new Date(fu.date).toLocaleString()}</p>
+                        </div>
+                        <button onClick={() => handleDeleteEventNote(event._id, fu._id)} className="text-red-500 hover:text-red-400 text-xs ml-3 shrink-0">✕</button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500 italic mb-3">No notes yet.</p>
+                )}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Add a note..."
+                    value={eventNoteInput}
+                    onChange={e => setEventNoteInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleAddEventNote(event._id)}
+                    className="flex-1 bg-black/60 border border-white/10 rounded px-3 py-2 text-xs text-white outline-none focus:border-white/30"
+                  />
+                  <button onClick={() => handleAddEventNote(event._id)} className="px-4 py-2 bg-green-500/20 hover:bg-green-500 text-green-400 hover:text-white border border-green-500/20 rounded text-xs uppercase tracking-widest transition-colors">+ Add</button>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button onClick={() => setEditingEvent(event)} className="flex-1 py-2 bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-white border border-amber-500/20 rounded text-xs uppercase tracking-widest transition-colors">Edit Event</button>
+                <button onClick={() => handleSendEventPdf(event._id)} className="flex-1 py-2 bg-blue-500/20 hover:bg-blue-500 text-blue-400 hover:text-white border border-blue-500/20 rounded text-xs uppercase tracking-widest transition-colors">Send PDF</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Events Edit Modal */}
       {editingEvent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="w-full max-w-lg bg-[#111] border border-white/10 p-6 shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto">
@@ -1297,11 +1470,14 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                 <div>
                   <label className="block text-xs uppercase tracking-widest text-white/50 mb-1">Status</label>
                   <select name="status" defaultValue={editingEvent.status || 'pending'} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm">
-                    <option value="pending">pending</option>
-                    <option value="contacted">contacted</option>
-                    <option value="confirmed">confirmed</option>
-                    <option value="finished">finished</option>
-                    <option value="cancelled">cancelled</option>
+                    <option value="pending">Pending</option>
+                    <option value="converted">Converted</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="shoot done">Shoot Done</option>
+                    <option value="editing in progress">Editing In Progress</option>
+                    <option value="payment pending">Payment Pending</option>
+                    <option value="finished">Finished</option>
+                    <option value="cancelled">Cancelled</option>
                   </select>
                 </div>
                 <div>
@@ -1592,7 +1768,43 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                 </div>
               </div>
 
-              <div className="pt-6 flex justify-end gap-4 border-t border-white/10">
+              {/* Album Option */}
+              <div className="pt-4 border-t border-white/10 mt-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 accent-yellow-500"
+                      checked={editingEvent.album?.enabled || false}
+                      onChange={e => setEditingEvent({...editingEvent, album: {...(editingEvent.album || {}), enabled: e.target.checked, pricePerSheet: 500}})}
+                    />
+                    <span className="text-xs uppercase tracking-widest text-yellow-400 font-bold">Include Album (₹500 per sheet)</span>
+                  </label>
+                </div>
+                {editingEvent.album?.enabled && (
+                  <div className="bg-yellow-500/5 border border-yellow-500/20 p-3 rounded-lg space-y-2">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1">
+                        <label className="text-[10px] uppercase text-yellow-400/70 block mb-1">Number of Sheets</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={editingEvent.album?.sheets || 0}
+                          onChange={e => setEditingEvent({...editingEvent, album: {...(editingEvent.album || {}), sheets: Number(e.target.value), pricePerSheet: 500}})}
+                          className="w-full bg-black/50 border border-yellow-500/20 rounded px-3 py-1.5 text-white text-sm"
+                        />
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] uppercase text-yellow-400/70">Album Cost</p>
+                        <p className="text-lg font-bold text-yellow-400">₹{((editingEvent.album?.sheets || 0) * 500).toLocaleString()}</p>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-yellow-400/50">Note: Album cost will be reflected in total amount.</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-6 flex justify-end gap-4 border-t border-white/10 mt-4">
                 <button type="button" onClick={() => setEditingEvent(null)} className="px-4 py-2 text-white/50 hover:text-white uppercase tracking-widest text-xs">Cancel</button>
                 <button type="submit" className="px-6 py-2 bg-white text-black hover:bg-white/90 uppercase tracking-widest text-xs font-bold rounded transition-colors">Save Event</button>
               </div>

@@ -3663,6 +3663,7 @@ const AdminDashboard = () => {
                                     <div><span className="text-gray-500 uppercase text-[9px] block">Shoot Date</span><span className="text-emerald-400">{booking.date}</span></div>
                                     <div><span className="text-gray-500 uppercase text-[9px] block">Booking Date</span><span className="text-white">{new Date(booking.createdAt || booking.date).toLocaleDateString()}</span></div>
                                     <div><span className="text-gray-500 uppercase text-[9px] block">Slot</span><span className="text-emerald-400">{booking.slots && booking.slots.length > 0 ? booking.slots.join(', ') : booking.slot}</span></div>
+                                    <div className="col-span-2 pt-2"><span className="text-gray-500 uppercase text-[9px] block">Pending Amount</span><span className="text-amber-500 font-bold">₹{((booking.totalAmount || 0) - ((booking.payments && booking.payments.length > 0) ? booking.payments.reduce((sum, p) => sum + p.amount, 0) : (booking.advanceAmount || 0))).toLocaleString()}</span></div>
                                     <div className="col-span-2 pt-1 border-t border-white/5 flex justify-between items-center">
                                       <span className="text-gray-500 uppercase text-[9px]">Status</span>
                                       <span className={`text-[10px] font-bold uppercase tracking-wider ${
@@ -3763,19 +3764,19 @@ const AdminDashboard = () => {
                             </div>
 
                             {/* Payment Tracking */}
-                            <div className="mb-4 bg-black/40 border border-white/5 rounded-xl p-3">
-                              <h4 className="font-oswald text-sm md:text-base text-white uppercase tracking-widest mb-2">Payment Tracking</h4>
+                            <div className="mb-4 bg-black/40 border border-white/5 rounded-xl p-4">
+                              <h4 className="font-oswald text-base text-white uppercase tracking-widest mb-3">Payment Tracking</h4>
                               
                               {booking.payments && booking.payments.length > 0 && (
-                                <div className="mb-3">
-                                  <h5 className="text-[10px] uppercase text-gray-400 mb-1">Installments</h5>
-                                  <div className="space-y-1">
+                                <div className="mb-4">
+                                  <h5 className="text-xs uppercase text-gray-400 mb-2">Installments</h5>
+                                  <div className="space-y-2">
                                     {booking.payments.map((p, idx) => (
-                                      <div key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-black/50 p-1.5 rounded text-[10px] text-gray-300">
-                                        <span>{new Date(p.date).toLocaleDateString()} - {p.method} {p.method === 'UPI' && p.utrNumber ? `(UTR: ${p.utrNumber})` : ''}</span>
-                                        <div className="flex items-center gap-2">
-                                          <span>₹{p.amount} (Rcvd by: {teamMembers.find(tm => tm._id === p.receivedBy)?.name || 'Unknown'})</span>
-                                          <button type="button" onClick={() => handleDeleteInstallment(booking._id, p._id)} className="text-red-500 hover:text-red-400 p-0.5" title="Delete Installment">✕</button>
+                                      <div key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-black/50 p-2 rounded text-xs text-gray-300">
+                                        <span className="text-sm">{new Date(p.date).toLocaleDateString()} - {p.method} {p.method === 'UPI' && p.utrNumber ? `(UTR: ${p.utrNumber})` : ''}</span>
+                                        <div className="flex items-center gap-3">
+                                          <span className="text-sm">₹{p.amount} (Rcvd by: {teamMembers.find(tm => tm._id === p.receivedBy)?.name || 'Unknown'})</span>
+                                          <button type="button" onClick={() => handleDeleteInstallment(booking._id, p._id)} className="text-red-500 hover:text-red-400 text-sm" title="Delete Installment">✕</button>
                                         </div>
                                       </div>
                                     ))}
@@ -3783,38 +3784,34 @@ const AdminDashboard = () => {
                                 </div>
                               )}
 
-                              <form onSubmit={(e) => handleUpdatePayment(booking._id, e)} className="grid grid-cols-12 gap-2 items-end">
+                              <form onSubmit={(e) => handleUpdatePayment(booking._id, e)} className="grid grid-cols-12 gap-3 items-end">
                                 <div className="col-span-4">
-                                  <label className="block text-[10px] uppercase text-white mb-1">Total Amount</label>
-                                  <input type="number" name="totalAmount" defaultValue={booking.totalAmount || 0} className={`${glassInput} w-full py-1 px-2 text-xs`} />
+                                  <label className="block text-xs uppercase text-white mb-1">Total Amount</label>
+                                  <input type="number" name="totalAmount" defaultValue={booking.totalAmount || 0} className={`${glassInput} w-full py-1.5 px-2 text-sm`} />
                                 </div>
                                 <div className="col-span-4">
-                                  <label className="block text-[10px] uppercase text-white mb-1">Paid So Far</label>
-                                  <input type="number" name="advanceAmount" value={(booking.payments && booking.payments.length > 0) ? booking.payments.reduce((sum, p) => sum + p.amount, 0) : (booking.advanceAmount || 0)} readOnly={(booking.payments && booking.payments.length > 0)} className={`${glassInput} w-full py-1 px-2 text-xs text-green-400 ${booking.payments && booking.payments.length > 0 ? 'cursor-not-allowed opacity-70' : ''}`} />
+                                  <label className="block text-xs uppercase text-white mb-1">Paid So Far</label>
+                                  <input type="number" name="advanceAmount" value={(booking.payments && booking.payments.length > 0) ? booking.payments.reduce((sum, p) => sum + p.amount, 0) : (booking.advanceAmount || 0)} readOnly={(booking.payments && booking.payments.length > 0)} className={`${glassInput} w-full py-1.5 px-2 text-sm text-green-400 font-bold ${booking.payments && booking.payments.length > 0 ? 'cursor-not-allowed opacity-70' : ''}`} />
                                 </div>
                                 <div className="col-span-4">
-                                  <label className="block text-[10px] uppercase text-white mb-1">Pending</label>
-                                  <input type="number" name="pendingAmount" value={(booking.totalAmount || 0) - ((booking.payments && booking.payments.length > 0) ? booking.payments.reduce((sum, p) => sum + p.amount, 0) : (booking.advanceAmount || 0))} readOnly className={`${glassInput} w-full py-1 px-2 text-xs text-red-400 cursor-not-allowed opacity-70`} />
+                                  <label className="block text-xs uppercase text-white mb-1">Pending</label>
+                                  <input type="number" name="pendingAmount" value={(booking.totalAmount || 0) - ((booking.payments && booking.payments.length > 0) ? booking.payments.reduce((sum, p) => sum + p.amount, 0) : (booking.advanceAmount || 0))} readOnly className={`${glassInput} w-full py-1.5 px-2 text-sm text-red-400 font-bold cursor-not-allowed opacity-70`} />
                                 </div>
                                 
-                                <div className="col-span-12 border-t border-white/10 my-1 pt-3">
-                                  <h5 className="text-[10px] uppercase text-gray-400 mb-3">Add Installment</h5>
+                                <div className="col-span-12 border-t border-white/10 my-2 pt-4">
+                                  <h5 className="text-xs uppercase text-gray-400 mb-3 font-bold">Add Installment</h5>
                                 </div>
                                 <div className="col-span-6">
-                                  <label className="block text-[9px] uppercase text-white mb-1">Amount</label>
-                                  <input type="number" name="newPaymentAmount" placeholder="Amount" className={`${glassInput} w-full py-1.5 px-2 text-xs`} />
+                                  <label className="block text-xs uppercase text-white mb-1">Amount</label>
+                                  <input type="number" name="newPaymentAmount" placeholder="Amount" className={`${glassInput} w-full py-2 px-2 text-sm`} />
                                 </div>
                                 <div className="col-span-6">
-                                  <label className="block text-[9px] uppercase text-white mb-1">Method</label>
-                                  <select name="newPaymentMethod" id="newPaymentMethod" className={`${glassInput} w-full py-1.5 px-2 text-xs`} onChange={(e) => {
+                                  <label className="block text-xs uppercase text-white mb-1">Method</label>
+                                  <select name="newPaymentMethod" id="newPaymentMethod" className={`${glassInput} w-full py-2 px-2 text-sm`} onChange={(e) => {
                                     const utrContainer = e.target.closest('form').querySelector('.utr-container');
                                     if(e.target.value === 'UPI') utrContainer.classList.remove('hidden');
                                     else utrContainer.classList.add('hidden');
                                     
-                                    // Trigger re-render of received by options if we needed react state, 
-                                    // but since it's uncontrolled in a map, let's just use DOM manipulation or state.
-                                    // Actually, we can use standard React state for this, but since it's within a mapped item, 
-                                    // let's just toggle visibility of Studio QR option.
                                     const studioQrOption = e.target.closest('form').querySelector('.studio-qr-option');
                                     if(studioQrOption) {
                                       if(e.target.value === 'UPI') studioQrOption.classList.remove('hidden');
@@ -3830,12 +3827,12 @@ const AdminDashboard = () => {
                                   </select>
                                 </div>
                                 <div className="col-span-6 utr-container hidden">
-                                  <label className="block text-[9px] uppercase text-white mb-1">UTR Number</label>
-                                  <input type="text" name="newPaymentUTR" placeholder="UTR (If UPI/Studio QR)" className={`${glassInput} w-full py-1.5 px-2 text-xs`} />
+                                  <label className="block text-xs uppercase text-white mb-1">UTR Number</label>
+                                  <input type="text" name="newPaymentUTR" placeholder="UTR (If UPI/Studio QR)" className={`${glassInput} w-full py-2 px-2 text-sm`} />
                                 </div>
                                 <div className="col-span-6">
-                                  <label className="block text-[9px] uppercase text-white mb-1">Received By</label>
-                                  <select name="newPaymentReceivedBy" className={`${glassInput} w-full py-1.5 px-2 text-xs`}>
+                                  <label className="block text-xs uppercase text-white mb-1">Received By</label>
+                                  <select name="newPaymentReceivedBy" className={`${glassInput} w-full py-2 px-2 text-sm`}>
                                     <option value="" className="bg-[#111]">Select Member</option>
                                     <option value="Studio QR" className="bg-[#111] studio-qr-option hidden">Studio QR</option>
                                     {teamMembers.map(tm => (
@@ -3844,8 +3841,8 @@ const AdminDashboard = () => {
                                   </select>
                                 </div>
                                 
-                                <div className="col-span-12 mt-3">
-                                  <button type="submit" disabled={isGlobalSubmitting} className="w-full py-2 bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white rounded text-[11px] uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Updating...' : 'Update Payment'}</button>
+                                <div className="col-span-12 mt-4">
+                                  <button type="submit" disabled={isGlobalSubmitting} className="w-full py-3 bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white rounded text-xs uppercase tracking-widest transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Updating...' : 'Update Payment'}</button>
                                 </div>
                               </form>
                             </div>
@@ -3876,40 +3873,44 @@ const AdminDashboard = () => {
                               </div>
                             </div>
 
-                            <div className="mb-4">
-                              <button onClick={() => setFollowUpModal({ type: 'booking', id: booking._id })} className="text-[11px] text-green-400 hover:text-white flex items-center gap-1 uppercase tracking-widest transition-colors">
-                                <span>📋 Follow-up Notes ({booking.followUps?.length || 0})</span>
-                              </button>
-                            </div>
-
-                            {['Confirmed', 'Finished', 'Shoot Done', 'Editing In Process', 'Shoot Completed', 'Photos Delivered', 'Videos Delivered'].includes(booking.status) && booking.bookingType !== 'Studio' && (
-                              <div className="mb-4 bg-black/40 border border-white/5 rounded-xl p-3">
-                                <h4 className="text-[11px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Progress Tracking</h4>
-                                <div className="space-y-2">
-                                  <label className="flex items-center gap-2 cursor-pointer group">
-                                    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${booking.shootCompleted ? 'bg-purple-500 border-purple-500' : 'border-white/20 group-hover:border-white/50 bg-black/40'}`}>
-                                      {booking.shootCompleted && <span className="text-white text-[11px]">✓</span>}
+                            <div className="mb-4 bg-black/40 border border-white/5 rounded-xl p-4">
+                              <h4 className="font-oswald text-base text-white uppercase tracking-widest mb-3">Notes</h4>
+                              {booking.followUps && booking.followUps.length > 0 ? (
+                                <div className="space-y-2 mb-4">
+                                  {booking.followUps.map((fu, idx) => (
+                                    <div key={fu._id || idx} className="flex justify-between items-start bg-black/60 p-3 rounded border border-white/5">
+                                      <div>
+                                        <p className="text-sm text-white">{fu.note}</p>
+                                        <p className="text-xs text-gray-500 mt-1">{new Date(fu.date).toLocaleString()}</p>
+                                      </div>
+                                      <button onClick={() => handleDeleteFollowUp(booking._id, fu._id)} className="text-red-500 hover:text-red-400 text-sm ml-3 shrink-0">✕</button>
                                     </div>
-                                    <span className={`text-[11px] uppercase tracking-widest transition-colors ${booking.shootCompleted ? 'text-green-400' : 'text-gray-400'}`}>Shoot Completed</span>
-                                    <input type="checkbox" className="hidden" checked={booking.shootCompleted || false} onChange={(e) => handleUpdateBookingProgress(booking._id, 'shootCompleted', e.target.checked)} />
-                                  </label>
-                                  <label className="flex items-center gap-2 cursor-pointer group">
-                                    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${booking.photosDelivered ? 'bg-pink-500 border-pink-500' : 'border-white/20 group-hover:border-white/50 bg-black/40'}`}>
-                                      {booking.photosDelivered && <span className="text-white text-[11px]">✓</span>}
-                                    </div>
-                                    <span className={`text-[11px] uppercase tracking-widest transition-colors ${booking.photosDelivered ? 'text-pink-400' : 'text-gray-400'}`}>Photos Delivered</span>
-                                    <input type="checkbox" className="hidden" checked={booking.photosDelivered || false} onChange={(e) => handleUpdateBookingProgress(booking._id, 'photosDelivered', e.target.checked)} />
-                                  </label>
-                                  <label className="flex items-center gap-2 cursor-pointer group">
-                                    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${booking.videosDelivered ? 'bg-teal-500 border-teal-500' : 'border-white/20 group-hover:border-white/50 bg-black/40'}`}>
-                                      {booking.videosDelivered && <span className="text-white text-[11px]">✓</span>}
-                                    </div>
-                                    <span className={`text-[11px] uppercase tracking-widest transition-colors ${booking.videosDelivered ? 'text-teal-400' : 'text-gray-400'}`}>Videos Delivered</span>
-                                    <input type="checkbox" className="hidden" checked={booking.videosDelivered || false} onChange={(e) => handleUpdateBookingProgress(booking._id, 'videosDelivered', e.target.checked)} />
-                                  </label>
+                                  ))}
                                 </div>
-                              </div>
-                            )}
+                              ) : (
+                                <p className="text-sm text-gray-500 italic mb-4">No notes yet.</p>
+                              )}
+                              <form onSubmit={async (e) => {
+                                e.preventDefault();
+                                const noteInput = e.target.note.value;
+                                if (!noteInput.trim()) return;
+                                try {
+                                  await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${booking._id}/followup`, { note: noteInput });
+                                  fetchData();
+                                  e.target.reset();
+                                } catch (error) {
+                                  alert('Error adding note');
+                                }
+                              }} className="flex gap-2">
+                                <input
+                                  type="text"
+                                  name="note"
+                                  placeholder="Add a note..."
+                                  className="flex-1 bg-black/60 border border-white/10 rounded px-3 py-2 text-sm text-white outline-none focus:border-white/30"
+                                />
+                                <button type="submit" className="px-5 py-2 bg-green-500/20 hover:bg-green-500 text-green-400 hover:text-white border border-green-500/20 rounded text-xs uppercase tracking-widest transition-colors font-bold">+ Add</button>
+                              </form>
+                            </div>
 
                             <div className="pt-4 border-t border-white/5 flex gap-2 justify-between items-center">
                               <select 
@@ -5096,7 +5097,7 @@ const AdminDashboard = () => {
                     <div>
                       <label className="block text-xs uppercase text-gray-500 mb-4 tracking-widest">Assign Permissions</label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-white/5 border border-white/10 rounded">
-                        {['dashboard', 'leads', 'inquiries', 'studio bookings', 'calendar', 'business', 'props rentals', 'events', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'permissions', 'developer options', 'add partner']
+                        {['dashboard', 'leads', 'inquiries', 'studio bookings', 'calendar', 'business', 'props rentals', 'events', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'client gallery', 'permissions', 'developer options', 'add partner']
                           .filter(perm => isSuperAdmin || userPermissions.includes(perm))
                           .map(perm => (
                           <label key={perm} className={`flex items-center gap-3 ${storedUser.email === editingAdminUser.email ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}>
@@ -5752,8 +5753,8 @@ const AdminDashboard = () => {
                       <input type="text" required className={glassInput} value={studioBookingData.phone} onChange={e => setStudioBookingData({...studioBookingData, phone: e.target.value})} />
                     </div>
                     <div>
-                      <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Email</label>
-                      <input type="email" required className={glassInput} value={studioBookingData.email} onChange={e => setStudioBookingData({...studioBookingData, email: e.target.value})} />
+                      <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Email (Optional)</label>
+                      <input type="email" className={glassInput} value={studioBookingData.email} onChange={e => setStudioBookingData({...studioBookingData, email: e.target.value})} />
                     </div>
                     <div>
                       <label className="block text-[11px] text-gray-500 uppercase tracking-widest mb-2">Date</label>
