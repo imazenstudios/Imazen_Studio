@@ -1005,7 +1005,7 @@ const AdminDashboard = () => {
     if (!followUpNote.trim()) return;
     
     try {
-      const endpoint = followUpModal.type === 'booking' ? 'bookings' : 'inquiries';
+      const endpoint = followUpModal.type === 'booking' ? 'bookings' : (followUpModal.type === 'lead' ? 'leads' : 'inquiries');
       await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/${endpoint}/${followUpModal.id}/followup`, { note: followUpNote, scheduledDate: followUpDate || undefined });
       fetchData();
       setFollowUpNote('');
@@ -1020,7 +1020,7 @@ const AdminDashboard = () => {
   const handleUpdateFollowUp = async (noteId, newNoteText) => {
     if (!newNoteText.trim()) return;
     try {
-      const endpoint = followUpModal.type === 'booking' ? 'bookings' : 'inquiries';
+      const endpoint = followUpModal.type === 'booking' ? 'bookings' : (followUpModal.type === 'lead' ? 'leads' : 'inquiries');
       await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/${endpoint}/${followUpModal.id}/followups/${noteId}`, { note: newNoteText });
       fetchData();
     } catch (error) {
@@ -1032,7 +1032,7 @@ const AdminDashboard = () => {
   const handleDeleteFollowUp = async (noteId) => {
     if (!window.confirm('Delete this note forever?')) return;
     try {
-      const endpoint = followUpModal.type === 'booking' ? 'bookings' : 'inquiries';
+      const endpoint = followUpModal.type === 'booking' ? 'bookings' : (followUpModal.type === 'lead' ? 'leads' : 'inquiries');
       await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/${endpoint}/${followUpModal.id}/followups/${noteId}`);
       fetchData();
     } catch (error) {
@@ -4590,6 +4590,9 @@ const AdminDashboard = () => {
                                 <option className="bg-[#111] text-white" value="cancelled">Cancelled</option>
                                 <option className="bg-[#111] text-white" value="junk lead">Junk Lead</option>
                               </select>
+                              <button onClick={() => setFollowUpModal({ type: 'lead', id: lead._id })} className="text-[9px] text-green-400 hover:text-white uppercase tracking-widest transition-colors flex items-center justify-center border border-green-500/30 rounded py-1 bg-green-500/10 hover:bg-green-500/30">
+                                📝 Notes ({lead.followUps?.length || 0})
+                              </button>
                             </div>
                             {/* Action */}
                             <div className="w-16 flex justify-end">
@@ -4718,7 +4721,9 @@ const AdminDashboard = () => {
                     {(() => {
                       const item = followUpModal.type === 'booking' 
                         ? bookings.find(b => b._id === followUpModal.id)
-                        : inquiries.find(i => i._id === followUpModal.id);
+                        : (followUpModal.type === 'lead' 
+                           ? leads.find(l => l._id === followUpModal.id) 
+                           : inquiries.find(i => i._id === followUpModal.id));
                       
                       const notes = item?.followUps || [];
                       
