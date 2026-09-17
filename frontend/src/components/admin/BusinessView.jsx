@@ -1202,7 +1202,10 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                   (event.name && event.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
                   (event.clientName && event.clientName.toLowerCase().includes(searchQuery.toLowerCase())) ||
                   (event.phone && event.phone.includes(searchQuery)) ||
-                  (event                return (
+                  (event.email && event.email.toLowerCase().includes(searchQuery.toLowerCase()))
+                );
+
+                return (
                 <div key={event._id} className={`bg-black/40 border ${isSearched ? 'border-emerald-500 bg-emerald-900/10' : 'border-white/5'} rounded-xl overflow-hidden group relative flex flex-col`}>
                   <div className="p-4 space-y-3 flex-1">
                     <div className="flex justify-between items-start">
