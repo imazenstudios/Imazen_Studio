@@ -149,11 +149,22 @@ router.get('/events', async (req, res) => {
 router.post('/events', async (req, res) => {
   try {
     const event = new Event(req.body);
+    
+    let total = 0;
     if (event.subEventList && event.subEventList.length > 0) {
-      event.totalAmount = event.subEventList.reduce((sum, sub) => sum + (sub.services || []).reduce((s, item) => s + item.price, 0), 0);
-    } else if (event.services) {
-       event.totalAmount = event.services.reduce((sum, item) => sum + item.price, 0);
+      total += event.subEventList.reduce((sum, sub) => sum + (sub.services || []).reduce((s, item) => s + (item.price * (item.quantity || 1)), 0), 0);
+    } else if (event.services && event.services.length > 0) {
+      total += event.services.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
     }
+    
+    if (event.deliverables) total += event.deliverables.reduce((s, item) => s + (item.price || 0), 0);
+    if (event.complimentries) total += event.complimentries.reduce((s, item) => s + (item.price || 0), 0);
+    if (event.addOns) total += event.addOns.reduce((s, item) => s + (item.price || 0), 0);
+    if (event.album && event.album.enabled) total += (event.album.sheets || 0) * (event.album.pricePerSheet || 500);
+    
+    event.totalAmount = total;
+    event.pendingAmount = total - (event.paidAmount || 0);
+
     await event.save();
     
     res.status(201).json(event);
@@ -166,13 +177,25 @@ router.put('/events/:id', async (req, res) => {
   try {
     const event = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true, returnDocument: 'after' });
     
+    let total = 0;
     if (event.subEventList && event.subEventList.length > 0) {
-      event.totalAmount = event.subEventList.reduce((sum, sub) => sum + (sub.services || []).reduce((s, item) => s + item.price, 0), 0);
-      await event.save();
-    } else if (event.services) {
-       event.totalAmount = event.services.reduce((sum, item) => sum + item.price, 0);
-       await event.save();
+      total += event.subEventList.reduce((sum, sub) => sum + (sub.services || []).reduce((s, item) => s + (item.price * (item.quantity || 1)), 0), 0);
+    } else if (event.services && event.services.length > 0) {
+      total += event.services.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
     }
+    
+    if (event.deliverables) total += event.deliverables.reduce((s, item) => s + (item.price || 0), 0);
+    if (event.complimentries) total += event.complimentries.reduce((s, item) => s + (item.price || 0), 0);
+    if (event.addOns) total += event.addOns.reduce((s, item) => s + (item.price || 0), 0);
+    if (event.album && event.album.enabled) total += (event.album.sheets || 0) * (event.album.pricePerSheet || 500);
+    
+    event.totalAmount = total;
+    
+    // Recalculate pending amount if we also have payments (total might have changed)
+    const paid = (event.payments && event.payments.length > 0) ? event.payments.reduce((sum, p) => sum + p.amount, 0) : (event.paidAmount || 0);
+    event.pendingAmount = total - paid;
+    
+    await event.save();
     
     res.json(event);
   } catch (error) {

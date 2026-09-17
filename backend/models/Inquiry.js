@@ -13,8 +13,10 @@ const inquirySchema = new mongoose.Schema({
   },
   // Follow-ups
   followUps: [{
+    note: { type: String, required: true },
+    scheduledDate: { type: Date },
     date: { type: Date, default: Date.now },
-    note: { type: String, required: true }
+    status: { type: String, enum: ['pending', 'completed'], default: 'pending' }
   }]
 }, { timestamps: true });
 

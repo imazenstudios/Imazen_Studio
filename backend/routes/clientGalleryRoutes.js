@@ -156,12 +156,12 @@ router.put('/:id/sync', async (req, res) => {
     }
 
     const response = await drive.files.list({
-      q: `'${folderId}' in parents and mimeType contains 'image/' and trashed = false`,
-      fields: 'files(id, name)',
+      q: `'${folderId}' in parents and trashed = false`,
+      fields: 'files(id, name, mimeType)',
       pageSize: 1000,
     });
 
-    const driveFiles = response.data.files || [];
+    const driveFiles = (response.data.files || []).filter(f => f.mimeType && f.mimeType.startsWith('image/'));
     if (driveFiles.length === 0) {
       return res.status(400).json({ error: 'No images found in the folder or Service Account lacks access.' });
     }
@@ -185,7 +185,13 @@ router.put('/:id/sync', async (req, res) => {
     res.json({ message: `Successfully synced ${updatedImages.length} images!`, gallery });
   } catch (error) {
     console.error('Sync error:', error);
-    res.status(500).json({ error: 'Failed to sync images from Google Drive folder.' });
+    if (error.code === 404) {
+      return res.status(404).json({ error: 'Folder not found. Make sure the folder link is correct and shared with the Service Account.' });
+    }
+    if (error.code === 403) {
+      return res.status(403).json({ error: 'Access denied. The Service Account does not have permission to view this folder.' });
+    }
+    res.status(500).json({ error: 'Failed to sync images from Google Drive folder. ' + (error.message || '') });
   }
 });
 
@@ -223,7 +229,7 @@ router.put('/:id/submit', async (req, res) => {
     const gallery = await ClientGallery.findById(req.params.id);
     
     if (!gallery) return res.status(404).json({ error: 'Gallery not found' });
-    if (gallery.status === 'Submitted') return res.status(400).json({ error: 'Selection has already been submitted.' });
+    // if (gallery.status === 'Submitted') return res.status(400).json({ error: 'Selection has already been submitted.' });
 
     gallery.images.forEach(img => {
       img.isSelected = selectedDriveIds.includes(img.driveId);

@@ -350,9 +350,14 @@ const ClientGalleryPage = () => {
                   {/* Desktop Action Buttons */}
                   <div className="hidden md:flex items-center gap-3">
                     {isSubmitted ? (
-                      <span className="px-4 py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full text-xs uppercase tracking-widest font-bold flex items-center gap-1.5">
-                        <span>✓</span> Selections Submitted ({selectedCount} photos)
-                      </span>
+                      <div className="flex gap-2 items-center">
+                        <span className="px-4 py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full text-xs uppercase tracking-widest font-bold flex items-center gap-1.5">
+                          <span>✓</span> Selections Submitted ({selectedCount} photos)
+                        </span>
+                        <button onClick={() => setSubmitted(prev => ({...prev, [gallery._id]: false}))} className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full text-xs uppercase tracking-widest transition-colors shadow">
+                          Edit Selection
+                        </button>
+                      </div>
                     ) : (
                       <>
                         <span className="text-xs text-gray-400 tracking-wider">
@@ -375,6 +380,9 @@ const ClientGalleryPage = () => {
                     <p className="text-emerald-400 text-xs sm:text-sm tracking-wider">
                       ✓ Your selection of {selectedCount} images for <strong className="text-white">{gallery.eventName}</strong> has been submitted to the studio!
                     </p>
+                    <button onClick={() => setSubmitted(prev => ({...prev, [gallery._id]: false}))} className="md:hidden mt-3 px-4 py-2 w-full bg-white/10 text-white border border-white/20 rounded-lg text-xs uppercase tracking-widest transition-colors font-bold">
+                      Edit Selection
+                    </button>
                   </div>
                 )}
               </div>

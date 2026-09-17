@@ -582,6 +582,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {partners.map(p => {
           const shareAmount = totals.profit * (p.sharePercentage / 100);
+          const grossAmount = totals.grossAmount * (p.sharePercentage / 100);
           return (
             <div key={p._id} className="p-4 border border-white/10 rounded-lg relative group">
               <div className="flex justify-between items-start">
@@ -590,7 +591,8 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                   <p className="text-xs text-white/50">{p.sharePercentage}% Share</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg text-emerald-400">₹{shareAmount.toLocaleString()}</p>
+                  <p className="text-sm text-cyan-400">Gross: ₹{grossAmount.toLocaleString()}</p>
+                  <p className="text-lg text-emerald-400">Net: ₹{shareAmount.toLocaleString()}</p>
                 </div>
               </div>
               <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
@@ -724,7 +726,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
            
            <div className="space-y-4">
              {(() => {
-               const legendData = viewMode === 'studio_shoots' ? barData : filteredPieData;
+               const legendData = barData;
                if (legendData.length === 0) return <p className="text-xs text-white/30 italic">No financial data to display.</p>;
                return legendData.filter(d => d.value > 0).map((d, i) => (
                  <div key={i} className="flex justify-between items-center text-sm">
@@ -739,50 +741,24 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
            </div>
         </div>
         <div className="w-full md:w-2/3 h-64">
-          {viewMode === 'studio_shoots' ? (
-           <ResponsiveContainer width="100%" height="100%">
-             <BarChart data={barData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-               <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} axisLine={false} tickLine={false} />
-               <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} />
-               <Tooltip
-                 formatter={(value) => `₹${value.toLocaleString()}`}
-                 contentStyle={{ backgroundColor: '#111', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                 itemStyle={{ color: '#fff' }}
-                 cursor={{ fill: 'rgba(255,255,255,0.03)' }}
-               />
-               <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                 {barData.map((entry, index) => (
-                   <Cell key={`bar-cell-${index}`} fill={entry.fill} />
-                 ))}
-               </Bar>
-             </BarChart>
-           </ResponsiveContainer>
-          ) : (
-           <ResponsiveContainer width="100%" height="100%">
-             <PieChart>
-               <Pie
-                 data={pieData}
-                 cx="50%"
-                 cy="50%"
-                 innerRadius={60}
-                 outerRadius={100}
-                 paddingAngle={5}
-                 dataKey="value"
-               >
-                 {pieData.map((entry, index) => (
-                   <Cell key={`cell-${index}`} fill={entry.color} stroke="transparent" />
-                 ))}
-               </Pie>
-               <Tooltip 
-                 formatter={(value) => `₹${value.toLocaleString()}`}
-                 contentStyle={{ backgroundColor: '#111', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                 itemStyle={{ color: '#fff' }}
-               />
-               <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '12px', opacity: 0.7 }} />
-             </PieChart>
-           </ResponsiveContainer>
-          )}
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={barData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} />
+              <Tooltip
+                formatter={(value) => `₹${value.toLocaleString()}`}
+                contentStyle={{ backgroundColor: '#111', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                itemStyle={{ color: '#fff' }}
+                cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+              />
+              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                {barData.map((entry, index) => (
+                  <Cell key={`bar-cell-${index}`} fill={entry.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
     </div>
@@ -906,7 +882,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
               <table className="w-full text-left text-sm text-white/70">
                 <thead className="border-b border-white/10 text-xs uppercase tracking-widest text-white/40">
                   <tr>
-                    <th className="p-4 font-normal">Date / Name</th>
+                    <th className="p-4 font-normal">Name / Date</th>
                     <th className="p-4 font-normal">Total Amount</th>
                     <th className="p-4 font-normal">Paid</th>
                     <th className="p-4 font-normal">Pending</th>
@@ -926,8 +902,8 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                     return (
                       <tr key={shoot._id} id={`business-booking-${shoot._id}`} className={`transition-all duration-500 ${highlightedBookingId === shoot._id ? 'bg-emerald-900/30 border-l-4 border-emerald-500' : 'hover:bg-white/[0.02]'}`}>
                         <td className="p-4">
-                          <div>{shoot.date}</div>
-                          <div className="text-xs text-white/40">{shoot.name} <span className="text-[9px] uppercase ml-2 px-1 py-0.5 rounded bg-white/5">{shoot.status}</span></div>
+                          <div className="text-[15px] font-bold text-white mb-1">{shoot.name} <span className="text-[9px] uppercase ml-2 px-1 py-0.5 rounded bg-white/5">{shoot.status}</span></div>
+                          <div className="text-xs text-white/50">{shoot.date}</div>
                         </td>
                         <td className="p-4">₹{shoot.totalAmount?.toLocaleString()}</td>
                         <td className="p-4 text-emerald-400">₹{paidAmt.toLocaleString()}</td>
@@ -1596,7 +1572,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                         <div className="flex items-center gap-2">
                           <button type="button" onClick={() => {
                             const newList = [...(editingEvent.subEventList || [])];
-                            newList[sIdx].services.push({ name: '', price: 0 });
+                            newList[sIdx].services.push({ name: '', price: 0, quantity: 1, isCustom: false });
                             setEditingEvent({...editingEvent, subEventList: newList});
                           }} className="text-xs text-emerald-500 hover:text-emerald-400 border border-emerald-500/30 px-2 py-1 rounded">+ Service</button>
                           <button type="button" onClick={() => {
@@ -1609,14 +1585,20 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                         {(sub.services || []).map((svc, svcIdx) => (
                           <div key={svcIdx} className="flex gap-2">
                             <select 
-                              value={svc.name}
+                              value={svc.isCustom ? 'Custom' : svc.name}
                               onChange={e => {
-                                const newList = [...(editingEvent.subEventList || [])];
                                 const val = e.target.value;
-                                newList[sIdx].services[svcIdx].name = val;
-                                const predefined = predefinedServices?.find(ps => ps.name === val);
-                                if (predefined) {
-                                  newList[sIdx].services[svcIdx].price = predefined.price;
+                                const newList = [...(editingEvent.subEventList || [])];
+                                if (val === 'Custom') {
+                                  newList[sIdx].services[svcIdx].isCustom = true;
+                                  newList[sIdx].services[svcIdx].name = '';
+                                } else {
+                                  newList[sIdx].services[svcIdx].isCustom = false;
+                                  newList[sIdx].services[svcIdx].name = val;
+                                  const predefined = predefinedServices?.find(ps => ps.name === val);
+                                  if (predefined) {
+                                    newList[sIdx].services[svcIdx].price = predefined.price;
+                                  }
                                 }
                                 setEditingEvent({...editingEvent, subEventList: newList});
                               }}
@@ -1627,7 +1609,24 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                               {predefinedServices?.map((ps, i) => (
                                 <option key={i} value={ps.name}>{ps.name}</option>
                               ))}
+                              <option value="Custom">Custom</option>
                             </select>
+                            
+                            {svc.isCustom && (
+                              <input
+                                type="text"
+                                placeholder="Custom Service Name"
+                                value={svc.name}
+                                onChange={e => {
+                                  const newList = [...(editingEvent.subEventList || [])];
+                                  newList[sIdx].services[svcIdx].name = e.target.value;
+                                  setEditingEvent({...editingEvent, subEventList: newList});
+                                }}
+                                className="flex-1 bg-black/50 border border-emerald-500/50 rounded px-3 py-1.5 text-xs text-white"
+                                required
+                              />
+                            )}
+
                             <input 
                               type="number" 
                               placeholder="Price" 
@@ -1638,6 +1637,20 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                                 setEditingEvent({...editingEvent, subEventList: newList});
                               }}
                               className="w-24 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-xs text-white"
+                              required
+                            />
+                            
+                            <input 
+                              type="number" 
+                              placeholder="Qty" 
+                              value={svc.quantity || 1}
+                              min="1"
+                              onChange={e => {
+                                const newList = [...(editingEvent.subEventList || [])];
+                                newList[sIdx].services[svcIdx].quantity = Number(e.target.value);
+                                setEditingEvent({...editingEvent, subEventList: newList});
+                              }}
+                              className="w-16 bg-black/50 border border-white/10 rounded px-2 py-1.5 text-xs text-white"
                               required
                             />
                             <button type="button" onClick={() => {
@@ -1673,7 +1686,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                           type="button" 
                           onClick={() => setEditingEvent({
                             ...editingEvent, 
-                            deliverables: [...(editingEvent.deliverables || []), predefinedDeliverables[0] || '']
+                            deliverables: [...(editingEvent.deliverables || []), { name: predefinedDeliverables[0] || '', price: 0, isCustom: false }]
                           })} 
                           className="text-xs text-white/50 hover:text-white border border-white/10 px-2 py-1 rounded"
                         >
@@ -1682,13 +1695,24 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                       </div>
                     </div>
                     <div className="space-y-2">
-                      {(editingEvent.deliverables || []).map((del, dIdx) => (
+                      {(editingEvent.deliverables || []).map((delObj, dIdx) => {
+                        const isObj = typeof delObj === 'object' && delObj !== null;
+                        const name = isObj ? delObj.name : delObj;
+                        const price = isObj ? delObj.price : 0;
+                        const isCustom = isObj ? delObj.isCustom : false;
+
+                        return (
                         <div key={dIdx} className="flex gap-2 items-center">
                           <select 
-                            value={del}
+                            value={isCustom ? 'Custom' : name}
                             onChange={e => {
-                              const newList = [...(editingEvent.deliverables || [])];
-                              newList[dIdx] = e.target.value;
+                              const val = e.target.value;
+                              const newList = [...(editingEvent.deliverables || [])].map(item => (typeof item === 'object' ? item : {name: item, price: 0}));
+                              if (val === 'Custom') {
+                                newList[dIdx] = { ...newList[dIdx], isCustom: true, name: '' };
+                              } else {
+                                newList[dIdx] = { ...newList[dIdx], isCustom: false, name: val, price: 0 };
+                              }
                               setEditingEvent({...editingEvent, deliverables: newList});
                             }}
                             className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-2 text-sm text-white [&>option]:bg-[#111]"
@@ -1697,16 +1721,42 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                             {predefinedDeliverables.map((dOpt, i) => (
                               <option key={i} value={dOpt}>{dOpt}</option>
                             ))}
-                            {del && !predefinedDeliverables.includes(del) && (
-                              <option value={del}>{del}</option>
-                            )}
+                            <option value="Custom">Custom</option>
                           </select>
+                          
+                          {isCustom && (
+                            <input
+                              type="text"
+                              placeholder="Custom Name"
+                              value={name}
+                              onChange={e => {
+                                const newList = [...(editingEvent.deliverables || [])].map(item => (typeof item === 'object' ? item : {name: item, price: 0}));
+                                newList[dIdx].name = e.target.value;
+                                setEditingEvent({...editingEvent, deliverables: newList});
+                              }}
+                              className="flex-1 bg-black/50 border border-emerald-500/50 rounded px-3 py-2 text-sm text-white"
+                            />
+                          )}
+
+                          {isCustom && (
+                            <input
+                              type="number"
+                              placeholder="Price"
+                              value={price}
+                              onChange={e => {
+                                const newList = [...(editingEvent.deliverables || [])].map(item => (typeof item === 'object' ? item : {name: item, price: 0}));
+                                newList[dIdx].price = Number(e.target.value);
+                                setEditingEvent({...editingEvent, deliverables: newList});
+                              }}
+                              className="w-24 bg-black/50 border border-emerald-500/50 rounded px-3 py-2 text-sm text-white"
+                            />
+                          )}
                           <button type="button" onClick={() => {
                             const newList = editingEvent.deliverables.filter((_, i) => i !== dIdx);
                             setEditingEvent({...editingEvent, deliverables: newList});
                           }} className="text-red-500 hover:text-red-400 px-2 py-1">✕</button>
                         </div>
-                      ))}
+                      )})}
                       {(!editingEvent.deliverables || editingEvent.deliverables.length === 0) && (
                         <p className="text-xs text-white/30 italic">No deliverables added. Click + Add Deliverable.</p>
                       )}
@@ -1729,7 +1779,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                           type="button" 
                           onClick={() => setEditingEvent({
                             ...editingEvent, 
-                            complimentries: [...(editingEvent.complimentries || []), predefinedComplimentries[0] || '']
+                            complimentries: [...(editingEvent.complimentries || []), { name: predefinedComplimentries[0] || '', price: 0, isCustom: false }]
                           })} 
                           className="text-xs text-white/50 hover:text-white border border-white/10 px-2 py-1 rounded"
                         >
@@ -1738,13 +1788,24 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                       </div>
                     </div>
                     <div className="space-y-2">
-                      {(editingEvent.complimentries || []).map((comp, cIdx) => (
+                      {(editingEvent.complimentries || []).map((compObj, cIdx) => {
+                        const isObj = typeof compObj === 'object' && compObj !== null;
+                        const name = isObj ? compObj.name : compObj;
+                        const price = isObj ? compObj.price : 0;
+                        const isCustom = isObj ? compObj.isCustom : false;
+
+                        return (
                         <div key={cIdx} className="flex gap-2 items-center">
                           <select 
-                            value={comp}
+                            value={isCustom ? 'Custom' : name}
                             onChange={e => {
-                              const newList = [...(editingEvent.complimentries || [])];
-                              newList[cIdx] = e.target.value;
+                              const val = e.target.value;
+                              const newList = [...(editingEvent.complimentries || [])].map(item => (typeof item === 'object' ? item : {name: item, price: 0}));
+                              if (val === 'Custom') {
+                                newList[cIdx] = { ...newList[cIdx], isCustom: true, name: '' };
+                              } else {
+                                newList[cIdx] = { ...newList[cIdx], isCustom: false, name: val, price: 0 };
+                              }
                               setEditingEvent({...editingEvent, complimentries: newList});
                             }}
                             className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-2 text-sm text-white [&>option]:bg-[#111]"
@@ -1753,18 +1814,98 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                             {predefinedComplimentries.map((cOpt, i) => (
                               <option key={i} value={cOpt}>{cOpt}</option>
                             ))}
-                            {comp && !predefinedComplimentries.includes(comp) && (
-                              <option value={comp}>{comp}</option>
-                            )}
+                            <option value="Custom">Custom</option>
                           </select>
+
+                          {isCustom && (
+                            <input
+                              type="text"
+                              placeholder="Custom Name"
+                              value={name}
+                              onChange={e => {
+                                const newList = [...(editingEvent.complimentries || [])].map(item => (typeof item === 'object' ? item : {name: item, price: 0}));
+                                newList[cIdx].name = e.target.value;
+                                setEditingEvent({...editingEvent, complimentries: newList});
+                              }}
+                              className="flex-1 bg-black/50 border border-emerald-500/50 rounded px-3 py-2 text-sm text-white"
+                            />
+                          )}
+
+                          {isCustom && (
+                            <input
+                              type="number"
+                              placeholder="Price"
+                              value={price}
+                              onChange={e => {
+                                const newList = [...(editingEvent.complimentries || [])].map(item => (typeof item === 'object' ? item : {name: item, price: 0}));
+                                newList[cIdx].price = Number(e.target.value);
+                                setEditingEvent({...editingEvent, complimentries: newList});
+                              }}
+                              className="w-24 bg-black/50 border border-emerald-500/50 rounded px-3 py-2 text-sm text-white"
+                            />
+                          )}
                           <button type="button" onClick={() => {
                             const newList = editingEvent.complimentries.filter((_, i) => i !== cIdx);
                             setEditingEvent({...editingEvent, complimentries: newList});
                           }} className="text-red-500 hover:text-red-400 px-2 py-1">✕</button>
                         </div>
-                      ))}
+                      )})}
                       {(!editingEvent.complimentries || editingEvent.complimentries.length === 0) && (
                         <p className="text-xs text-white/30 italic">No complimentries added. Click + Add Complimentry.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Add-ons */}
+                  <div className="pt-4 border-t border-white/10 mt-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <label className="block text-xs uppercase tracking-widest text-white/50">Add-ons</label>
+                      <button 
+                        type="button" 
+                        onClick={() => setEditingEvent({
+                          ...editingEvent, 
+                          addOns: [...(editingEvent.addOns || []), { name: '', price: 0 }]
+                        })} 
+                        className="text-xs text-white/50 hover:text-white border border-white/10 px-2 py-1 rounded"
+                      >
+                        + Add Add-on
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {(editingEvent.addOns || []).map((addon, aIdx) => (
+                        <div key={aIdx} className="flex gap-2 items-center">
+                          <input
+                            type="text"
+                            placeholder="Add-on Name"
+                            value={addon.name}
+                            onChange={e => {
+                              const newList = [...(editingEvent.addOns || [])];
+                              newList[aIdx].name = e.target.value;
+                              setEditingEvent({...editingEvent, addOns: newList});
+                            }}
+                            className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-2 text-sm text-white"
+                            required
+                          />
+                          <input
+                            type="number"
+                            placeholder="Price"
+                            value={addon.price}
+                            onChange={e => {
+                              const newList = [...(editingEvent.addOns || [])];
+                              newList[aIdx].price = Number(e.target.value);
+                              setEditingEvent({...editingEvent, addOns: newList});
+                            }}
+                            className="w-24 bg-black/50 border border-white/10 rounded px-3 py-2 text-sm text-white"
+                            required
+                          />
+                          <button type="button" onClick={() => {
+                            const newList = editingEvent.addOns.filter((_, i) => i !== aIdx);
+                            setEditingEvent({...editingEvent, addOns: newList});
+                          }} className="text-red-500 hover:text-red-400 px-2 py-1">✕</button>
+                        </div>
+                      ))}
+                      {(!editingEvent.addOns || editingEvent.addOns.length === 0) && (
+                        <p className="text-xs text-white/30 italic">No add-ons added.</p>
                       )}
                     </div>
                   </div>

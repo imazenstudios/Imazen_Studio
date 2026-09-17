@@ -6,6 +6,7 @@ import DragDropImageUploader from '../components/DragDropImageUploader';
 import DragDropVideoUploader from '../components/DragDropVideoUploader';
 import CalendarView from '../components/admin/CalendarView';
 import BusinessView from '../components/admin/BusinessView';
+import FollowUpsCalendar from '../components/admin/FollowUpsCalendar';
 import { packagesData } from '../data/packages';
 
 export const getTypeBadgeClass = (type) => {
@@ -35,7 +36,7 @@ const AdminDashboard = () => {
   const storedUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
   const userPermissions = storedUser.permissions || [];
   const isSuperAdmin = storedUser.isSuperAdmin === true || storedUser.email === 'ssaiprasanth333@gmail.com' || localStorage.getItem('adminBypass') === 'true';
-  const allTabs = ['dashboard', 'leads', 'inquiries', 'studio bookings', 'props rentals', 'events', 'calendar', 'slots', 'business', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'client gallery', 'permissions', 'developer options'];
+  const allTabs = ['dashboard', 'leads', 'inquiries', 'follow ups', 'studio bookings', 'props rentals', 'events', 'calendar', 'slots', 'business', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'client gallery', 'permissions', 'developer options'];
   const allowedTabs = isSuperAdmin ? allTabs : allTabs.filter(tab => userPermissions.includes(tab));
   const initialTab = allowedTabs.includes('dashboard') ? 'dashboard' : (allowedTabs[0] || 'dashboard');
 
@@ -4590,6 +4591,11 @@ const AdminDashboard = () => {
                   </div>
                 )}
 
+                {/* FOLLOW UPS TAB */}
+                {activeTab === 'follow ups' && (
+                  <FollowUpsCalendar leads={leads} inquiries={inquiries} setActiveTab={setActiveTab} />
+                )}
+
                 {activeTab === 'customers' && (
                   <div className="space-y-6">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-teal-900/20 to-transparent p-6 rounded-2xl border border-teal-500/20">
@@ -4971,7 +4977,7 @@ const AdminDashboard = () => {
                           <div>
                             <label className="block text-xs uppercase text-emerald-500/70 mb-3 tracking-widest">Select Permissions</label>
                             <div className="flex flex-wrap gap-4">
-                              {['dashboard', 'leads', 'inquiries', 'studio bookings', 'calendar', 'business', 'props rentals', 'events', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'developer options', 'add partner'].map(perm => (
+                              {['dashboard', 'leads', 'inquiries', 'follow ups', 'studio bookings', 'calendar', 'business', 'props rentals', 'events', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'developer options', 'add partner'].map(perm => (
                                 <label key={perm} className="flex items-center gap-2 cursor-pointer">
                                   <input 
                                     type="checkbox" 
@@ -5097,7 +5103,7 @@ const AdminDashboard = () => {
                     <div>
                       <label className="block text-xs uppercase text-gray-500 mb-4 tracking-widest">Assign Permissions</label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-white/5 border border-white/10 rounded">
-                        {['dashboard', 'leads', 'inquiries', 'studio bookings', 'calendar', 'business', 'props rentals', 'events', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'client gallery', 'permissions', 'developer options', 'add partner']
+                        {['dashboard', 'leads', 'inquiries', 'follow ups', 'studio bookings', 'calendar', 'business', 'props rentals', 'events', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'client gallery', 'permissions', 'developer options', 'add partner']
                           .filter(perm => isSuperAdmin || userPermissions.includes(perm))
                           .map(perm => (
                           <label key={perm} className={`flex items-center gap-3 ${storedUser.email === editingAdminUser.email ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}>

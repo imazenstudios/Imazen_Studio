@@ -7,7 +7,8 @@ const eventSchema = new mongoose.Schema({
   phone: { type: String },
   services: [{
     name: { type: String, required: true },
-    price: { type: Number, required: true }
+    price: { type: Number, required: true },
+    quantity: { type: Number, default: 1 }
   }],
   totalAmount: { type: Number, default: 0 },
   paidAmount: { type: Number, default: 0 },
@@ -19,13 +20,24 @@ const eventSchema = new mongoose.Schema({
     enum: ['pending', 'converted', 'confirmed', 'shoot done', 'editing in progress', 'payment pending', 'finished', 'cancelled', 'contacted', 'scheduled']
   },
   subEvents: { type: String }, // Legacy field
-  deliverables: [{ type: String }],
-  complimentries: [{ type: String }],
+  deliverables: [{
+    name: { type: String, required: true },
+    price: { type: Number, default: 0 }
+  }],
+  complimentries: [{
+    name: { type: String, required: true },
+    price: { type: Number, default: 0 }
+  }],
+  addOns: [{
+    name: { type: String, required: true },
+    price: { type: Number, default: 0 }
+  }],
   subEventList: [{
     name: { type: String, required: true },
     services: [{
       name: { type: String, required: true },
-      price: { type: Number, required: true }
+      price: { type: Number, required: true },
+      quantity: { type: Number, default: 1 }
     }]
   }],
   // Album option
