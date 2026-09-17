@@ -4,10 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { parse } from 'json2csv';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-const archiver = require('archiver');
+import { ZipArchive } from 'archiver';
 import ClientGallery from '../models/ClientGallery.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -167,7 +164,7 @@ router.get('/download-all-selections', async (req, res) => {
     res.header('Content-Type', 'application/zip');
     res.attachment('all_client_selections.zip');
 
-    const archive = archiver('zip', {
+    const archive = new ZipArchive({
       zlib: { level: 9 } // max compression
     });
 
@@ -231,7 +228,7 @@ router.get('/download-email/:email', async (req, res) => {
     res.header('Content-Type', 'application/zip');
     res.attachment(`${safeEmail}_selections.zip`);
 
-    const archive = archiver('zip', {
+    const archive = new ZipArchive({
       zlib: { level: 9 }
     });
 
@@ -288,7 +285,7 @@ router.get('/:id/download-selections', async (req, res) => {
     res.header('Content-Type', 'application/zip');
     res.attachment(`${safeEvent}_selections.zip`);
 
-    const archive = archiver('zip', {
+    const archive = new ZipArchive({
       zlib: { level: 9 }
     });
 
