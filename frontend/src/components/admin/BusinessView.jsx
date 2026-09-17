@@ -1106,7 +1106,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                           if (selectedItem) newItems[idx].price = selectedItem.price;
                           setEditingProp({...editingProp, items: newItems});
                         }}
-                        className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-xs text-white" 
+                        className="flex-1 min-w-0 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-xs text-white" 
                         required
                       >
                         <option value="">Select Item...</option>
@@ -1129,7 +1129,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                       <button type="button" onClick={() => {
                         const newItems = editingProp.items.filter((_, i) => i !== idx);
                         setEditingProp({...editingProp, items: newItems});
-                      }} className="text-red-500 hover:text-red-400">✕</button>
+                      }} className="text-red-500 hover:text-red-400 shrink-0">✕</button>
                     </div>
                   )})}
                   {(!editingProp.items || editingProp.items.length === 0) && (
@@ -1339,7 +1339,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                           <span className="text-sm">{new Date(p.date).toLocaleDateString()} - {p.method} {p.receivedBy ? `(Rcvd by: ${eventTeamMembers.find(tm => tm._id === p.receivedBy)?.name || p.receivedBy})` : ''}</span>
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-bold text-emerald-400">₹{p.amount}</span>
-                            <button onClick={() => handleDeleteEventInstallment(event._id, p._id)} className="text-red-500 hover:text-red-400" title="Delete">✕</button>
+                            <button onClick={() => handleDeleteEventInstallment(event._id, p._id)} className="text-red-500 hover:text-red-400 shrink-0" title="Delete">✕</button>
                           </div>
                         </div>
                       ))}
@@ -1522,7 +1522,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                   <input 
                     type="number" 
                     name="pendingAmount" 
-                    value={currentCalculatedTotal - (editingEvent.paidAmount || 0)} 
+                    value={currentCalculatedTotal - (editingEvent.discount || 0) - (editingEvent.paidAmount || 0)} 
                     readOnly
                     className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-amber-500 text-sm cursor-not-allowed opacity-50" 
                   />
@@ -1596,7 +1596,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                           <button type="button" onClick={() => {
                             const newList = editingEvent.subEventList.filter((_, i) => i !== sIdx);
                             setEditingEvent({...editingEvent, subEventList: newList});
-                          }} className="text-red-500 hover:text-red-400">✕</button>
+                          }} className="text-red-500 hover:text-red-400 shrink-0">✕</button>
                         </div>
                       </div>
                       <div className="space-y-2 pl-4 border-l border-white/10">
@@ -1620,7 +1620,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                                 }
                                 setEditingEvent({...editingEvent, subEventList: newList});
                               }}
-                              className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-xs text-white"
+                              className="flex-1 min-w-0 bg-black/50 border border-white/10 rounded px-3 py-1.5 text-xs text-white"
                               required
                             >
                               <option value="">Select Service</option>
@@ -1640,7 +1640,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                                   newList[sIdx].services[svcIdx].name = e.target.value;
                                   setEditingEvent({...editingEvent, subEventList: newList});
                                 }}
-                                className="flex-1 bg-black/50 border border-emerald-500/50 rounded px-3 py-1.5 text-xs text-white"
+                                className="flex-1 min-w-0 bg-black/50 border border-emerald-500/50 rounded px-3 py-1.5 text-xs text-white"
                                 required
                               />
                             )}
@@ -1675,7 +1675,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                               const newList = [...(editingEvent.subEventList || [])];
                               newList[sIdx].services = newList[sIdx].services.filter((_, i) => i !== svcIdx);
                               setEditingEvent({...editingEvent, subEventList: newList});
-                            }} className="text-red-500 hover:text-red-400">✕</button>
+                            }} className="text-red-500 hover:text-red-400 shrink-0">✕</button>
                           </div>
                         ))}
                         {(!sub.services || sub.services.length === 0) && (
@@ -1733,7 +1733,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                               }
                               setEditingEvent({...editingEvent, deliverables: newList});
                             }}
-                            className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-2 text-sm text-white [&>option]:bg-[#111]"
+                            className="flex-1 min-w-0 bg-black/50 border border-white/10 rounded px-3 py-2 text-sm text-white [&>option]:bg-[#111]"
                           >
                             <option value="">-- Select Deliverable --</option>
                             {predefinedDeliverables.map((dOpt, i) => (
@@ -1752,7 +1752,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                                 newList[dIdx].name = e.target.value;
                                 setEditingEvent({...editingEvent, deliverables: newList});
                               }}
-                              className="flex-1 bg-black/50 border border-emerald-500/50 rounded px-3 py-2 text-sm text-white"
+                              className="flex-1 min-w-0 bg-black/50 border border-emerald-500/50 rounded px-3 py-2 text-sm text-white"
                             />
                           )}
 
@@ -1772,7 +1772,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                           <button type="button" onClick={() => {
                             const newList = editingEvent.deliverables.filter((_, i) => i !== dIdx);
                             setEditingEvent({...editingEvent, deliverables: newList});
-                          }} className="text-red-500 hover:text-red-400 px-2 py-1">✕</button>
+                          }} className="text-red-500 hover:text-red-400 px-2 py-1 shrink-0">✕</button>
                         </div>
                       )})}
                       {(!editingEvent.deliverables || editingEvent.deliverables.length === 0) && (
@@ -1826,7 +1826,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                               }
                               setEditingEvent({...editingEvent, complimentries: newList});
                             }}
-                            className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-2 text-sm text-white [&>option]:bg-[#111]"
+                            className="flex-1 min-w-0 bg-black/50 border border-white/10 rounded px-3 py-2 text-sm text-white [&>option]:bg-[#111]"
                           >
                             <option value="">-- Select Complimentry --</option>
                             {predefinedComplimentries.map((cOpt, i) => (
@@ -1845,7 +1845,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                                 newList[cIdx].name = e.target.value;
                                 setEditingEvent({...editingEvent, complimentries: newList});
                               }}
-                              className="flex-1 bg-black/50 border border-emerald-500/50 rounded px-3 py-2 text-sm text-white"
+                              className="flex-1 min-w-0 bg-black/50 border border-emerald-500/50 rounded px-3 py-2 text-sm text-white"
                             />
                           )}
 
@@ -1865,7 +1865,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                           <button type="button" onClick={() => {
                             const newList = editingEvent.complimentries.filter((_, i) => i !== cIdx);
                             setEditingEvent({...editingEvent, complimentries: newList});
-                          }} className="text-red-500 hover:text-red-400 px-2 py-1">✕</button>
+                          }} className="text-red-500 hover:text-red-400 px-2 py-1 shrink-0">✕</button>
                         </div>
                       )})}
                       {(!editingEvent.complimentries || editingEvent.complimentries.length === 0) && (
@@ -1901,7 +1901,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                               newList[aIdx].name = e.target.value;
                               setEditingEvent({...editingEvent, addOns: newList});
                             }}
-                            className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-2 text-sm text-white"
+                            className="flex-1 min-w-0 bg-black/50 border border-white/10 rounded px-3 py-2 text-sm text-white"
                             required
                           />
                           <input
@@ -1919,7 +1919,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                           <button type="button" onClick={() => {
                             const newList = editingEvent.addOns.filter((_, i) => i !== aIdx);
                             setEditingEvent({...editingEvent, addOns: newList});
-                          }} className="text-red-500 hover:text-red-400 px-2 py-1">✕</button>
+                          }} className="text-red-500 hover:text-red-400 px-2 py-1 shrink-0">✕</button>
                         </div>
                       ))}
                       {(!editingEvent.addOns || editingEvent.addOns.length === 0) && (
@@ -2089,7 +2089,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                       newSvcs[idx].name = e.target.value;
                       setPredefinedServices(newSvcs);
                     }} 
-                    className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm"
+                    className="flex-1 min-w-0 bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm"
                     placeholder="Service Name"
                   />
                   <input 
@@ -2142,7 +2142,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                       newDel[idx] = e.target.value;
                       setPredefinedDeliverables(newDel);
                     }} 
-                    className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm"
+                    className="flex-1 min-w-0 bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm"
                     placeholder="Deliverable Name (e.g., Candid Video)"
                   />
                   <button onClick={() => {
@@ -2185,7 +2185,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                       newComp[idx] = e.target.value;
                       setPredefinedComplimentries(newComp);
                     }} 
-                    className="flex-1 bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm"
+                    className="flex-1 min-w-0 bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm"
                     placeholder="Complimentry Name (e.g., Free Album)"
                   />
                   <button onClick={() => {

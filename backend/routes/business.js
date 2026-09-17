@@ -163,7 +163,7 @@ router.post('/events', async (req, res) => {
     if (event.album && event.album.enabled) total += (event.album.sheets || 0) * (event.album.pricePerSheet || 500);
     
     event.totalAmount = total;
-    event.pendingAmount = total - (event.paidAmount || 0);
+    event.pendingAmount = total - (event.discount || 0) - (event.paidAmount || 0);
 
     await event.save();
     
@@ -193,7 +193,7 @@ router.put('/events/:id', async (req, res) => {
     
     // Recalculate pending amount if we also have payments (total might have changed)
     const paid = (event.payments && event.payments.length > 0) ? event.payments.reduce((sum, p) => sum + p.amount, 0) : (event.paidAmount || 0);
-    event.pendingAmount = total - paid;
+    event.pendingAmount = total - (event.discount || 0) - paid;
     
     await event.save();
     
