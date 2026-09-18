@@ -392,7 +392,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
 
   const handleSendEventPdf = async (id) => {
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${id}/send-pdf`);
+      await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${id}/send-pdf`);
       alert("PDF Sent successfully!");
     } catch (error) {
       console.error(error);
@@ -403,18 +403,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
   const handleDownloadEventPdf = async (id) => {
     setDownloadingPdfId(id);
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${id}/download-pdf`, {}, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      
-      const event = eventsData.find(e => e._id === id);
-      const phone = event?.phone || 'Event';
-      link.setAttribute('download', `ImazenStudios_${phone}.pdf`);
-      
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode.removeChild(link);
+      window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${id}/download-pdf`, '_blank');
     } catch (error) {
       console.error(error);
       alert('Failed to download PDF');
@@ -1966,11 +1955,13 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                         <input
                           type="number"
                           min="1"
-                          value={editingEvent.album?.numberOfAlbums || 1}
+                          value={editingEvent.album?.numberOfAlbums || ''}
                           onChange={e => {
-                            const newCount = Math.max(1, Number(e.target.value));
+                            const val = e.target.value;
+                            const newCount = val === '' ? '' : Math.max(1, Number(val));
+                            const countForArray = Number(newCount) || 1;
                             const currentSheets = editingEvent.album?.sheetsPerAlbum || [editingEvent.album?.sheets || 0];
-                            const newSheets = Array(newCount).fill(0).map((_, i) => currentSheets[i] || 0);
+                            const newSheets = Array(countForArray).fill(0).map((_, i) => currentSheets[i] || 0);
                             const totalSheets = newSheets.reduce((a, b) => a + b, 0);
                             setEditingEvent({...editingEvent, album: {...(editingEvent.album || {}), numberOfAlbums: newCount, sheetsPerAlbum: newSheets, sheets: totalSheets, pricePerSheet: 500}});
                           }}

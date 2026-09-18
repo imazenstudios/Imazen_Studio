@@ -266,7 +266,7 @@ router.put('/events/:id/details', async (req, res) => {
   }
 });
 
-router.post('/events/:id/send-pdf', async (req, res) => {
+router.get('/events/:id/send-pdf', async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ error: 'Event not found' });
@@ -303,7 +303,7 @@ router.post('/events/:id/send-pdf', async (req, res) => {
   }
 });
 
-router.post('/events/:id/download-pdf', async (req, res) => {
+router.get('/events/:id/download-pdf', async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ error: 'Event not found' });
