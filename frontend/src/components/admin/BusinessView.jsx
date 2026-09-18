@@ -23,6 +23,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
   const [inventoryImageUrl, setInventoryImageUrl] = useState('');
   const [viewShootExpenses, setViewShootExpenses] = useState(null);
   const [downloadingPdfId, setDownloadingPdfId] = useState(null);
+  const [sendingPdfId, setSendingPdfId] = useState(null);
   const [predefinedServices, setPredefinedServices] = useState([]);
   const [predefinedDeliverables, setPredefinedDeliverables] = useState([]);
   const [predefinedComplimentries, setPredefinedComplimentries] = useState([]);
@@ -391,12 +392,15 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
   };
 
   const handleSendEventPdf = async (id) => {
+    setSendingPdfId(id);
     try {
       await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${id}/send-pdf`);
       alert("PDF Sent successfully!");
     } catch (error) {
       console.error(error);
       alert('Failed to send PDF: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setSendingPdfId(null);
     }
   };
 
@@ -404,6 +408,8 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
     setDownloadingPdfId(id);
     try {
       window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${id}/download-pdf`, '_blank');
+      // Simulate download time for UI since window.open is instant
+      await new Promise(r => setTimeout(r, 2000));
     } catch (error) {
       console.error(error);
       alert('Failed to download PDF');
@@ -1416,10 +1422,12 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
 
               <div className="flex gap-2">
                 <button onClick={() => setEditingEvent(event)} className="flex-1 py-2 bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-white border border-amber-500/20 rounded text-xs uppercase tracking-widest transition-colors">Edit Event</button>
-                <button onClick={() => handleDownloadEventPdf(event._id)} disabled={downloadingPdfId === event._id} className={`flex-1 py-2 rounded text-xs uppercase tracking-widest border transition-colors ${downloadingPdfId === event._id ? 'text-gray-500 border-white/10 cursor-not-allowed' : 'bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white border-emerald-500/20'}`}>
-                  {downloadingPdfId === event._id ? '...' : 'Download PDF'}
+                <button onClick={() => handleDownloadEventPdf(event._id)} disabled={downloadingPdfId === event._id} className={`flex-1 py-2 rounded text-xs uppercase tracking-widest border transition-colors ${downloadingPdfId === event._id ? 'text-gray-500 border-white/10 cursor-not-allowed bg-black/50' : 'bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white border-emerald-500/20'}`}>
+                  {downloadingPdfId === event._id ? 'Downloading...' : 'Download PDF'}
                 </button>
-                <button onClick={() => handleSendEventPdf(event._id)} className="flex-1 py-2 bg-blue-500/20 hover:bg-blue-500 text-blue-400 hover:text-white border border-blue-500/20 rounded text-xs uppercase tracking-widest transition-colors">Send PDF</button>
+                <button onClick={() => handleSendEventPdf(event._id)} disabled={sendingPdfId === event._id} className={`flex-1 py-2 rounded text-xs uppercase tracking-widest border transition-colors ${sendingPdfId === event._id ? 'text-gray-500 border-white/10 cursor-not-allowed bg-black/50' : 'bg-blue-500/20 hover:bg-blue-500 text-blue-400 hover:text-white border-blue-500/20'}`}>
+                  {sendingPdfId === event._id ? 'Sending...' : 'Send PDF'}
+                </button>
               </div>
             </div>
           </div>

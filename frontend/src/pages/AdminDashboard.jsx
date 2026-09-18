@@ -3764,7 +3764,9 @@ const AdminDashboard = () => {
                               ) : (
                               <div className="fixed inset-0 z-[100] bg-black/95 overflow-y-auto flex justify-center items-start p-4 backdrop-blur-md">
                                 <div className="w-full max-w-4xl bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 relative shadow-2xl mt-4 sm:mt-10 mb-10 animate-fade-in">
-                                  <button type="button" onClick={(e) => { e.stopPropagation(); setViewingDetailsBookingId(null); }} className="absolute top-4 right-4 text-gray-400 hover:text-white text-xl z-20 w-8 h-8 flex items-center justify-center bg-black/40 rounded-full">✕</button>
+                                  <div className="sticky top-0 z-50 flex justify-end -mt-2 -mr-2 mb-2">
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); setViewingDetailsBookingId(null); }} className="text-gray-400 hover:text-white text-xl w-8 h-8 flex items-center justify-center bg-black/80 backdrop-blur-md rounded-full shadow-lg border border-white/10">✕</button>
+                                  </div>
                                   <div className="absolute top-4 right-16 flex gap-2 z-10">
                               <button 
                                 onClick={() => { setActiveTab('business'); setHighlightedBookingId(booking._id); }}
