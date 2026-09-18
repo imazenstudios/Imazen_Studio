@@ -716,7 +716,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
            
            <div className="space-y-4">
              {(() => {
-               const legendData = barData;
+               const legendData = viewMode === 'overview' ? pieData : barData;
                if (legendData.length === 0) return <p className="text-xs text-white/30 italic">No financial data to display.</p>;
                return legendData.filter(d => d.value > 0).map((d, i) => (
                  <div key={i} className="flex justify-between items-center text-sm">
@@ -732,22 +732,46 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         </div>
         <div className="w-full md:w-2/3 h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={barData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} />
-              <Tooltip
-                formatter={(value) => `₹${value.toLocaleString()}`}
-                contentStyle={{ backgroundColor: '#111', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                itemStyle={{ color: '#fff' }}
-                cursor={{ fill: 'rgba(255,255,255,0.03)' }}
-              />
-              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                {barData.map((entry, index) => (
-                  <Cell key={`bar-cell-${index}`} fill={entry.fill} />
-                ))}
-              </Bar>
-            </BarChart>
+            {viewMode === 'overview' ? (
+              <PieChart>
+                <Pie
+                  data={pieData.filter(d => d.value > 0)}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={5}
+                  dataKey="value"
+                  stroke="none"
+                >
+                  {pieData.filter(d => d.value > 0).map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  formatter={(value) => `₹${value.toLocaleString()}`}
+                  contentStyle={{ backgroundColor: '#111', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                  itemStyle={{ color: '#fff' }}
+                />
+              </PieChart>
+            ) : (
+              <BarChart data={barData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} />
+                <Tooltip
+                  formatter={(value) => `₹${value.toLocaleString()}`}
+                  contentStyle={{ backgroundColor: '#111', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                  itemStyle={{ color: '#fff' }}
+                  cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                />
+                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                  {barData.map((entry, index) => (
+                    <Cell key={`bar-cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Bar>
+              </BarChart>
+            )}
           </ResponsiveContainer>
         </div>
       </div>
