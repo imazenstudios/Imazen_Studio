@@ -1102,10 +1102,7 @@ const AdminDashboard = () => {
          alert('Please select who received the payment.');
          return;
       }
-      if (method === 'UPI' && !utrNumber) {
-         alert('Please enter UTR number for UPI payment.');
-         return;
-      }
+      // UTR is optional as per request
       
       updatedPayments.push({
         amount: newAmount,

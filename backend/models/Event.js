@@ -43,6 +43,8 @@ const eventSchema = new mongoose.Schema({
   // Album option
   album: {
     enabled: { type: Boolean, default: false },
+    numberOfAlbums: { type: Number, default: 1 },
+    sheetsPerAlbum: [{ type: Number }],
     sheets: { type: Number, default: 0 },
     pricePerSheet: { type: Number, default: 500 }
   },

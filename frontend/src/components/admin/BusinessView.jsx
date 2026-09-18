@@ -29,6 +29,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
   const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
   const [isDeliverablesModalOpen, setIsDeliverablesModalOpen] = useState(false);
   const [isComplimentriesModalOpen, setIsComplimentriesModalOpen] = useState(false);
+  const [paymentMethodForEvent, setPaymentMethodForEvent] = useState({});
 
   useEffect(() => {
     fetchProps();
@@ -1186,7 +1187,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                   <div className="p-4 space-y-3 flex-1">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="font-playfair text-white text-xl tracking-wide">{event.name}</h4>
+                        <h4 className="font-playfair text-white text-xl tracking-wide">{event.clientName || event.name}</h4>
                         <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded mt-1 inline-block ${
                           event.status === 'confirmed' ? 'bg-emerald-500/20 text-emerald-400' :
                           event.status === 'shoot done' ? 'bg-purple-500/20 text-purple-400' :
@@ -1215,9 +1216,9 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                       </div>
                     </div>
                     
-                    {event.clientName && (
+                    {(event.name || event.clientName) && (
                       <div className="text-xs text-white/70 bg-white/5 p-2 rounded border border-white/10">
-                        <p><span className="text-white/40 uppercase">Client:</span> <span className="text-emerald-400 font-bold">{event.clientName}</span></p>
+                        <p><span className="text-white/40 uppercase">Event:</span> <span className="text-emerald-400 font-bold">{event.name}</span></p>
                         {event.phone && <p><span className="text-white/40 uppercase">Phone:</span> {event.phone}</p>}
                         {event.email && <p><span className="text-white/40 uppercase">Email:</span> {event.email}</p>}
                       </div>
@@ -1373,15 +1374,26 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                     </div>
                     <div>
                       <label className="text-[9px] uppercase text-gray-500 block mb-1">Method</label>
-                      <select name="newPaymentMethod" className="w-full bg-black/60 border border-white/10 rounded px-2 py-1.5 text-xs text-white outline-none">
+                      <select 
+                        name="newPaymentMethod" 
+                        value={paymentMethodForEvent[event._id] || 'Cash'}
+                        onChange={(e) => setPaymentMethodForEvent({...paymentMethodForEvent, [event._id]: e.target.value})}
+                        className="w-full bg-black/60 border border-white/10 rounded px-2 py-1.5 text-xs text-white outline-none">
                         <option value="Cash">Cash</option>
                         <option value="UPI">UPI</option>
                       </select>
                     </div>
+                    {paymentMethodForEvent[event._id] === 'UPI' && (
+                      <div>
+                        <label className="text-[9px] uppercase text-gray-500 block mb-1">UTR Number (Optional)</label>
+                        <input type="text" name="newPaymentUTR" placeholder="UTR (If UPI/Studio QR)" className="w-full bg-black/60 border border-white/10 rounded px-2 py-1.5 text-xs text-white outline-none" />
+                      </div>
+                    )}
                     <div>
                       <label className="text-[9px] uppercase text-gray-500 block mb-1">Received By</label>
                       <select name="newPaymentReceivedBy" className="w-full bg-black/60 border border-white/10 rounded px-2 py-1.5 text-xs text-white outline-none">
                         <option value="">Select Member</option>
+                        {paymentMethodForEvent[event._id] === 'UPI' && <option value="Studio QR">Studio QR</option>}
                         {eventTeamMembers.map(tm => <option key={tm._id} value={tm._id}>{tm.name}</option>)}
                       </select>
                     </div>
@@ -1423,6 +1435,9 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
 
               <div className="flex gap-2">
                 <button onClick={() => setEditingEvent(event)} className="flex-1 py-2 bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-white border border-amber-500/20 rounded text-xs uppercase tracking-widest transition-colors">Edit Event</button>
+                <button onClick={() => handleDownloadEventPdf(event._id)} disabled={downloadingPdfId === event._id} className={`flex-1 py-2 rounded text-xs uppercase tracking-widest border transition-colors ${downloadingPdfId === event._id ? 'text-gray-500 border-white/10 cursor-not-allowed' : 'bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white border-emerald-500/20'}`}>
+                  {downloadingPdfId === event._id ? '...' : 'Download PDF'}
+                </button>
                 <button onClick={() => handleSendEventPdf(event._id)} className="flex-1 py-2 bg-blue-500/20 hover:bg-blue-500 text-blue-400 hover:text-white border border-blue-500/20 rounded text-xs uppercase tracking-widest transition-colors">Send PDF</button>
               </div>
             </div>
@@ -1944,23 +1959,50 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                   </label>
                 </div>
                 {editingEvent.album?.enabled && (
-                  <div className="bg-yellow-500/5 border border-yellow-500/20 p-3 rounded-lg space-y-2">
+                  <div className="bg-yellow-500/5 border border-yellow-500/20 p-3 rounded-lg space-y-3">
                     <div className="flex items-center gap-4">
                       <div className="flex-1">
-                        <label className="text-[10px] uppercase text-yellow-400/70 block mb-1">Number of Sheets</label>
+                        <label className="text-[10px] uppercase text-yellow-400/70 block mb-1">Number of Albums</label>
                         <input
                           type="number"
-                          min="0"
-                          value={editingEvent.album?.sheets || 0}
-                          onChange={e => setEditingEvent({...editingEvent, album: {...(editingEvent.album || {}), sheets: Number(e.target.value), pricePerSheet: 500}})}
+                          min="1"
+                          value={editingEvent.album?.numberOfAlbums || 1}
+                          onChange={e => {
+                            const newCount = Math.max(1, Number(e.target.value));
+                            const currentSheets = editingEvent.album?.sheetsPerAlbum || [editingEvent.album?.sheets || 0];
+                            const newSheets = Array(newCount).fill(0).map((_, i) => currentSheets[i] || 0);
+                            const totalSheets = newSheets.reduce((a, b) => a + b, 0);
+                            setEditingEvent({...editingEvent, album: {...(editingEvent.album || {}), numberOfAlbums: newCount, sheetsPerAlbum: newSheets, sheets: totalSheets, pricePerSheet: 500}});
+                          }}
                           className="w-full bg-black/50 border border-yellow-500/20 rounded px-3 py-1.5 text-white text-sm"
                         />
                       </div>
                       <div className="text-right">
-                        <p className="text-[10px] uppercase text-yellow-400/70">Album Cost</p>
+                        <p className="text-[10px] uppercase text-yellow-400/70">Total Album Cost</p>
                         <p className="text-lg font-bold text-yellow-400">₹{((editingEvent.album?.sheets || 0) * 500).toLocaleString()}</p>
                       </div>
                     </div>
+                    
+                    {Array.from({ length: editingEvent.album?.numberOfAlbums || 1 }).map((_, idx) => (
+                      <div key={idx} className="bg-black/30 p-2 rounded border border-yellow-500/10">
+                        <label className="text-[10px] uppercase text-yellow-400/70 block mb-1">Number of Sheets for Album {idx + 1}</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={(editingEvent.album?.sheetsPerAlbum || [])[idx] ?? (idx === 0 ? (editingEvent.album?.sheets || 0) : 0)}
+                          onChange={e => {
+                            const val = Number(e.target.value);
+                            const currentSheets = [...(editingEvent.album?.sheetsPerAlbum || [editingEvent.album?.sheets || 0])];
+                            // Pad array if needed
+                            while (currentSheets.length < (editingEvent.album?.numberOfAlbums || 1)) currentSheets.push(0);
+                            currentSheets[idx] = val;
+                            const totalSheets = currentSheets.reduce((a, b) => a + b, 0);
+                            setEditingEvent({...editingEvent, album: {...(editingEvent.album || {}), sheetsPerAlbum: currentSheets, sheets: totalSheets, pricePerSheet: 500}});
+                          }}
+                          className="w-full bg-black/50 border border-yellow-500/20 rounded px-3 py-1.5 text-white text-sm"
+                        />
+                      </div>
+                    ))}
                     <p className="text-[10px] text-yellow-400/50">Note: Album cost will be reflected in total amount.</p>
                   </div>
                 )}
