@@ -3862,8 +3862,8 @@ const AdminDashboard = () => {
                                   </select>
                                 </div>
                                 <div className="col-span-6 utr-container hidden">
-                                  <label className="block text-xs uppercase text-white mb-1">UTR Number</label>
-                                  <input type="text" name="newPaymentUTR" placeholder="UTR (If UPI/Studio QR)" className={`${glassInput} w-full py-2 px-2 text-sm`} />
+                                  <label className="block text-xs uppercase text-white mb-1">UTR Number (Optional)</label>
+                                  <input type="text" name="newPaymentUTR" placeholder="UTR Number (Optional)" className={`${glassInput} w-full py-2 px-2 text-sm`} />
                                 </div>
                                 <div className="col-span-6">
                                   <label className="block text-xs uppercase text-white mb-1">Received By</label>

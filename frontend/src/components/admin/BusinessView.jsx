@@ -1467,7 +1467,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         const currentCalculatedTotal = calculateEventTotal(editingEvent);
 
         return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="w-full max-w-lg bg-[#111] border border-white/10 p-6 shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
               <h3 className="text-xl font-light uppercase tracking-widest text-white">

@@ -1,5 +1,7 @@
 import PDFDocument from 'pdfkit';
 import path from 'path';
+import Event from './models/Event.js';
+import Settings from './models/Settings.js';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 
@@ -54,9 +56,8 @@ export const generateEventPdf = (event, discount = 0) => {
       });
 
       // Fetch settings first, then generate PDF
-      import('./models/Settings.js').then(({ default: Settings }) => {
-        Settings.findOne().then(settings => {
-          settings = settings || {};
+      Settings.findOne().then(settings => {
+        settings = settings || {};
           
           const phoneText = settings.whatsappNumber || '(123) 456-7890';
           const emailText = settings.contactEmail || 'imazenstudios@gmail.com';
@@ -335,10 +336,8 @@ export const generateEventPdf = (event, discount = 0) => {
 
           doc.end();
         }).catch(reject);
-      }).catch(reject);
-
-    } catch (err) {
-      reject(err);
+    } catch (error) {
+      reject(error);
     }
   });
 };
