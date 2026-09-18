@@ -1133,7 +1133,49 @@ const AdminDashboard = () => {
       if(utrContainer) utrContainer.classList.add('hidden');
     } catch (error) {
       console.error(error);
-      alert('Error updating payment');
+      alert('Error updating payment tracking');
+    }
+  };
+
+  const handleAddBookingAddOn = async (bookingId, e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const name = formData.get('addOnName');
+    const price = Number(formData.get('addOnPrice'));
+    
+    const booking = bookings.find(b => b._id === bookingId);
+    const updatedAddOns = [...(booking.addOns || []), { name, price }];
+    const newTotal = (booking.totalAmount || 0) + price;
+    
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${bookingId}/details`, {
+        addOns: updatedAddOns,
+        totalAmount: newTotal
+      });
+      fetchData();
+      e.target.reset();
+    } catch (err) {
+      console.error(err);
+      alert('Error adding add-on');
+    }
+  };
+
+  const handleDeleteBookingAddOn = async (bookingId, addOnId) => {
+    if (!window.confirm('Delete this add-on?')) return;
+    const booking = bookings.find(b => b._id === bookingId);
+    const addOnToDelete = booking.addOns.find(a => a._id === addOnId);
+    const updatedAddOns = booking.addOns.filter(a => a._id !== addOnId);
+    const newTotal = Math.max(0, (booking.totalAmount || 0) - (addOnToDelete ? addOnToDelete.price : 0));
+    
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${bookingId}/details`, {
+        addOns: updatedAddOns,
+        totalAmount: newTotal
+      });
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      alert('Error deleting add-on');
     }
   };
 
@@ -3798,6 +3840,37 @@ const AdminDashboard = () => {
                               )}
                             </div>
 
+                            {/* Add-ons */}
+                            <div className="mb-4 bg-black/40 border border-white/5 rounded-xl p-4">
+                              <h4 className="font-oswald text-base text-white uppercase tracking-widest mb-3">Add-ons</h4>
+                              
+                              {booking.addOns && booking.addOns.length > 0 && (
+                                <div className="space-y-2 mb-4">
+                                  {booking.addOns.map((addon, idx) => (
+                                    <div key={idx} className="flex justify-between items-center bg-black/50 p-2 rounded text-xs text-gray-300">
+                                      <span>{addon.name}</span>
+                                      <div className="flex items-center gap-3">
+                                        <span>₹{addon.price}</span>
+                                        <button type="button" onClick={() => handleDeleteBookingAddOn(booking._id, addon._id)} className="text-red-500 hover:text-red-400">✕</button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              
+                              <form onSubmit={(e) => handleAddBookingAddOn(booking._id, e)} className="flex items-end gap-2">
+                                <div className="flex-1">
+                                  <label className="block text-[10px] uppercase text-gray-500 mb-1">Add-on Name</label>
+                                  <input type="text" name="addOnName" required className={`${glassInput} w-full py-1.5 px-2 text-xs`} />
+                                </div>
+                                <div className="w-24">
+                                  <label className="block text-[10px] uppercase text-gray-500 mb-1">Price</label>
+                                  <input type="number" name="addOnPrice" required className={`${glassInput} w-full py-1.5 px-2 text-xs`} />
+                                </div>
+                                <button type="submit" className="py-1.5 px-3 bg-white/10 hover:bg-white/20 text-white rounded text-xs transition-colors shrink-0">Add</button>
+                              </form>
+                            </div>
+
                             {/* Payment Tracking */}
                             <div className="mb-4 bg-black/40 border border-white/5 rounded-xl p-4">
                               <h4 className="font-oswald text-base text-white uppercase tracking-widest mb-3">Payment Tracking</h4>
@@ -5555,9 +5628,9 @@ const AdminDashboard = () => {
                   exit={{ opacity: 0, scale: 0.95, y: 20 }}
                   className="bg-[#111] border border-white/10 rounded-2xl p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"
                 >
-                <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+                <div className="sticky top-0 z-50 flex justify-between items-center mb-8 border-b border-white/10 pb-4 bg-[#111] -mt-8 pt-8">
                   <h3 className="text-xl font-oswald text-white uppercase tracking-widest">{editingBooking._id ? 'Edit Booking' : 'Create New Booking'}</h3>
-                  <button onClick={() => setEditingBooking(null)} className="text-white hover:text-red-500 text-2xl transition-colors">&times;</button>
+                  <button onClick={() => setEditingBooking(null)} className="text-white hover:text-red-500 text-2xl bg-black/50 w-8 h-8 flex items-center justify-center rounded-full transition-colors">&times;</button>
                 </div>
                 
                 <form onSubmit={handleSaveBookingDetails} className="space-y-6">

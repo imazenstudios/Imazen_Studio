@@ -88,31 +88,33 @@ const FollowUpsCalendar = ({ leads, inquiries, setActiveTab, setLeadSearch, setL
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center bg-[#111] p-4 rounded-xl border border-white/10">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#111] p-4 rounded-xl border border-white/10">
         <h3 className="text-lg font-oswald uppercase tracking-widest text-white">Follow-ups Calendar</h3>
-        <div className="flex items-center gap-4">
-          <button onClick={prevMonth} className="text-white/50 hover:text-white px-3 py-1 bg-white/5 rounded border border-white/10">← Prev</button>
-          <span className="text-white font-medium uppercase tracking-widest min-w-[150px] text-center">
+        <div className="flex items-center gap-2 md:gap-4 self-center md:self-auto">
+          <button onClick={prevMonth} className="text-white/50 hover:text-white px-2 md:px-3 py-1 bg-white/5 rounded border border-white/10 text-sm">← Prev</button>
+          <span className="text-white font-medium uppercase tracking-widest min-w-[120px] md:min-w-[150px] text-center text-sm md:text-base">
             {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
           </span>
-          <button onClick={nextMonth} className="text-white/50 hover:text-white px-3 py-1 bg-white/5 rounded border border-white/10">Next →</button>
-        </div>
-      </div>
-
-      <div className="bg-[#111] rounded-xl border border-white/10 overflow-hidden">
-        <div className="grid grid-cols-7 border-b border-white/10 bg-black/50">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="p-3 text-center text-xs uppercase tracking-widest text-white/40 font-bold border-r border-white/5 last:border-r-0">
-              {day}
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-7">
-          {renderDays()}
+          <button onClick={nextMonth} className="text-white/50 hover:text-white px-2 md:px-3 py-1 bg-white/5 rounded border border-white/10 text-sm">Next →</button>
         </div>
       </div>
       
-      <div className="flex gap-4 text-xs uppercase tracking-widest">
+      <div className="bg-[#111] border border-white/5 rounded-xl overflow-hidden overflow-x-auto">
+        <div className="min-w-[600px]">
+          <div className="grid grid-cols-7 border-b border-white/5 bg-black/20">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+              <div key={day} className="py-3 text-center text-xs font-bold text-white/40 uppercase tracking-widest">
+                {day}
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7">
+            {renderDays()}
+          </div>
+        </div>
+      </div>
+      
+      <div className="flex flex-wrap gap-4 text-xs uppercase tracking-widest">
         <div className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-orange-500/20 border border-orange-500/50"></span> Pending</div>
         <div className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-emerald-500/20 border border-emerald-500/50"></span> Completed</div>
         <div className="flex items-center gap-2 ml-4"><span className="text-white/50">L = Lead, I = Inquiry</span></div>

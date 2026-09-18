@@ -180,7 +180,7 @@ export const generateEventPdf = (event, discount = 0) => {
             doc.y += 20;
           }
 
-          const deliverables = (event.deliverables || []).filter(d => d && d.trim() !== '');
+          const deliverables = (event.deliverables || []).map(d => (d && typeof d === 'object') ? d.name : d).filter(d => d && typeof d === 'string' && d.trim() !== '');
           if (deliverables.length > 0) {
             checkPageBreak(80);
             doc.y += 15;
@@ -197,7 +197,7 @@ export const generateEventPdf = (event, discount = 0) => {
             });
           }
 
-          const complimentries = (event.complimentries || []).filter(c => c && c.trim() !== '');
+          const complimentries = (event.complimentries || []).map(c => (c && typeof c === 'object') ? c.name : c).filter(c => c && typeof c === 'string' && c.trim() !== '');
           if (complimentries.length > 0) {
             checkPageBreak(80);
             doc.y += 15;

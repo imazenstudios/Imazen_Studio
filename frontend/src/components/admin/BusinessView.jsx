@@ -1266,8 +1266,9 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         return (
           <div className="fixed inset-0 z-[100] bg-black/95 overflow-y-auto flex justify-center items-start p-4 backdrop-blur-md">
             <div className="w-full max-w-3xl bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 relative shadow-2xl mt-4 mb-10">
-              <button onClick={() => { setViewingEventId(null); setEventNoteInput(''); }} className="absolute top-4 right-4 text-gray-400 hover:text-white text-xl z-20 w-8 h-8 flex items-center justify-center bg-black/40 rounded-full">✕</button>
-              
+              <div className="sticky top-0 z-50 flex justify-end -mt-2 -mr-2 mb-2">
+                <button onClick={() => { setViewingEventId(null); setEventNoteInput(''); }} className="text-gray-400 hover:text-white text-xl w-8 h-8 flex items-center justify-center bg-black/80 backdrop-blur-md rounded-full shadow-lg border border-white/10">✕</button>
+              </div>
               <div className="mb-4">
                 <h2 className="text-xl font-oswald text-white uppercase tracking-widest">{event.name}</h2>
                 {event.clientName && <p className="text-sm text-gray-400 mt-1">{event.clientName} {event.phone && `· ${event.phone}`}</p>}
@@ -1449,11 +1450,11 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         return (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="w-full max-w-lg bg-[#111] border border-white/10 p-6 shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
+            <div className="sticky top-0 z-50 flex justify-between items-center mb-6 pb-4 border-b border-white/10 bg-[#111] -mt-6 pt-6">
               <h3 className="text-xl font-light uppercase tracking-widest text-white">
                 {editingEvent._id ? 'Edit Event' : 'New Event'}
               </h3>
-              <button onClick={() => setEditingEvent(null)} className="text-white/50 hover:text-white">✕</button>
+              <button onClick={() => setEditingEvent(null)} className="text-white/50 hover:text-white text-2xl bg-black/50 w-8 h-8 flex items-center justify-center rounded-full">&times;</button>
             </div>
             <form onSubmit={handleSaveEvent} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

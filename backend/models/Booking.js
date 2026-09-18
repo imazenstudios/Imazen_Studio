@@ -45,6 +45,11 @@ const bookingSchema = new mongoose.Schema({
   }],
   assignedTeamMember: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamMember' },
   editAssignment: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamMember' },
+  // Add-ons
+  addOns: [{
+    name: { type: String, required: true },
+    price: { type: Number, default: 0 }
+  }],
   // Follow-ups
   followUps: [{
     date: { type: Date, default: Date.now },
