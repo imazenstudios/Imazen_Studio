@@ -598,23 +598,15 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
   );
 
   const renderOverviewCards = () => {
-    let pieData = [];
     let barData = [];
     if (viewMode === 'overview') {
-       pieData = [
-         { name: 'Shoot Profits', value: Math.max(0, totals.profitShoots), color: '#10b981' },
-         (isSuperAdmin || userPermissions.includes('props rentals')) ? { name: 'Prop Profits', value: Math.max(0, totals.profitProps), color: '#3b82f6' } : null,
-         (isSuperAdmin || userPermissions.includes('events')) ? { name: 'Event Profits', value: Math.max(0, totals.profitEvents), color: '#f59e0b' } : null,
-         { name: 'Expenditure', value: Math.max(0, totals.totalExpenses), color: '#ef4444' }
+       barData = [
+         { name: 'Shoot Profits', value: Math.max(0, totals.profitShoots), fill: '#10b981' },
+         (isSuperAdmin || userPermissions.includes('props rentals')) ? { name: 'Prop Profits', value: Math.max(0, totals.profitProps), fill: '#3b82f6' } : null,
+         (isSuperAdmin || userPermissions.includes('events')) ? { name: 'Event Profits', value: Math.max(0, totals.profitEvents), fill: '#f59e0b' } : null,
+         { name: 'Expenditure', value: Math.max(0, totals.totalExpenses), fill: '#ef4444' }
        ].filter(Boolean);
     } else {
-       pieData = [
-         { name: 'Amount Received', value: Math.max(0, totals.earnings), color: '#3b82f6' },
-         { name: 'Pending', value: Math.max(0, totals.pending), color: '#f59e0b' },
-         { name: 'Total Expenses', value: Math.max(0, totals.totalExpenses), color: '#ef4444' },
-         { name: 'Net Profit', value: Math.max(0, totals.profit), color: '#10b981' }
-       ];
-       // Bar chart data for studio_shoots
        barData = [
          { name: 'Total Business', value: Math.max(0, totals.totalBusiness), fill: '#8b5cf6' },
          { name: 'Amount Received', value: Math.max(0, totals.earnings), fill: '#3b82f6' },
@@ -624,7 +616,6 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
          { name: 'Net Profit', value: Math.max(0, totals.profit), fill: '#10b981' },
        ];
     }
-    const filteredPieData = pieData.filter(d => d.value > 0);
 
     return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -708,7 +699,7 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         </p>
       </div>
 
-      {/* Chart Section: Bar for studio_shoots, Pie for others */}
+      {/* Chart Section: Bar for all */}
       <div className="col-span-1 md:col-span-3 bg-[#111] p-6 rounded-xl border border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
         <div className="w-full md:w-1/3">
            <h4 className="text-sm uppercase tracking-widest text-white/70 mb-2">Financial Breakdown</h4>
@@ -716,12 +707,12 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
            
            <div className="space-y-4">
              {(() => {
-               const legendData = viewMode === 'overview' ? pieData : barData;
+               const legendData = barData;
                if (legendData.length === 0) return <p className="text-xs text-white/30 italic">No financial data to display.</p>;
                return legendData.filter(d => d.value > 0).map((d, i) => (
                  <div key={i} className="flex justify-between items-center text-sm">
                    <div className="flex items-center gap-2">
-                     <span className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color || d.fill }}></span>
+                     <span className="w-3 h-3 rounded-full" style={{ backgroundColor: d.fill }}></span>
                      <span className="text-white/70">{d.name}</span>
                    </div>
                    <span className="font-mono text-white">₹{d.value.toLocaleString()}</span>
@@ -732,46 +723,22 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         </div>
         <div className="w-full md:w-2/3 h-64">
           <ResponsiveContainer width="100%" height="100%">
-            {viewMode === 'overview' ? (
-              <PieChart>
-                <Pie
-                  data={pieData.filter(d => d.value > 0)}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {pieData.filter(d => d.value > 0).map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  formatter={(value) => `₹${value.toLocaleString()}`}
-                  contentStyle={{ backgroundColor: '#111', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                  itemStyle={{ color: '#fff' }}
-                />
-              </PieChart>
-            ) : (
-              <BarChart data={barData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} />
-                <Tooltip
-                  formatter={(value) => `₹${value.toLocaleString()}`}
-                  contentStyle={{ backgroundColor: '#111', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                  itemStyle={{ color: '#fff' }}
-                  cursor={{ fill: 'rgba(255,255,255,0.03)' }}
-                />
-                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                  {barData.map((entry, index) => (
-                    <Cell key={`bar-cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            )}
+            <BarChart data={barData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} />
+              <Tooltip
+                formatter={(value) => `₹${value.toLocaleString()}`}
+                contentStyle={{ backgroundColor: '#111', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                itemStyle={{ color: '#fff' }}
+                cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+              />
+              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                {barData.map((entry, index) => (
+                  <Cell key={`bar-cell-${index}`} fill={entry.fill} />
+                ))}
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
