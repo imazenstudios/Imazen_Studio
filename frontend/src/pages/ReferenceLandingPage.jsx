@@ -526,7 +526,7 @@ const ReferenceLandingPage = () => {
       {/* 8. FINAL CTA BANNER */}
       <section className="relative py-32 flex items-center justify-center text-center">
         <div 
-          className="absolute inset-0 z-0 bg-fixed bg-center bg-cover opacity-100"
+          className="absolute inset-0 z-0 bg-center bg-cover opacity-100"
           style={{ backgroundImage: "url('/images/studio.jpeg')" }}
         />
         <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#050505]/80 via-black/30 to-[#050505]/80" />
