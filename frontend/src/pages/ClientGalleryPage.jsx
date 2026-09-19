@@ -204,6 +204,23 @@ const ClientGalleryPage = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [lightbox, galleries, toggleImage]);
 
+  // Preload adjacent images for faster swiping
+  useEffect(() => {
+    if (!lightbox) return;
+    const currentGallery = galleries.find(g => g._id === lightbox.galleryId);
+    if (!currentGallery || !currentGallery.images || currentGallery.images.length === 0) return;
+    
+    const images = currentGallery.images;
+    const prevIdx = (lightbox.index - 1 + images.length) % images.length;
+    const nextIdx = (lightbox.index + 1) % images.length;
+
+    const img1 = new Image();
+    img1.src = getDriveThumbnail(images[prevIdx].driveId, 'w1920');
+    
+    const img2 = new Image();
+    img2.src = getDriveThumbnail(images[nextIdx].driveId, 'w1920');
+  }, [lightbox, galleries]);
+
   // Touch gesture handlers for mobile swipe in lightbox
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
@@ -405,7 +422,7 @@ const ClientGalleryPage = () => {
                         title="Click to view full size"
                       >
                         <img
-                          src={getDriveThumbnail(img.driveId, 'w600')}
+                          src={getDriveThumbnail(img.driveId, 'w400')}
                           alt={img.name}
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                           loading="lazy"
