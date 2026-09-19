@@ -439,6 +439,58 @@ const ReferenceLandingPage = () => {
       </section>
 
 
+      {/* INLINE ENQUIRY FORM */}
+      <section className="py-12 px-6 max-w-5xl mx-auto">
+        <div className="bg-[#111] border border-white/10 p-8 md:p-10 rounded-3xl shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-[50px] rounded-full pointer-events-none" />
+          <h3 className="text-2xl font-oswald uppercase tracking-widest mb-8 text-white text-center">Book Your Shoot</h3>
+          
+          {sessionStorage.getItem('portfolioMode') === 'true' ? (
+            <div className="bg-white/5 border border-white/10 p-8 rounded-xl text-center">
+              <p className="text-gray-400 text-xs font-sans">Form submissions are disabled in preview mode.</p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Your Name</label>
+                <input type="text" required className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/50 transition-colors" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+              </div>
+              <div>
+                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Email Address</label>
+                <input type="email" required className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/50 transition-colors" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+              </div>
+              <div>
+                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Phone Number</label>
+                <div className="flex gap-2">
+                  <select value={formData.countryCode} onChange={e => setFormData({...formData, countryCode: e.target.value})} className="w-24 bg-black/50 border border-white/10 rounded-xl px-2 py-3 text-white focus:outline-none focus:border-white/50 transition-colors appearance-none text-center cursor-pointer">
+                    <option value="91" className="bg-[#111] text-white">IN (+91)</option>
+                    <option value="1" className="bg-[#111] text-white">US (+1)</option>
+                    <option value="44" className="bg-[#111] text-white">UK (+44)</option>
+                    <option value="971" className="bg-[#111] text-white">UAE (+971)</option>
+                    <option value="61" className="bg-[#111] text-white">AU (+61)</option>
+                    <option value="65" className="bg-[#111] text-white">SG (+65)</option>
+                  </select>
+                  <input type="tel" required maxLength="10" pattern="[0-9]{10}" title="10 digits" className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/50 transition-colors" value={formData.phone} onChange={e => { const val = e.target.value.replace(/\D/g, ''); if (val.length <= 10) setFormData({...formData, phone: val}); }} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Service</label>
+                <select required className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/50 transition-colors" value={formData.serviceId} onChange={e => setFormData({...formData, serviceId: e.target.value, subId: ''})}>
+                  <option value="" className="bg-[#111] text-white">Select Service</option>
+                  {services.map(s => <option key={s._id} value={s.slug} className="bg-[#111] text-white">{s.name}</option>)}
+                </select>
+              </div>
+              
+              <div className="md:col-span-2 mt-2">
+                <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-white hover:bg-gray-200 text-black font-oswald uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50">
+                  {isSubmitting ? 'Submitting...' : 'Get Callback'}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </section>
+
       {/* 4. OUR BEST CLICKS */}
       <section className="py-24 border-t border-white/5 overflow-hidden">
         <div className="px-6 lg:px-12 mb-12 flex flex-col items-center">

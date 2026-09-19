@@ -298,6 +298,58 @@ const ReferenceLandingPage = () => {
         </div>
       </section>
 
+      {/* INLINE ENQUIRY FORM */}
+      <section className="py-12 px-6 max-w-5xl mx-auto">
+        <div className="bg-[#111] border border-white/10 p-8 md:p-10 rounded-3xl shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-[50px] rounded-full pointer-events-none" />
+          <h3 className="text-2xl font-oswald uppercase tracking-widest mb-8 text-white text-center">Book Your Shoot</h3>
+          
+          {sessionStorage.getItem('portfolioMode') === 'true' ? (
+            <div className="bg-white/5 border border-white/10 p-8 rounded-xl text-center">
+              <p className="text-gray-400 text-xs font-sans">Form submissions are disabled in preview mode.</p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Your Name</label>
+                <input type="text" required className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/50 transition-colors" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+              </div>
+              <div>
+                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Email Address</label>
+                <input type="email" required className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/50 transition-colors" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+              </div>
+              <div>
+                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Phone Number</label>
+                <input type="tel" required className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/50 transition-colors" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
+              </div>
+              <div>
+                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Service</label>
+                <select required className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/50 transition-colors" value={formData.serviceId} onChange={e => setFormData({...formData, serviceId: e.target.value, subId: ''})}>
+                  <option value="" className="bg-[#111] text-white">Select Service</option>
+                  {services.map(s => <option key={s._id} value={s.slug} className="bg-[#111] text-white">{s.title}</option>)}
+                </select>
+              </div>
+
+              {selectedService && selectedService.subServices && selectedService.subServices.length > 0 && (
+                <div className="md:col-span-2">
+                  <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Interested In</label>
+                  <select required className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-white/50 transition-colors" value={formData.subId} onChange={e => setFormData({...formData, subId: e.target.value})}>
+                    <option value="" className="bg-[#111] text-white">Select Sub Service</option>
+                    {selectedService.subServices.map(sub => <option key={sub.slug} value={sub.slug} className="bg-[#111] text-white">{sub.title}</option>)}
+                  </select>
+                </div>
+              )}
+              
+              <div className="md:col-span-2 mt-2">
+                <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-white hover:bg-gray-200 text-black font-oswald uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50">
+                  {isSubmitting ? 'Submitting...' : 'Get Callback'}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </section>
+
       {/* 4. OUR BEST CLICKS */}
       <section className="py-24 border-t border-white/5 overflow-hidden">
         <div className="px-6 lg:px-12 mb-12 flex flex-col items-center">
