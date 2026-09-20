@@ -129,8 +129,7 @@ const ReferenceLandingPage = () => {
 
   const portfolioVideos = (pageData?.portfolioVideos && pageData.portfolioVideos.length > 0) ? pageData.portfolioVideos : ['https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'];
 
-    if (loading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white">Loading...</div>;
-  if (!pageData && slug) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white">Page Not Found</div>;
+  if (!loading && !pageData && slug) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white">Page Not Found</div>;
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-gray-500/30 overflow-x-hidden relative">

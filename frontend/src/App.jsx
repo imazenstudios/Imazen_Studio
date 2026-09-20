@@ -74,15 +74,30 @@ function App() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [maintenanceEndTime, setMaintenanceEndTime] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [animationFinished, setAnimationFinished] = useState(false);
+  const [animationFinished, setAnimationFinished] = useState(() => {
+    const path = window.location.pathname;
+    const isKnownCoreRoute = [
+      '/', '/about', '/packages', '/portfolio', '/themes', '/gallery', 
+      '/book', '/contact', '/thank-you', '/studio', '/testimonials', 
+      '/wedding', '/my-gallery', '/admin', '/admin/login'
+    ].includes(path);
+    
+    const isKnownPrefixRoute = path.startsWith('/services/') || path.startsWith('/location/') || path.startsWith('/admin/');
+    
+    if (isKnownCoreRoute || isKnownPrefixRoute) {
+      return false;
+    }
+    return true;
+  });
   const [adminBypass, setAdminBypass] = useState(false);
 
   useEffect(() => {
+    if (animationFinished) return;
     const timer = setTimeout(() => {
       setAnimationFinished(true);
     }, 2500);
     return () => clearTimeout(timer);
-  }, []);
+  }, [animationFinished]);
 
   useEffect(() => {
     // Check for admin bypass in localStorage
