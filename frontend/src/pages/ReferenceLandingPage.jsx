@@ -118,7 +118,7 @@ const ReferenceLandingPage = () => {
       {/* HEADER */}
       <header className="absolute top-0 left-0 w-full z-50 p-6 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
         <Link to="/">
-          <img src="/images/logo.png" alt="Imazen Studios" className="h-12 w-auto object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" />
+          <img src="/images/logo.png" alt="Imazen Studios" className="h-12 w-auto object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" fetchpriority="high" />
         </Link>
         <button 
           onClick={() => setIsModalOpen(true)}
@@ -143,7 +143,7 @@ const ReferenceLandingPage = () => {
             {heroImages.map((img, i) => (
               <SwiperSlide key={i}>
                 <div className="w-full h-full">
-                  <img src={img} alt="Hero Background" className="w-full h-full object-cover opacity-60 scale-105 transform hover:scale-100 transition-transform duration-[10s] ease-out" />
+                  <img src={img} alt="Hero Background" className="w-full h-full object-cover opacity-60 scale-105 transform hover:scale-100 transition-transform duration-[10s] ease-out" fetchpriority="high" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-black/50 to-black/20" />
                 </div>
               </SwiperSlide>
@@ -245,8 +245,8 @@ const ReferenceLandingPage = () => {
             >
               <div className="h-64 overflow-hidden relative">
                 <Swiper modules={[Autoplay, Navigation]} navigation={true} autoplay={{ delay: 3000, disableOnInteraction: false }} loop={true} className="w-full h-full opacity-80 group-hover:opacity-100 transition-opacity">
-                  <SwiperSlide><img src="/images/experience_bg.jpeg" alt="Newborn" className="w-full h-full object-cover" /></SwiperSlide>
-                  <SwiperSlide><img src="/images/about_bg.jpeg" alt="Newborn 2" className="w-full h-full object-cover" /></SwiperSlide>
+                  <SwiperSlide><img src="/images/experience_bg.jpeg" alt="Newborn" className="w-full h-full object-cover" loading="lazy" decoding="async" /></SwiperSlide>
+                  <SwiperSlide><img src="/images/about_bg.jpeg" alt="Newborn 2" className="w-full h-full object-cover" loading="lazy" decoding="async" /></SwiperSlide>
                 </Swiper>
                 <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#111] to-transparent pointer-events-none" />
               </div>
@@ -264,8 +264,8 @@ const ReferenceLandingPage = () => {
             >
               <div className="h-64 overflow-hidden relative">
                 <Swiper modules={[Autoplay, Navigation]} navigation={true} autoplay={{ delay: 3500, disableOnInteraction: false }} loop={true} className="w-full h-full opacity-80 group-hover:opacity-100 transition-opacity">
-                  <SwiperSlide><img src="/images/mobile.jpeg" alt="Milestone" className="w-full h-full object-cover" /></SwiperSlide>
-                  <SwiperSlide><img src="/images/studio.jpeg" alt="Milestone 2" className="w-full h-full object-cover" /></SwiperSlide>
+                  <SwiperSlide><img src="/images/mobile.jpeg" alt="Milestone" className="w-full h-full object-cover" loading="lazy" decoding="async" /></SwiperSlide>
+                  <SwiperSlide><img src="/images/studio.jpeg" alt="Milestone 2" className="w-full h-full object-cover" loading="lazy" decoding="async" /></SwiperSlide>
                 </Swiper>
                 <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#111] to-transparent pointer-events-none" />
               </div>
@@ -283,8 +283,8 @@ const ReferenceLandingPage = () => {
             >
               <div className="h-64 overflow-hidden relative">
                 <Swiper modules={[Autoplay, Navigation]} navigation={true} autoplay={{ delay: 4000, disableOnInteraction: false }} loop={true} className="w-full h-full opacity-80 group-hover:opacity-100 transition-opacity">
-                  <SwiperSlide><img src="/images/banner_bg.webp" alt="Toddler" className="w-full h-full object-cover" /></SwiperSlide>
-                  <SwiperSlide><img src="/images/experience_bg.jpeg" alt="Toddler 2" className="w-full h-full object-cover" /></SwiperSlide>
+                  <SwiperSlide><img src="/images/banner_bg.webp" alt="Toddler" className="w-full h-full object-cover" loading="lazy" decoding="async" /></SwiperSlide>
+                  <SwiperSlide><img src="/images/experience_bg.jpeg" alt="Toddler 2" className="w-full h-full object-cover" loading="lazy" decoding="async" /></SwiperSlide>
                 </Swiper>
                 <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#111] to-transparent pointer-events-none" />
               </div>
@@ -370,7 +370,7 @@ const ReferenceLandingPage = () => {
           >
             {[...portfolioImages, ...portfolioImages, ...portfolioImages, ...portfolioImages].map((img, i) => (
               <SwiperSlide key={i} className="!w-[280px] md:!w-[350px] h-[400px] md:h-[500px] cursor-pointer overflow-hidden border-0 relative transition-colors flex justify-center">
-                <img src={img} alt="Gallery" className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" />
+                <img src={img} alt="Gallery" className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" loading="lazy" decoding="async" />
               </SwiperSlide>
             ))}
           </Swiper>
@@ -462,7 +462,7 @@ const ReferenceLandingPage = () => {
               
               return (
                 <SwiperSlide key={i} className="!w-[300px] md:!w-[500px] aspect-video overflow-hidden border border-white/10 relative cursor-pointer hover:border-white/30 transition-colors">
-                  <img src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} className="h-full w-auto max-w-none object-cover transition-transform duration-700 hover:scale-105" alt="Video Thumbnail" />
+                  <img src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} className="h-full w-auto max-w-none object-cover transition-transform duration-700 hover:scale-105" alt="Video Thumbnail" loading="lazy" decoding="async" />
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="w-16 h-16 rounded-full bg-black/50 border border-white/50 flex items-center justify-center backdrop-blur-sm">
                       <span className="text-white text-xl ml-1">▶</span>
