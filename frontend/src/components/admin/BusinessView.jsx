@@ -1692,6 +1692,60 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                     <p className="text-xs text-white/30 italic">No sub events added. Click + Add Sub Event.</p>
                   )}
                   
+                  {/* Add-ons */}
+                  <div className="pt-4 border-t border-white/10 mt-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <label className="block text-xs uppercase tracking-widest text-white/50">Add-ons</label>
+                      <button 
+                        type="button" 
+                        onClick={() => setEditingEvent({
+                          ...editingEvent, 
+                          addOns: [...(editingEvent.addOns || []), { name: '', price: 0 }]
+                        })} 
+                        className="text-xs text-white/50 hover:text-white border border-white/10 px-2 py-1 rounded"
+                      >
+                        + Add Add-on
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {(editingEvent.addOns || []).map((addon, aIdx) => (
+                        <div key={aIdx} className="flex gap-2 items-center">
+                          <input
+                            type="text"
+                            placeholder="Add-on Name"
+                            value={addon.name}
+                            onChange={e => {
+                              const newList = [...(editingEvent.addOns || [])];
+                              newList[aIdx].name = e.target.value;
+                              setEditingEvent({...editingEvent, addOns: newList});
+                            }}
+                            className="flex-1 min-w-0 bg-black/50 border border-white/10 rounded px-3 py-2 text-sm text-white"
+                            required
+                          />
+                          <input
+                            type="number"
+                            placeholder="Price"
+                            value={addon.price || ''}
+                            onChange={e => {
+                              const newList = [...(editingEvent.addOns || [])];
+                              newList[aIdx].price = Number(e.target.value);
+                              setEditingEvent({...editingEvent, addOns: newList});
+                            }}
+                            className="w-24 bg-black/50 border border-white/10 rounded px-3 py-2 text-sm text-white"
+                            required
+                          />
+                          <button type="button" onClick={() => {
+                            const newList = editingEvent.addOns.filter((_, i) => i !== aIdx);
+                            setEditingEvent({...editingEvent, addOns: newList});
+                          }} className="text-red-500 hover:text-red-400 px-2 py-1 shrink-0">✕</button>
+                        </div>
+                      ))}
+                      {(!editingEvent.addOns || editingEvent.addOns.length === 0) && (
+                        <p className="text-xs text-white/30 italic">No add-ons added.</p>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Deliverables */}
                   <div className="pt-4 border-t border-white/10 mt-4">
                     <div className="flex justify-between items-center mb-3">
@@ -1878,59 +1932,6 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                     </div>
                   </div>
 
-                  {/* Add-ons */}
-                  <div className="pt-4 border-t border-white/10 mt-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <label className="block text-xs uppercase tracking-widest text-white/50">Add-ons</label>
-                      <button 
-                        type="button" 
-                        onClick={() => setEditingEvent({
-                          ...editingEvent, 
-                          addOns: [...(editingEvent.addOns || []), { name: '', price: 0 }]
-                        })} 
-                        className="text-xs text-white/50 hover:text-white border border-white/10 px-2 py-1 rounded"
-                      >
-                        + Add Add-on
-                      </button>
-                    </div>
-                    <div className="space-y-2">
-                      {(editingEvent.addOns || []).map((addon, aIdx) => (
-                        <div key={aIdx} className="flex gap-2 items-center">
-                          <input
-                            type="text"
-                            placeholder="Add-on Name"
-                            value={addon.name}
-                            onChange={e => {
-                              const newList = [...(editingEvent.addOns || [])];
-                              newList[aIdx].name = e.target.value;
-                              setEditingEvent({...editingEvent, addOns: newList});
-                            }}
-                            className="flex-1 min-w-0 bg-black/50 border border-white/10 rounded px-3 py-2 text-sm text-white"
-                            required
-                          />
-                          <input
-                            type="number"
-                            placeholder="Price"
-                            value={addon.price}
-                            onChange={e => {
-                              const newList = [...(editingEvent.addOns || [])];
-                              newList[aIdx].price = Number(e.target.value);
-                              setEditingEvent({...editingEvent, addOns: newList});
-                            }}
-                            className="w-24 bg-black/50 border border-white/10 rounded px-3 py-2 text-sm text-white"
-                            required
-                          />
-                          <button type="button" onClick={() => {
-                            const newList = editingEvent.addOns.filter((_, i) => i !== aIdx);
-                            setEditingEvent({...editingEvent, addOns: newList});
-                          }} className="text-red-500 hover:text-red-400 px-2 py-1 shrink-0">✕</button>
-                        </div>
-                      ))}
-                      {(!editingEvent.addOns || editingEvent.addOns.length === 0) && (
-                        <p className="text-xs text-white/30 italic">No add-ons added.</p>
-                      )}
-                    </div>
-                  </div>
                 </div>
               </div>
 

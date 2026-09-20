@@ -3996,7 +3996,16 @@ const AdminDashboard = () => {
                                         <p className="text-sm text-white">{fu.note}</p>
                                         <p className="text-xs text-gray-500 mt-1">{new Date(fu.date).toLocaleString()}</p>
                                       </div>
-                                      <button onClick={() => handleDeleteFollowUp(booking._id, fu._id)} className="text-red-500 hover:text-red-400 text-sm ml-3 shrink-0">✕</button>
+                                      <button onClick={async () => {
+                                        if (!window.confirm('Delete this note forever?')) return;
+                                        try {
+                                          await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${booking._id}/followups/${fu._id}`);
+                                          fetchData();
+                                        } catch (error) {
+                                          console.error(error);
+                                          alert('Error deleting follow-up note');
+                                        }
+                                      }} className="text-red-500 hover:text-red-400 text-sm ml-3 shrink-0">✕</button>
                                     </div>
                                   ))}
                                 </div>

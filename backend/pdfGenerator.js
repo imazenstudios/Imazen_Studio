@@ -180,8 +180,36 @@ export const generateEventPdf = (event, discount = 0) => {
             doc.y += 20;
           }
 
-          const deliverables = (event.deliverables || []).map(d => (d && typeof d === 'object') ? d.name : d).filter(d => d && typeof d === 'string' && d.trim() !== '');
-          if (deliverables.length > 0) {
+          const addOns = event.addOns || [];
+          if (addOns.length > 0) {
+            checkPageBreak(80);
+            doc.y += 15;
+            const addOnsTop = doc.y;
+            doc.rect(50, addOnsTop, doc.page.width - 100, 25).fillColor('#1a1a1a').fill();
+            doc.font(mainHeadingFont).fontSize(10).fillColor(grayColor)
+               .text('ADD-ONS', 65, addOnsTop + 8);
+            doc.y = addOnsTop + 35;
+            doc.font(bodyFont).fontSize(10).fillColor(lightGrayColor);
+            addOns.forEach(addon => {
+              checkPageBreak(20);
+              const name = addon.name || '';
+              const price = Number(addon.price) || 0;
+              doc.text(`- ${name}`, 65, doc.y);
+              if (price > 0) {
+                doc.text(`Rs. ${price.toLocaleString()}/-`, doc.page.width - 150, doc.y - 10, { width: 85, align: 'right' });
+                calculatedTotal += price;
+              }
+              doc.y += 15;
+            });
+          }
+
+          const deliverables = event.deliverables || [];
+          const validDeliverables = deliverables.filter(d => {
+            if (typeof d === 'object') return d && d.name && d.name.trim() !== '';
+            return d && typeof d === 'string' && d.trim() !== '';
+          });
+          
+          if (validDeliverables.length > 0) {
             checkPageBreak(80);
             doc.y += 15;
             const delivTop = doc.y;
@@ -190,15 +218,26 @@ export const generateEventPdf = (event, discount = 0) => {
                .text('DELIVERABLES', 65, delivTop + 8);
             doc.y = delivTop + 35;
             doc.font(bodyFont).fontSize(10).fillColor(lightGrayColor);
-            deliverables.forEach(del => {
+            validDeliverables.forEach(del => {
               checkPageBreak(20);
-              doc.text(`- ${del}`, 65, doc.y);
+              const name = typeof del === 'object' ? del.name : del;
+              const price = typeof del === 'object' ? (Number(del.price) || 0) : 0;
+              doc.text(`- ${name}`, 65, doc.y);
+              if (price > 0) {
+                doc.text(`Rs. ${price.toLocaleString()}/-`, doc.page.width - 150, doc.y - 10, { width: 85, align: 'right' });
+                calculatedTotal += price;
+              }
               doc.y += 15;
             });
           }
 
-          const complimentries = (event.complimentries || []).map(c => (c && typeof c === 'object') ? c.name : c).filter(c => c && typeof c === 'string' && c.trim() !== '');
-          if (complimentries.length > 0) {
+          const complimentries = event.complimentries || [];
+          const validComplimentries = complimentries.filter(c => {
+            if (typeof c === 'object') return c && c.name && c.name.trim() !== '';
+            return c && typeof c === 'string' && c.trim() !== '';
+          });
+
+          if (validComplimentries.length > 0) {
             checkPageBreak(80);
             doc.y += 15;
             const compTop = doc.y;
@@ -207,9 +246,15 @@ export const generateEventPdf = (event, discount = 0) => {
                .text('COMPLIMENTARIES', 65, compTop + 8);
             doc.y = compTop + 35;
             doc.font(bodyFont).fontSize(10).fillColor(lightGrayColor);
-            complimentries.forEach(comp => {
+            validComplimentries.forEach(comp => {
               checkPageBreak(20);
-              doc.text(`- ${comp}`, 65, doc.y);
+              const name = typeof comp === 'object' ? comp.name : comp;
+              const price = typeof comp === 'object' ? (Number(comp.price) || 0) : 0;
+              doc.text(`- ${name}`, 65, doc.y);
+              if (price > 0) {
+                doc.text(`Rs. ${price.toLocaleString()}/-`, doc.page.width - 150, doc.y - 10, { width: 85, align: 'right' });
+                calculatedTotal += price;
+              }
               doc.y += 15;
             });
           }
