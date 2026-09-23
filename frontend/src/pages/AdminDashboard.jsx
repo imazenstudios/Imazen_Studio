@@ -5157,23 +5157,46 @@ const AdminDashboard = () => {
                           
                           <div>
                             <label className="block text-xs uppercase text-emerald-500/70 mb-3 tracking-widest">Select Permissions</label>
-                            <div className="flex flex-wrap gap-4">
-                              {['dashboard', 'leads', 'inquiries', 'follow ups', 'studio bookings', 'calendar', 'business', 'overview', 'studio shoots', 'props rentals', 'events', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'developer options', 'add partner'].map(perm => (
-                                <label key={perm} className="flex items-center gap-2 cursor-pointer">
-                                  <input 
-                                    type="checkbox" 
-                                    className="accent-emerald-500"
-                                    checked={(editingTeamMember.permissions || []).includes(perm)}
-                                    onChange={(e) => {
-                                      const perms = new Set(editingTeamMember.permissions || []);
-                                      if (e.target.checked) perms.add(perm);
-                                      else perms.delete(perm);
-                                      setEditingTeamMember({...editingTeamMember, permissions: Array.from(perms)});
-                                    }}
-                                  />
-                                  <span className="text-xs text-white uppercase">{perm}</span>
-                                </label>
-                              ))}
+                            <div className="flex flex-col gap-4">
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-black/60 p-6 rounded border border-white/5">
+                                {['dashboard', 'leads', 'inquiries', 'follow ups', 'studio bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'developer options', 'add partner'].map(perm => (
+                                  <label key={perm} className="flex items-center gap-2 cursor-pointer group">
+                                    <input 
+                                      type="checkbox" 
+                                      className="accent-emerald-500"
+                                      checked={(editingTeamMember.permissions || []).includes(perm)}
+                                      onChange={(e) => {
+                                        const perms = new Set(editingTeamMember.permissions || []);
+                                        if (e.target.checked) perms.add(perm);
+                                        else perms.delete(perm);
+                                        setEditingTeamMember({...editingTeamMember, permissions: Array.from(perms)});
+                                      }}
+                                    />
+                                    <span className="text-xs text-white uppercase">{perm}</span>
+                                  </label>
+                                ))}
+                              </div>
+                              <div className="bg-purple-500/5 border border-purple-500/20 p-6 rounded">
+                                <label className="block text-[10px] uppercase text-purple-400 mb-3 tracking-widest font-bold">Business Module</label>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                  {['business', 'overview', 'studio shoots', 'props rentals', 'events'].map(perm => (
+                                    <label key={perm} className="flex items-center gap-2 cursor-pointer group">
+                                      <input 
+                                        type="checkbox" 
+                                        className="accent-purple-500"
+                                        checked={(editingTeamMember.permissions || []).includes(perm)}
+                                        onChange={(e) => {
+                                          const perms = new Set(editingTeamMember.permissions || []);
+                                          if (e.target.checked) perms.add(perm);
+                                          else perms.delete(perm);
+                                          setEditingTeamMember({...editingTeamMember, permissions: Array.from(perms)});
+                                        }}
+                                      />
+                                      <span className="text-xs text-white uppercase">{perm}</span>
+                                    </label>
+                                  ))}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -5283,26 +5306,52 @@ const AdminDashboard = () => {
                     
                     <div>
                       <label className="block text-xs uppercase text-gray-500 mb-4 tracking-widest">Assign Permissions</label>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-white/5 border border-white/10 rounded">
-                        {['dashboard', 'leads', 'inquiries', 'follow ups', 'studio bookings', 'calendar', 'business', 'overview', 'studio shoots', 'props rentals', 'events', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'client gallery', 'permissions', 'developer options', 'add partner']
-                          .filter(perm => isSuperAdmin || userPermissions.includes(perm))
-                          .map(perm => (
-                          <label key={perm} className={`flex items-center gap-3 ${storedUser.email === editingAdminUser.email ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}>
-                            <input 
-                              type="checkbox" 
-                              disabled={storedUser.email === editingAdminUser.email}
-                              className="w-4 h-4 accent-white disabled:opacity-50"
-                              checked={(editingAdminUser.permissions || []).includes(perm)}
-                              onChange={(e) => {
-                                const perms = new Set(editingAdminUser.permissions || []);
-                                if (e.target.checked) perms.add(perm);
-                                else perms.delete(perm);
-                                setEditingAdminUser({...editingAdminUser, permissions: Array.from(perms)});
-                              }}
-                            />
-                            <span className="text-xs text-white uppercase tracking-widest">{perm}</span>
-                          </label>
-                        ))}
+                      <div className="flex flex-col gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-white/5 border border-white/10 rounded">
+                          {['dashboard', 'leads', 'inquiries', 'follow ups', 'studio bookings', 'calendar', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'client gallery', 'permissions', 'developer options', 'add partner']
+                            .filter(perm => isSuperAdmin || userPermissions.includes(perm))
+                            .map(perm => (
+                            <label key={perm} className={`flex items-center gap-3 ${storedUser.email === editingAdminUser.email ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}>
+                              <input 
+                                type="checkbox" 
+                                disabled={storedUser.email === editingAdminUser.email}
+                                className="w-4 h-4 accent-white disabled:opacity-50"
+                                checked={(editingAdminUser.permissions || []).includes(perm)}
+                                onChange={(e) => {
+                                  const perms = new Set(editingAdminUser.permissions || []);
+                                  if (e.target.checked) perms.add(perm);
+                                  else perms.delete(perm);
+                                  setEditingAdminUser({...editingAdminUser, permissions: Array.from(perms)});
+                                }}
+                              />
+                              <span className="text-xs text-white uppercase tracking-widest">{perm}</span>
+                            </label>
+                          ))}
+                        </div>
+                        <div className="p-6 bg-purple-500/5 border border-purple-500/30 rounded">
+                          <label className="block text-[10px] uppercase text-purple-400 mb-4 tracking-widest font-bold">Business Module</label>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {['business', 'overview', 'studio shoots', 'props rentals', 'events']
+                              .filter(perm => isSuperAdmin || userPermissions.includes(perm))
+                              .map(perm => (
+                              <label key={perm} className={`flex items-center gap-3 ${storedUser.email === editingAdminUser.email ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}>
+                                <input 
+                                  type="checkbox" 
+                                  disabled={storedUser.email === editingAdminUser.email}
+                                  className="w-4 h-4 accent-purple-500 disabled:opacity-50"
+                                  checked={(editingAdminUser.permissions || []).includes(perm)}
+                                  onChange={(e) => {
+                                    const perms = new Set(editingAdminUser.permissions || []);
+                                    if (e.target.checked) perms.add(perm);
+                                    else perms.delete(perm);
+                                    setEditingAdminUser({...editingAdminUser, permissions: Array.from(perms)});
+                                  }}
+                                />
+                                <span className="text-xs text-white uppercase tracking-widest">{perm}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                     
