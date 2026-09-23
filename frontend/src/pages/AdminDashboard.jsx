@@ -5158,7 +5158,7 @@ const AdminDashboard = () => {
                           <div>
                             <label className="block text-xs uppercase text-emerald-500/70 mb-3 tracking-widest">Select Permissions</label>
                             <div className="flex flex-wrap gap-4">
-                              {['dashboard', 'leads', 'inquiries', 'follow ups', 'studio bookings', 'calendar', 'business', 'props rentals', 'events', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'developer options', 'add partner'].map(perm => (
+                              {['dashboard', 'leads', 'inquiries', 'follow ups', 'studio bookings', 'calendar', 'business', 'overview', 'studio shoots', 'props rentals', 'events', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'developer options', 'add partner'].map(perm => (
                                 <label key={perm} className="flex items-center gap-2 cursor-pointer">
                                   <input 
                                     type="checkbox" 
@@ -5284,7 +5284,7 @@ const AdminDashboard = () => {
                     <div>
                       <label className="block text-xs uppercase text-gray-500 mb-4 tracking-widest">Assign Permissions</label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-white/5 border border-white/10 rounded">
-                        {['dashboard', 'leads', 'inquiries', 'follow ups', 'studio bookings', 'calendar', 'business', 'props rentals', 'events', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'client gallery', 'permissions', 'developer options', 'add partner']
+                        {['dashboard', 'leads', 'inquiries', 'follow ups', 'studio bookings', 'calendar', 'business', 'overview', 'studio shoots', 'props rentals', 'events', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'client gallery', 'permissions', 'developer options', 'add partner']
                           .filter(perm => isSuperAdmin || userPermissions.includes(perm))
                           .map(perm => (
                           <label key={perm} className={`flex items-center gap-3 ${storedUser.email === editingAdminUser.email ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}>
