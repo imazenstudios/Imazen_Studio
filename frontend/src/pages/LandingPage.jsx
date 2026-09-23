@@ -265,7 +265,7 @@ const ReferenceLandingPage = () => {
             >
             {heroImages.map((img, i) => (
               <SwiperSlide key={i}>
-                <div className="w-full h-full">
+                <div className="w-full h-full bg-gradient-to-b from-[#111] to-[#050505]">
                   <img src={img.desktop} alt="Hero Background" className="hidden md:block w-full h-full object-cover opacity-60 scale-105 transform hover:scale-100 transition-transform duration-[10s] ease-out" fetchpriority="high" />
                   <img src={img.mobile} alt="Hero Background Mobile" className="block md:hidden w-full h-full object-cover opacity-60 scale-105 transform hover:scale-100 transition-transform duration-[10s] ease-out" fetchpriority="high" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-black/50 to-black/20" />
@@ -546,8 +546,8 @@ const ReferenceLandingPage = () => {
             className="mySwiper"
           >
             {[...portfolioImages, ...portfolioImages, ...portfolioImages, ...portfolioImages].map((img, i) => (
-              <SwiperSlide key={i} className="!w-[280px] md:!w-[350px] h-[400px] md:h-[500px] cursor-pointer overflow-hidden border-0 relative transition-colors flex justify-center">
-                <img src={img} alt="Gallery" className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" loading="lazy" decoding="async" />
+              <SwiperSlide key={i} className="!w-[280px] md:!w-[350px] h-[400px] md:h-[500px] cursor-pointer overflow-hidden border-0 relative transition-colors bg-[#111]">
+                <img src={img} alt="Gallery" className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" decoding="async" />
               </SwiperSlide>
             ))}
           </Swiper>

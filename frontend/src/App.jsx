@@ -9,8 +9,10 @@ import Footer from './components/Footer';
 import NoInternetOverlay from './components/NoInternetOverlay';
 import ScrollToTopButton from './components/ScrollToTopButton';
 
+import Home from './pages/Home';
+import LandingPage from './pages/LandingPage';
+
 // Lazy load pages for code splitting and faster load times
-const Home = lazy(() => import('./pages/Home'));
 const Packages = lazy(() => import('./pages/Packages'));
 const Book = lazy(() => import('./pages/Book'));
 const Gallery = lazy(() => import('./pages/Gallery'));
@@ -23,7 +25,6 @@ const Contact = lazy(() => import('./pages/Contact'));
 const TestimonialsPage = lazy(() => import('./pages/TestimonialsPage'));
 const ServicePortfolio = lazy(() => import('./pages/ServicePortfolio'));
 const ServiceDetails = lazy(() => import('./pages/ServiceDetails'));
-const LandingPage = lazy(() => import('./pages/LandingPage'));
 const Studio = lazy(() => import('./pages/Studio'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Maintenance = lazy(() => import('./pages/Maintenance'));
