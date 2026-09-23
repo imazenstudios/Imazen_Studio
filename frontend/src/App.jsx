@@ -218,7 +218,7 @@ function App() {
           </div>
         )}
 
-        <Suspense fallback={<div className="min-h-screen bg-[#050505]"></div>}>
+        <Suspense fallback={null}>
           <Routes>
             {/* Admin routes bypass maintenance mode */}
             <Route path="/admin/login" element={<AdminLogin />} />
