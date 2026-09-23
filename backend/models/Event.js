@@ -59,7 +59,8 @@ const eventSchema = new mongoose.Schema({
   // Work progress notes
   followUps: [{
     note: { type: String, required: true },
-    date: { type: Date, default: Date.now }
+    date: { type: Date, default: Date.now },
+    isPinned: { type: Boolean, default: false }
   }],
   // Team assignment
   assignedTeamMember: { type: mongoose.Schema.Types.ObjectId, ref: 'TeamMember' },

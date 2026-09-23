@@ -230,11 +230,27 @@ router.put('/events/:id/payment', async (req, res) => {
 // Event: Add a note
 router.post('/events/:id/followup', async (req, res) => {
   try {
-    const { note } = req.body;
+    const { note, isPinned } = req.body;
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ error: 'Event not found' });
-    event.followUps.push({ note, date: new Date() });
+    event.followUps.push({ note, date: new Date(), isPinned: isPinned || false });
     await event.save();
+    res.json(event);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Event: Update a note
+router.put('/events/:id/followups/:noteId', async (req, res) => {
+  try {
+    const { note, isPinned } = req.body;
+    const event = await Event.findOneAndUpdate(
+      { _id: req.params.id, "followUps._id": req.params.noteId },
+      { $set: { "followUps.$.note": note, "followUps.$.isPinned": isPinned !== undefined ? isPinned : false } },
+      { new: true }
+    );
+    if (!event) return res.status(404).json({ error: 'Event or note not found' });
     res.json(event);
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -53,7 +53,8 @@ const bookingSchema = new mongoose.Schema({
   // Follow-ups
   followUps: [{
     date: { type: Date, default: Date.now },
-    note: { type: String, required: true }
+    note: { type: String, required: true },
+    isPinned: { type: Boolean, default: false }
   }]
 }, { timestamps: true });
 

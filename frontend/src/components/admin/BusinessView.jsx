@@ -488,26 +488,31 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
   
       if (viewMode === 'overview') {
         // Overall Earnings: All bookings + Props + Events
-        allBookings.forEach(b => {
-          shootEarnings += (b.totalAmount || 0) - (b.pendingAmount || 0);
-          pendingShoots += (b.pendingAmount || 0);
-        });
-        if (isSuperAdmin || userPermissions.includes('props rentals')) {
+        if (isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'studio shoots')) {
+          allBookings.forEach(b => {
+            shootEarnings += (b.totalAmount || 0) - (b.pendingAmount || 0);
+            pendingShoots += (b.pendingAmount || 0);
+          });
+          shootExpenses = filteredExpenses.filter(e => e.type === 'Shoot' && allBookings.some(cb => cb._id === e.bookingId)).reduce((a, b) => a + b.amount, 0);
+        }
+
+        if (isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'props rentals')) {
           filteredProps.forEach(p => {
             propEarnings += p.paidAmount || p.totalAmount || 0;
             pendingProps += p.pendingAmount || 0;
           });
           propExpenses = filteredExpenses.filter(e => e.type === 'Prop' && filteredProps.some(cp => cp._id === e.bookingId)).reduce((a, b) => a + b.amount, 0);
         }
-        if (isSuperAdmin || userPermissions.includes('events')) {
+
+        if (isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'events')) {
           filteredEvents.forEach(e => {
             eventEarnings += e.paidAmount || 0;
             pendingEvents += e.pendingAmount || 0;
           });
           eventExpenses = filteredExpenses.filter(e => e.type === 'Event' && filteredEvents.some(ce => ce._id === e.bookingId)).reduce((a, b) => a + b.amount, 0);
         }
+        
         studioExpenses = filteredExpenses.filter(e => e.type === 'Studio').reduce((a, b) => a + b.amount, 0);
-        shootExpenses = filteredExpenses.filter(e => e.type === 'Shoot' && allBookings.some(cb => cb._id === e.bookingId)).reduce((a, b) => a + b.amount, 0);
       } 
       else if (viewMode === 'studio_shoots') {
         // Earnings from studio shoots only
@@ -607,9 +612,9 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
     let barData = [];
     if (viewMode === 'overview') {
        barData = [
-         { name: 'Shoot Profits', value: Math.max(0, totals.profitShoots), fill: '#10b981' },
-         (isSuperAdmin || userPermissions.includes('props rentals')) ? { name: 'Prop Profits', value: Math.max(0, totals.profitProps), fill: '#3b82f6' } : null,
-         (isSuperAdmin || userPermissions.includes('events')) ? { name: 'Event Profits', value: Math.max(0, totals.profitEvents), fill: '#f59e0b' } : null,
+         (isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'studio shoots')) ? { name: 'Shoot Profits', value: Math.max(0, totals.profitShoots), fill: '#10b981' } : null,
+         (isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'props rentals')) ? { name: 'Prop Profits', value: Math.max(0, totals.profitProps), fill: '#3b82f6' } : null,
+         (isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'events')) ? { name: 'Event Profits', value: Math.max(0, totals.profitEvents), fill: '#f59e0b' } : null,
          { name: 'Expenditure', value: Math.max(0, totals.totalExpenses), fill: '#ef4444' }
        ].filter(Boolean);
     } else {
@@ -638,9 +643,9 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         <p className="text-xs text-white mt-2">
           {viewMode === 'overview' && (
             <>
-              Shoots: ₹{totals.shootEarnings}
-              {(isSuperAdmin || userPermissions.includes('props rentals')) && ` | Rentals: ₹${totals.propEarnings}`}
-              {(isSuperAdmin || userPermissions.includes('events')) && ` | Events: ₹${totals.eventEarnings}`}
+              {(isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'studio shoots')) && `Shoots: ₹${totals.shootEarnings}`}
+              {(isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'props rentals')) && ` | Rentals: ₹${totals.propEarnings}`}
+              {(isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'events')) && ` | Events: ₹${totals.eventEarnings}`}
             </>
           )}
           {viewMode === 'studio_shoots' && `Shoots: ₹${totals.shootEarnings}`}
@@ -655,9 +660,9 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         <p className="text-xs text-white mt-2">
           {viewMode === 'overview' && (
             <>
-              Shoots: ₹{totals.pendingShoots}
-              {(isSuperAdmin || userPermissions.includes('props rentals')) && ` | Rentals: ₹${totals.pendingProps}`}
-              {(isSuperAdmin || userPermissions.includes('events')) && ` | Events: ₹${totals.pendingEvents}`}
+              {(isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'studio shoots')) && `Shoots: ₹${totals.pendingShoots}`}
+              {(isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'props rentals')) && ` | Rentals: ₹${totals.pendingProps}`}
+              {(isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'events')) && ` | Events: ₹${totals.pendingEvents}`}
             </>
           )}
           {viewMode === 'studio_shoots' && `Shoots: ₹${totals.pendingShoots}`}
@@ -672,8 +677,10 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         <p className="text-xs text-white mt-2">
           {viewMode === 'overview' && (
             <>
-              Studio: ₹{totals.studioExpenses} | Shoot: ₹{totals.shootExpenses}
-              {(isSuperAdmin || userPermissions.includes('events')) && ` | Events: ₹${totals.eventExpenses}`}
+              Studio: ₹{totals.studioExpenses}
+              {(isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'studio shoots')) && ` | Shoot: ₹${totals.shootExpenses}`}
+              {(isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'props rentals')) && ` | Rentals: ₹${totals.propExpenses}`}
+              {(isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'events')) && ` | Events: ₹${totals.eventExpenses}`}
             </>
           )}
           {viewMode === 'studio_shoots' && `Shoot Expenses: ₹${totals.shootExpenses}`}
@@ -694,9 +701,9 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
         <p className="text-xs text-white mt-2">
           {viewMode === 'overview' && (
             <>
-              Shoots: ₹{totals.profitShoots}
-              {(isSuperAdmin || userPermissions.includes('props rentals')) && ` | Rentals: ₹${totals.profitProps}`}
-              {(isSuperAdmin || userPermissions.includes('events')) && ` | Events: ₹${totals.profitEvents}`}
+              {(isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'studio shoots')) && `Shoots: ₹${totals.profitShoots}`}
+              {(isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'props rentals')) && ` | Rentals: ₹${totals.profitProps}`}
+              {(isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'events')) && ` | Events: ₹${totals.profitEvents}`}
             </>
           )}
           {viewMode === 'studio_shoots' && `Shoots: ₹${totals.profitShoots}`}
@@ -758,12 +765,16 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
       {!hideTabsAndOverview && (
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/10 pb-4">
            <div className="flex gap-4">
-             <button onClick={() => setViewMode('overview')} className={`text-sm uppercase tracking-widest ${viewMode === 'overview' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Overview</button>
-             <button onClick={() => setViewMode('studio_shoots')} className={`text-sm uppercase tracking-widest ${viewMode === 'studio_shoots' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Studio Shoots</button>
-             {(isSuperAdmin || userPermissions.includes('props rentals')) && (
+             {(isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'overview')) && (
+               <button onClick={() => setViewMode('overview')} className={`text-sm uppercase tracking-widest ${viewMode === 'overview' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Overview</button>
+             )}
+             {(isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'studio shoots')) && (
+               <button onClick={() => setViewMode('studio_shoots')} className={`text-sm uppercase tracking-widest ${viewMode === 'studio_shoots' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Studio Shoots</button>
+             )}
+             {(isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'props rentals')) && (
                <button onClick={() => setViewMode('props')} className={`text-sm uppercase tracking-widest ${viewMode === 'props' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Props Rentals</button>
              )}
-             {(isSuperAdmin || userPermissions.includes('events')) && (
+             {(isSuperAdmin || userPermissions.some(p => p.toLowerCase() === 'events')) && (
                <button onClick={() => setViewMode('events')} className={`text-sm uppercase tracking-widest ${viewMode === 'events' ? 'text-white border-b border-white pb-1' : 'text-white/50 hover:text-white'}`}>Events</button>
              )}
            </div>
@@ -1210,17 +1221,21 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                       </div>
                     )}
                     
-                    <div className="grid grid-cols-3 gap-2 py-2 border-y border-white/5">
+                    <div className="grid grid-cols-4 gap-2 py-2 border-y border-white/5">
                       <div>
-                        <p className="text-[11px] text-white/40 uppercase tracking-widest">Total</p>
+                        <p className="text-[10px] text-white/40 uppercase tracking-widest">Total</p>
                         <p className="text-sm font-bold text-white">₹{(event.totalAmount || 0).toLocaleString()}</p>
                       </div>
                       <div>
-                        <p className="text-[11px] text-white/40 uppercase tracking-widest">Paid</p>
+                        <p className="text-[10px] text-white/40 uppercase tracking-widest">Discount</p>
+                        <p className="text-sm font-bold text-rose-400">₹{(event.discount || 0).toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-white/40 uppercase tracking-widest">Paid</p>
                         <p className="text-sm text-emerald-400">₹{(event.paidAmount || 0).toLocaleString()}</p>
                       </div>
                       <div>
-                        <p className="text-[11px] text-white/40 uppercase tracking-widest">Pending</p>
+                        <p className="text-[10px] text-white/40 uppercase tracking-widest">Pending</p>
                         <p className="text-sm text-amber-500 font-bold">₹{(event.pendingAmount || 0).toLocaleString()}</p>
                       </div>
                     </div>
@@ -1232,7 +1247,17 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                       </div>
                     )}
                   </div>
-                  <div className="p-3 pt-0 space-y-2">
+                  <div className="p-3 pt-0 space-y-2 flex-grow flex flex-col justify-end">
+                    {event.followUps && event.followUps.filter(n => n.isPinned).length > 0 && (
+                      <div className="mb-2 px-3 py-2 bg-amber-500/10 border border-amber-500/20 rounded text-[10px] text-amber-400 flex flex-col gap-1 w-full">
+                        {event.followUps.filter(n => n.isPinned).map(n => (
+                          <div key={n._id} className="flex gap-2 items-start leading-tight">
+                            <span className="shrink-0 mt-0.5">📌</span>
+                            <span>{n.note}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <button
                       onClick={() => setViewingEventId(event._id)}
                       className="w-full py-2 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white rounded text-xs uppercase tracking-widest transition-colors border border-emerald-500/20 font-bold"
@@ -1398,26 +1423,56 @@ const BusinessView = ({ bookings = [], expenses = [], partners = [], teamMembers
                       <div key={fu._id || idx} className="flex justify-between items-start bg-black/60 p-3 rounded border border-white/5">
                         <div>
                           <p className="text-xs text-white">{fu.note}</p>
-                          <p className="text-[10px] text-gray-500 mt-1">{new Date(fu.date).toLocaleString()}</p>
+                          <p className="text-[10px] text-gray-500 mt-1">
+                            {new Date(fu.date).toLocaleString()}
+                            {fu.isPinned && <span className="text-amber-500 font-bold ml-2">📌 PINNED</span>}
+                          </p>
                         </div>
-                        <button onClick={() => handleDeleteEventNote(event._id, fu._id)} className="text-red-500 hover:text-red-400 text-xs ml-3 shrink-0">✕</button>
+                        <div className="flex gap-2 items-center ml-3 shrink-0">
+                          <button onClick={async () => {
+                            try {
+                              const res = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${event._id}/followups/${fu._id}`, { note: fu.note, isPinned: !fu.isPinned });
+                              setEventsData(prev => prev.map(ev => ev._id === event._id ? res.data : ev));
+                            } catch (error) {
+                              console.error(error);
+                              alert('Error updating note');
+                            }
+                          }} className={`${fu.isPinned ? 'text-amber-500' : 'text-gray-600 hover:text-white'} text-xs transition-colors`} title={fu.isPinned ? "Unpin note" : "Pin note"}>
+                            📌
+                          </button>
+                          <button onClick={() => handleDeleteEventNote(event._id, fu._id)} className="text-red-500 hover:text-red-400 text-xs">✕</button>
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <p className="text-xs text-gray-500 italic mb-3">No notes yet.</p>
                 )}
-                <div className="flex gap-2">
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  const noteInput = e.target.note.value;
+                  const isPinned = e.target.isPinned.checked;
+                  if (!noteInput.trim()) return;
+                  try {
+                    const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/business/events/${event._id}/followup`, { note: noteInput, isPinned });
+                    setEventsData(prev => prev.map(ev => ev._id === event._id ? res.data : ev));
+                    e.target.reset();
+                  } catch (error) {
+                    alert('Error adding note');
+                  }
+                }} className="flex gap-2 items-center">
                   <input
                     type="text"
+                    name="note"
                     placeholder="Add a note..."
-                    value={eventNoteInput}
-                    onChange={e => setEventNoteInput(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleAddEventNote(event._id)}
                     className="flex-1 bg-black/60 border border-white/10 rounded px-3 py-2 text-xs text-white outline-none focus:border-white/30"
                   />
-                  <button onClick={() => handleAddEventNote(event._id)} className="px-4 py-2 bg-green-500/20 hover:bg-green-500 text-green-400 hover:text-white border border-green-500/20 rounded text-xs uppercase tracking-widest transition-colors">+ Add</button>
-                </div>
+                  <label className="flex items-center gap-1 text-[10px] text-gray-400 cursor-pointer hover:text-white transition-colors">
+                    <input type="checkbox" name="isPinned" className="accent-amber-500" />
+                    Pin
+                  </label>
+                  <button type="submit" className="px-4 py-2 bg-green-500/20 hover:bg-green-500 text-green-400 hover:text-white border border-green-500/20 rounded text-xs uppercase tracking-widest transition-colors">+ Add</button>
+                </form>
               </div>
 
               <div className="flex gap-2">

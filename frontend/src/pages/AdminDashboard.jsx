@@ -3754,6 +3754,18 @@ const AdminDashboard = () => {
                                       }`}>{booking.status || 'Pending'}</span>
                                     </div>
                                   </div>
+
+                                  {booking.followUps && booking.followUps.filter(n => n.isPinned).length > 0 && (
+                                    <div className="mb-3 px-3 py-2 bg-amber-500/10 border border-amber-500/20 rounded text-[10px] text-amber-400 flex flex-col gap-1 w-full mt-2">
+                                      {booking.followUps.filter(n => n.isPinned).map(n => (
+                                        <div key={n._id} className="flex gap-2 items-start leading-tight">
+                                          <span className="shrink-0 mt-0.5">📌</span>
+                                          <span>{n.note}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+
                                   <button 
                                     onClick={() => setViewingDetailsBookingId(booking._id)}
                                     className="w-full py-2 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-500 hover:text-white rounded-lg text-xs uppercase tracking-widest transition-colors border border-emerald-500/20 font-bold mt-auto"
@@ -3994,18 +4006,34 @@ const AdminDashboard = () => {
                                     <div key={fu._id || idx} className="flex justify-between items-start bg-black/60 p-3 rounded border border-white/5">
                                       <div>
                                         <p className="text-sm text-white">{fu.note}</p>
-                                        <p className="text-xs text-gray-500 mt-1">{new Date(fu.date).toLocaleString()}</p>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                          {new Date(fu.date).toLocaleString()}
+                                          {fu.isPinned && <span className="text-amber-500 font-bold ml-2">📌 PINNED</span>}
+                                        </p>
                                       </div>
-                                      <button onClick={async () => {
-                                        if (!window.confirm('Delete this note forever?')) return;
-                                        try {
-                                          await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${booking._id}/followups/${fu._id}`);
-                                          fetchData();
-                                        } catch (error) {
-                                          console.error(error);
-                                          alert('Error deleting follow-up note');
-                                        }
-                                      }} className="text-red-500 hover:text-red-400 text-sm ml-3 shrink-0">✕</button>
+                                      <div className="flex gap-3 items-center ml-3 shrink-0">
+                                        <button onClick={async () => {
+                                          try {
+                                            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${booking._id}/followups/${fu._id}`, { note: fu.note, isPinned: !fu.isPinned });
+                                            fetchData();
+                                          } catch (error) {
+                                            console.error(error);
+                                            alert('Error updating note');
+                                          }
+                                        }} className={`${fu.isPinned ? 'text-amber-500' : 'text-gray-600 hover:text-white'} text-sm transition-colors`} title={fu.isPinned ? "Unpin note" : "Pin note"}>
+                                          📌
+                                        </button>
+                                        <button onClick={async () => {
+                                          if (!window.confirm('Delete this note forever?')) return;
+                                          try {
+                                            await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${booking._id}/followups/${fu._id}`);
+                                            fetchData();
+                                          } catch (error) {
+                                            console.error(error);
+                                            alert('Error deleting follow-up note');
+                                          }
+                                        }} className="text-red-500 hover:text-red-400 text-sm">✕</button>
+                                      </div>
                                     </div>
                                   ))}
                                 </div>
@@ -4015,21 +4043,26 @@ const AdminDashboard = () => {
                               <form onSubmit={async (e) => {
                                 e.preventDefault();
                                 const noteInput = e.target.note.value;
+                                const isPinned = e.target.isPinned.checked;
                                 if (!noteInput.trim()) return;
                                 try {
-                                  await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${booking._id}/followup`, { note: noteInput });
+                                  await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${booking._id}/followup`, { note: noteInput, isPinned });
                                   fetchData();
                                   e.target.reset();
                                 } catch (error) {
                                   alert('Error adding note');
                                 }
-                              }} className="flex gap-2">
+                              }} className="flex gap-2 items-center">
                                 <input
                                   type="text"
                                   name="note"
                                   placeholder="Add a note..."
                                   className="flex-1 bg-black/60 border border-white/10 rounded px-3 py-2 text-sm text-white outline-none focus:border-white/30"
                                 />
+                                <label className="flex items-center gap-1 text-xs text-gray-400 cursor-pointer hover:text-white transition-colors">
+                                  <input type="checkbox" name="isPinned" className="accent-amber-500" />
+                                  Pin
+                                </label>
                                 <button type="submit" className="px-5 py-2 bg-green-500/20 hover:bg-green-500 text-green-400 hover:text-white border border-green-500/20 rounded text-xs uppercase tracking-widest transition-colors font-bold">+ Add</button>
                               </form>
                             </div>
