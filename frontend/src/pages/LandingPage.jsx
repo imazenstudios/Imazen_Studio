@@ -143,33 +143,37 @@ const ReferenceLandingPage = () => {
   const portfolioVideos = (pageData?.portfolioVideos && pageData.portfolioVideos.length > 0) ? pageData.portfolioVideos : ['https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'];
 
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center relative">
-        <div className="relative w-40 sm:w-64 h-20 sm:h-24">
-          <img src="/images/logo.png" alt="Imazen Studios Logo" className="absolute inset-0 w-full h-full object-contain opacity-20" />
-          <div 
-            className="absolute top-0 left-0 h-full overflow-hidden" 
-            style={{ animation: 'fillLogo 2s infinite ease-in-out' }}
-          >
-            <img src="/images/logo.png" alt="Imazen Studios Logo" className="w-40 sm:w-64 h-20 sm:h-24 object-contain max-w-none origin-left" />
-          </div>
-        </div>
-        <style>{`
-          @keyframes fillLogo {
-            0% { width: 0%; }
-            50% { width: 100%; }
-            100% { width: 0%; }
-          }
-        `}</style>
-      </div>
-    );
-  }
-
   if (notFound) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white">Page Not Found</div>;
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-gray-500/30 overflow-x-hidden relative">
+      <AnimatePresence>
+        {loading && (
+          <motion.div 
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-[10000] bg-[#050505] flex flex-col items-center justify-center"
+          >
+            <div className="relative w-40 sm:w-64 h-20 sm:h-24">
+              <img src="/images/logo.png" alt="Imazen Studios Logo" className="absolute inset-0 w-full h-full object-contain opacity-20" />
+              <div 
+                className="absolute top-0 left-0 h-full overflow-hidden" 
+                style={{ animation: 'fillLogo 2s infinite ease-in-out' }}
+              >
+                <img src="/images/logo.png" alt="Imazen Studios Logo" className="w-40 sm:w-64 h-20 sm:h-24 object-contain max-w-none origin-left" />
+              </div>
+            </div>
+            <style>{`
+              @keyframes fillLogo {
+                0% { width: 0%; }
+                50% { width: 100%; }
+                100% { width: 0%; }
+              }
+            `}</style>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       
       {/* YOUTUBE VIDEO MODAL */}
