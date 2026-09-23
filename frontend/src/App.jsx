@@ -1,36 +1,36 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import axios from 'axios';
 import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import Packages from './pages/Packages';
-import Book from './pages/Book';
-import Gallery from './pages/Gallery';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminLogin from './pages/AdminLogin';
 import ProtectedRoute from './components/ProtectedRoute';
-
-import LocationPage from './pages/LocationPage';
-import AboutUs from './pages/AboutUs';
-import Themes from './pages/Themes';
-import Contact from './pages/Contact';
-import TestimonialsPage from './pages/TestimonialsPage';
-import ServicePortfolio from './pages/ServicePortfolio';
-import ServiceDetails from './pages/ServiceDetails';
-import LandingPage from './pages/LandingPage';
-import Studio from './pages/Studio';
 import WhatsAppButton from './components/WhatsAppButton';
 import Footer from './components/Footer';
 import NoInternetOverlay from './components/NoInternetOverlay';
-import NotFound from './pages/NotFound';
-import Maintenance from './pages/Maintenance';
-import ThankYou from './pages/ThankYou';
-import ReferenceLandingPage from './pages/ReferenceLandingPage';
-import Wedding from './pages/Wedding';
-import ClientGalleryPage from './pages/ClientGalleryPage';
-
 import ScrollToTopButton from './components/ScrollToTopButton';
+
+// Lazy load pages for code splitting and faster load times
+const Home = lazy(() => import('./pages/Home'));
+const Packages = lazy(() => import('./pages/Packages'));
+const Book = lazy(() => import('./pages/Book'));
+const Gallery = lazy(() => import('./pages/Gallery'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+const LocationPage = lazy(() => import('./pages/LocationPage'));
+const AboutUs = lazy(() => import('./pages/AboutUs'));
+const Themes = lazy(() => import('./pages/Themes'));
+const Contact = lazy(() => import('./pages/Contact'));
+const TestimonialsPage = lazy(() => import('./pages/TestimonialsPage'));
+const ServicePortfolio = lazy(() => import('./pages/ServicePortfolio'));
+const ServiceDetails = lazy(() => import('./pages/ServiceDetails'));
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const Studio = lazy(() => import('./pages/Studio'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const Maintenance = lazy(() => import('./pages/Maintenance'));
+const ThankYou = lazy(() => import('./pages/ThankYou'));
+const ReferenceLandingPage = lazy(() => import('./pages/ReferenceLandingPage'));
+const Wedding = lazy(() => import('./pages/Wedding'));
+const ClientGalleryPage = lazy(() => import('./pages/ClientGalleryPage'));
 
 
 // Create a layout component to conditionally hide header/footer
@@ -218,39 +218,50 @@ function App() {
           </div>
         )}
 
-        <Routes>
-          {/* Admin routes bypass maintenance mode */}
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/*" element={<ProtectedRoute><Layout><AdminDashboard /></Layout></ProtectedRoute>} />
+        <Suspense fallback={
+          <div className="fixed inset-0 z-[9999] bg-[#050505] flex flex-col items-center justify-center relative">
+            <div className="relative w-40 sm:w-64 h-20 sm:h-24">
+              <img src="/images/logo.png" alt="Imazen Studios Logo" className="absolute inset-0 w-full h-full object-contain opacity-20" />
+              <div className="absolute top-0 left-0 h-full overflow-hidden" style={{ animation: 'fillLogo 2s infinite ease-in-out' }}>
+                <img src="/images/logo.png" alt="Imazen Studios Logo" className="w-40 sm:w-64 h-20 sm:h-24 object-contain max-w-none origin-left" />
+              </div>
+            </div>
+          </div>
+        }>
+          <Routes>
+            {/* Admin routes bypass maintenance mode */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/*" element={<ProtectedRoute><Layout><AdminDashboard /></Layout></ProtectedRoute>} />
 
-          {/* If maintenance mode is active, intercept all other routes */}
-          {maintenanceMode && !adminBypass ? (
-            <Route path="*" element={<Maintenance endTime={maintenanceEndTime} />} />
-          ) : (
-            <>
-              <Route path="/" element={<Layout><Home /></Layout>} />
-              <Route path="/about" element={<Layout><AboutUs /></Layout>} />
-              <Route path="/packages" element={<Layout><Packages /></Layout>} />
-              <Route path="/portfolio" element={<Layout><ServicePortfolio /></Layout>} />
-              <Route path="/services/:slug" element={<Layout><ServiceDetails /></Layout>} />
-              <Route path="/themes" element={<Layout><Themes /></Layout>} />
-              <Route path="/gallery" element={<Layout><Gallery /></Layout>} />
-              <Route path="/book" element={<Layout><Book /></Layout>} />
-              <Route path="/contact" element={<Layout><Contact /></Layout>} />
-              <Route path="/thank-you" element={<Layout><ThankYou /></Layout>} />
-              <Route path="/location/:city" element={<Layout><LocationPage /></Layout>} />
-              <Route path="/studio" element={<Layout><Studio /></Layout>} />
-              <Route path="/testimonials" element={<Layout><TestimonialsPage /></Layout>} />
-              <Route path="/reference" element={<ReferenceLandingPage />} />
-              <Route path="/wedding" element={<Layout><Wedding /></Layout>} />
-              <Route path="/my-gallery" element={<ClientGalleryPage />} />
-              <Route path="/:slug" element={<LandingPage />} />
+            {/* If maintenance mode is active, intercept all other routes */}
+            {maintenanceMode && !adminBypass ? (
+              <Route path="*" element={<Maintenance endTime={maintenanceEndTime} />} />
+            ) : (
+              <>
+                <Route path="/" element={<Layout><Home /></Layout>} />
+                <Route path="/about" element={<Layout><AboutUs /></Layout>} />
+                <Route path="/packages" element={<Layout><Packages /></Layout>} />
+                <Route path="/portfolio" element={<Layout><ServicePortfolio /></Layout>} />
+                <Route path="/services/:slug" element={<Layout><ServiceDetails /></Layout>} />
+                <Route path="/themes" element={<Layout><Themes /></Layout>} />
+                <Route path="/gallery" element={<Layout><Gallery /></Layout>} />
+                <Route path="/book" element={<Layout><Book /></Layout>} />
+                <Route path="/contact" element={<Layout><Contact /></Layout>} />
+                <Route path="/thank-you" element={<Layout><ThankYou /></Layout>} />
+                <Route path="/location/:city" element={<Layout><LocationPage /></Layout>} />
+                <Route path="/studio" element={<Layout><Studio /></Layout>} />
+                <Route path="/testimonials" element={<Layout><TestimonialsPage /></Layout>} />
+                <Route path="/reference" element={<ReferenceLandingPage />} />
+                <Route path="/wedding" element={<Layout><Wedding /></Layout>} />
+                <Route path="/my-gallery" element={<ClientGalleryPage />} />
+                <Route path="/:slug" element={<LandingPage />} />
 
-              {/* Catch-all for 404 Not Found */}
-              <Route path="*" element={<NotFound />} />
-            </>
-          )}
-        </Routes>
+                {/* Catch-all for 404 Not Found */}
+                <Route path="*" element={<NotFound />} />
+              </>
+            )}
+          </Routes>
+        </Suspense>
       </Router>
     </HelmetProvider>
     )}

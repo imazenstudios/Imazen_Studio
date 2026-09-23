@@ -37,21 +37,39 @@ const ReferenceLandingPage = () => {
   const navigate = useNavigate();
   const [pageData, setPageData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+    // Force the loader to disappear after 1.5 seconds so the page displays quickly
+    const timeout = setTimeout(() => {
+      if (isMounted) setLoading(false);
+    }, 1500);
+
     const fetchLandingPage = async () => {
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/landing-pages/${slug}`);
-        setPageData(res.data);
+        if (isMounted) {
+          setPageData(res.data);
+          setLoading(false);
+        }
       } catch (err) {
         console.error(err);
-        navigate('/'); // Redirect if not found
-      } finally {
-        setLoading(false);
+        if (isMounted) {
+          setNotFound(true);
+          setLoading(false);
+          navigate('/'); // Redirect if not found
+        }
       }
     };
-    if(slug) fetchLandingPage();
+    
+    if (slug) fetchLandingPage();
     else setLoading(false);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeout);
+    };
   }, [slug, navigate]);
 
   // Use pageData if available, fallback to default hardcoded arrays
@@ -129,8 +147,29 @@ const ReferenceLandingPage = () => {
 
   const portfolioVideos = (pageData?.portfolioVideos && pageData.portfolioVideos.length > 0) ? pageData.portfolioVideos : ['https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'];
 
-  if (loading) return <div className="min-h-screen bg-[#050505]"></div>;
-  if (!pageData && slug) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white">Page Not Found</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center relative">
+        <div className="relative w-40 sm:w-64 h-20 sm:h-24">
+          <img src="/images/logo.png" alt="Imazen Studios Logo" className="absolute inset-0 w-full h-full object-contain opacity-20" />
+          <div 
+            className="absolute top-0 left-0 h-full overflow-hidden" 
+            style={{ animation: 'fillLogo 2s infinite ease-in-out' }}
+          >
+            <img src="/images/logo.png" alt="Imazen Studios Logo" className="w-40 sm:w-64 h-20 sm:h-24 object-contain max-w-none origin-left" />
+          </div>
+        </div>
+        <style>{`
+          @keyframes fillLogo {
+            0% { width: 0%; }
+            50% { width: 100%; }
+            100% { width: 0%; }
+          }
+        `}</style>
+      </div>
+    );
+  }
+  if (notFound) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white">Page Not Found</div>;
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-gray-500/30 overflow-x-hidden relative">
